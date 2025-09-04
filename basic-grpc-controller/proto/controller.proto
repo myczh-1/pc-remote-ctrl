@@ -1,0 +1,60 @@
+syntax = "proto3";
+
+package controller;
+
+option go_package = "basic-grpc-controller/proto/controller";
+
+// 控制器服务定义
+service ControllerService {
+  // 执行命令
+  rpc ExecuteCommand(ExecuteCommandRequest) returns (ExecuteCommandResponse);
+  // 存储命令
+  rpc StoreCommand(StoreCommandRequest) returns (StoreCommandResponse);
+  // 获取全部命令
+  rpc GetAllCommands(GetAllCommandsRequest) returns (GetAllCommandsResponse);
+}
+
+// 执行命令请求
+message ExecuteCommandRequest {
+  string command_id = 1;  // 命令ID
+}
+
+// 执行命令响应
+message ExecuteCommandResponse {
+  bool success = 1;       // 是否成功
+  string output = 2;      // 输出内容
+  string error = 3;       // 错误信息
+  int32 exit_code = 4;    // 退出码
+}
+
+// 存储命令请求
+message StoreCommandRequest {
+  string command_id = 1;    // 命令ID
+  string command_name = 2;  // 命令名称
+  string command_script = 3; // 命令脚本
+  string description = 4;   // 描述
+}
+
+// 存储命令响应
+message StoreCommandResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// 获取全部命令请求
+message GetAllCommandsRequest {
+  // 空请求
+}
+
+// 命令信息
+message CommandInfo {
+  string command_id = 1;
+  string command_name = 2;
+  string command_script = 3;
+  string description = 4;
+}
+
+// 获取全部命令响应
+message GetAllCommandsResponse {
+  repeated CommandInfo commands = 1;
+}

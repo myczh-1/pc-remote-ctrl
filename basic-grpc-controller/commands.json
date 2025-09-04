@@ -1,0 +1,1 @@
+{"hello":{"command_id":"hello","command_name":"Hello命令","command_script":"echo 'Hello from gRPC Controller!'","description":"简单的问候命令"}}
