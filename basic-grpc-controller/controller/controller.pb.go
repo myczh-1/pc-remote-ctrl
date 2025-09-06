@@ -2,9 +2,9 @@
 // versions:
 // 	protoc-gen-go v1.36.8
 // 	protoc        v3.12.4
-// source: proto/controller/controller.proto
+// source: proto/controller.proto
 
-package controllerpb
+package controller
 
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -31,7 +31,7 @@ type ExecuteCommandRequest struct {
 
 func (x *ExecuteCommandRequest) Reset() {
 	*x = ExecuteCommandRequest{}
-	mi := &file_proto_controller_controller_proto_msgTypes[0]
+	mi := &file_proto_controller_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -43,7 +43,7 @@ func (x *ExecuteCommandRequest) String() string {
 func (*ExecuteCommandRequest) ProtoMessage() {}
 
 func (x *ExecuteCommandRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_controller_controller_proto_msgTypes[0]
+	mi := &file_proto_controller_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -56,7 +56,7 @@ func (x *ExecuteCommandRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExecuteCommandRequest.ProtoReflect.Descriptor instead.
 func (*ExecuteCommandRequest) Descriptor() ([]byte, []int) {
-	return file_proto_controller_controller_proto_rawDescGZIP(), []int{0}
+	return file_proto_controller_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *ExecuteCommandRequest) GetCommandId() string {
@@ -79,7 +79,7 @@ type ExecuteCommandResponse struct {
 
 func (x *ExecuteCommandResponse) Reset() {
 	*x = ExecuteCommandResponse{}
-	mi := &file_proto_controller_controller_proto_msgTypes[1]
+	mi := &file_proto_controller_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -91,7 +91,7 @@ func (x *ExecuteCommandResponse) String() string {
 func (*ExecuteCommandResponse) ProtoMessage() {}
 
 func (x *ExecuteCommandResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_controller_controller_proto_msgTypes[1]
+	mi := &file_proto_controller_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -104,7 +104,7 @@ func (x *ExecuteCommandResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExecuteCommandResponse.ProtoReflect.Descriptor instead.
 func (*ExecuteCommandResponse) Descriptor() ([]byte, []int) {
-	return file_proto_controller_controller_proto_rawDescGZIP(), []int{1}
+	return file_proto_controller_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *ExecuteCommandResponse) GetSuccess() bool {
@@ -148,7 +148,7 @@ type StoreCommandRequest struct {
 
 func (x *StoreCommandRequest) Reset() {
 	*x = StoreCommandRequest{}
-	mi := &file_proto_controller_controller_proto_msgTypes[2]
+	mi := &file_proto_controller_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -160,7 +160,7 @@ func (x *StoreCommandRequest) String() string {
 func (*StoreCommandRequest) ProtoMessage() {}
 
 func (x *StoreCommandRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_controller_controller_proto_msgTypes[2]
+	mi := &file_proto_controller_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -173,7 +173,7 @@ func (x *StoreCommandRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StoreCommandRequest.ProtoReflect.Descriptor instead.
 func (*StoreCommandRequest) Descriptor() ([]byte, []int) {
-	return file_proto_controller_controller_proto_rawDescGZIP(), []int{2}
+	return file_proto_controller_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *StoreCommandRequest) GetCommandId() string {
@@ -215,7 +215,7 @@ type StoreCommandResponse struct {
 
 func (x *StoreCommandResponse) Reset() {
 	*x = StoreCommandResponse{}
-	mi := &file_proto_controller_controller_proto_msgTypes[3]
+	mi := &file_proto_controller_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -227,7 +227,7 @@ func (x *StoreCommandResponse) String() string {
 func (*StoreCommandResponse) ProtoMessage() {}
 
 func (x *StoreCommandResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_controller_controller_proto_msgTypes[3]
+	mi := &file_proto_controller_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -240,7 +240,7 @@ func (x *StoreCommandResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StoreCommandResponse.ProtoReflect.Descriptor instead.
 func (*StoreCommandResponse) Descriptor() ([]byte, []int) {
-	return file_proto_controller_controller_proto_rawDescGZIP(), []int{3}
+	return file_proto_controller_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *StoreCommandResponse) GetSuccess() bool {
@@ -266,7 +266,7 @@ type GetAllCommandsRequest struct {
 
 func (x *GetAllCommandsRequest) Reset() {
 	*x = GetAllCommandsRequest{}
-	mi := &file_proto_controller_controller_proto_msgTypes[4]
+	mi := &file_proto_controller_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -278,7 +278,7 @@ func (x *GetAllCommandsRequest) String() string {
 func (*GetAllCommandsRequest) ProtoMessage() {}
 
 func (x *GetAllCommandsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_controller_controller_proto_msgTypes[4]
+	mi := &file_proto_controller_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -291,7 +291,7 @@ func (x *GetAllCommandsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAllCommandsRequest.ProtoReflect.Descriptor instead.
 func (*GetAllCommandsRequest) Descriptor() ([]byte, []int) {
-	return file_proto_controller_controller_proto_rawDescGZIP(), []int{4}
+	return file_proto_controller_proto_rawDescGZIP(), []int{4}
 }
 
 // 命令信息
@@ -307,7 +307,7 @@ type CommandInfo struct {
 
 func (x *CommandInfo) Reset() {
 	*x = CommandInfo{}
-	mi := &file_proto_controller_controller_proto_msgTypes[5]
+	mi := &file_proto_controller_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -319,7 +319,7 @@ func (x *CommandInfo) String() string {
 func (*CommandInfo) ProtoMessage() {}
 
 func (x *CommandInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_controller_controller_proto_msgTypes[5]
+	mi := &file_proto_controller_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -332,7 +332,7 @@ func (x *CommandInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CommandInfo.ProtoReflect.Descriptor instead.
 func (*CommandInfo) Descriptor() ([]byte, []int) {
-	return file_proto_controller_controller_proto_rawDescGZIP(), []int{5}
+	return file_proto_controller_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *CommandInfo) GetCommandId() string {
@@ -373,7 +373,7 @@ type GetAllCommandsResponse struct {
 
 func (x *GetAllCommandsResponse) Reset() {
 	*x = GetAllCommandsResponse{}
-	mi := &file_proto_controller_controller_proto_msgTypes[6]
+	mi := &file_proto_controller_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -385,7 +385,7 @@ func (x *GetAllCommandsResponse) String() string {
 func (*GetAllCommandsResponse) ProtoMessage() {}
 
 func (x *GetAllCommandsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_controller_controller_proto_msgTypes[6]
+	mi := &file_proto_controller_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -398,7 +398,7 @@ func (x *GetAllCommandsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAllCommandsResponse.ProtoReflect.Descriptor instead.
 func (*GetAllCommandsResponse) Descriptor() ([]byte, []int) {
-	return file_proto_controller_controller_proto_rawDescGZIP(), []int{6}
+	return file_proto_controller_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *GetAllCommandsResponse) GetCommands() []*CommandInfo {
@@ -408,11 +408,11 @@ func (x *GetAllCommandsResponse) GetCommands() []*CommandInfo {
 	return nil
 }
 
-var File_proto_controller_controller_proto protoreflect.FileDescriptor
+var File_proto_controller_proto protoreflect.FileDescriptor
 
-const file_proto_controller_controller_proto_rawDesc = "" +
+const file_proto_controller_proto_rawDesc = "" +
 	"\n" +
-	"!proto/controller/controller.proto\x12\n" +
+	"\x16proto/controller.proto\x12\n" +
 	"controller\"6\n" +
 	"\x15ExecuteCommandRequest\x12\x1d\n" +
 	"\n" +
@@ -443,22 +443,22 @@ const file_proto_controller_controller_proto_rawDesc = "" +
 	"\x11ControllerService\x12W\n" +
 	"\x0eExecuteCommand\x12!.controller.ExecuteCommandRequest\x1a\".controller.ExecuteCommandResponse\x12Q\n" +
 	"\fStoreCommand\x12\x1f.controller.StoreCommandRequest\x1a .controller.StoreCommandResponse\x12W\n" +
-	"\x0eGetAllCommands\x12!.controller.GetAllCommandsRequest\x1a\".controller.GetAllCommandsResponseB5Z3basic-grpc-controller/proto/controller;controllerpbb\x06proto3"
+	"\x0eGetAllCommands\x12!.controller.GetAllCommandsRequest\x1a\".controller.GetAllCommandsResponseB\x0eZ\f./controllerb\x06proto3"
 
 var (
-	file_proto_controller_controller_proto_rawDescOnce sync.Once
-	file_proto_controller_controller_proto_rawDescData []byte
+	file_proto_controller_proto_rawDescOnce sync.Once
+	file_proto_controller_proto_rawDescData []byte
 )
 
-func file_proto_controller_controller_proto_rawDescGZIP() []byte {
-	file_proto_controller_controller_proto_rawDescOnce.Do(func() {
-		file_proto_controller_controller_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_proto_controller_controller_proto_rawDesc), len(file_proto_controller_controller_proto_rawDesc)))
+func file_proto_controller_proto_rawDescGZIP() []byte {
+	file_proto_controller_proto_rawDescOnce.Do(func() {
+		file_proto_controller_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_proto_controller_proto_rawDesc), len(file_proto_controller_proto_rawDesc)))
 	})
-	return file_proto_controller_controller_proto_rawDescData
+	return file_proto_controller_proto_rawDescData
 }
 
-var file_proto_controller_controller_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
-var file_proto_controller_controller_proto_goTypes = []any{
+var file_proto_controller_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_proto_controller_proto_goTypes = []any{
 	(*ExecuteCommandRequest)(nil),  // 0: controller.ExecuteCommandRequest
 	(*ExecuteCommandResponse)(nil), // 1: controller.ExecuteCommandResponse
 	(*StoreCommandRequest)(nil),    // 2: controller.StoreCommandRequest
@@ -467,7 +467,7 @@ var file_proto_controller_controller_proto_goTypes = []any{
 	(*CommandInfo)(nil),            // 5: controller.CommandInfo
 	(*GetAllCommandsResponse)(nil), // 6: controller.GetAllCommandsResponse
 }
-var file_proto_controller_controller_proto_depIdxs = []int32{
+var file_proto_controller_proto_depIdxs = []int32{
 	5, // 0: controller.GetAllCommandsResponse.commands:type_name -> controller.CommandInfo
 	0, // 1: controller.ControllerService.ExecuteCommand:input_type -> controller.ExecuteCommandRequest
 	2, // 2: controller.ControllerService.StoreCommand:input_type -> controller.StoreCommandRequest
@@ -482,26 +482,26 @@ var file_proto_controller_controller_proto_depIdxs = []int32{
 	0, // [0:1] is the sub-list for field type_name
 }
 
-func init() { file_proto_controller_controller_proto_init() }
-func file_proto_controller_controller_proto_init() {
-	if File_proto_controller_controller_proto != nil {
+func init() { file_proto_controller_proto_init() }
+func file_proto_controller_proto_init() {
+	if File_proto_controller_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_controller_controller_proto_rawDesc), len(file_proto_controller_controller_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_controller_proto_rawDesc), len(file_proto_controller_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_proto_controller_controller_proto_goTypes,
-		DependencyIndexes: file_proto_controller_controller_proto_depIdxs,
-		MessageInfos:      file_proto_controller_controller_proto_msgTypes,
+		GoTypes:           file_proto_controller_proto_goTypes,
+		DependencyIndexes: file_proto_controller_proto_depIdxs,
+		MessageInfos:      file_proto_controller_proto_msgTypes,
 	}.Build()
-	File_proto_controller_controller_proto = out.File
-	file_proto_controller_controller_proto_goTypes = nil
-	file_proto_controller_controller_proto_depIdxs = nil
+	File_proto_controller_proto = out.File
+	file_proto_controller_proto_goTypes = nil
+	file_proto_controller_proto_depIdxs = nil
 }
