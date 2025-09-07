@@ -7,6 +7,7 @@ import (
 	"net"
 	"os"
 	"os/exec"
+	"runtime"
 	"sync"
 
 	controllerpb "basic-grpc-controller/proto"
@@ -28,6 +29,14 @@ type Command struct {
 	Desc   string `json:"desc"`
 }
 
+// 安全的错误处理，避免panic
+func safeError(err error) string {
+	if err == nil {
+		return ""
+	}
+	return err.Error()
+}
+
 func (s *server) ExecuteCommand(ctx context.Context, req *controllerpb.ExecuteCommandRequest) (*controllerpb.ExecuteCommandResponse, error) {
 	s.mu.RLock()
 	cmd := s.commands[req.CommandId]
@@ -41,14 +50,25 @@ func (s *server) ExecuteCommand(ctx context.Context, req *controllerpb.ExecuteCo
 		}, nil
 	}
 
-	execCmd := exec.CommandContext(ctx, "sh", "-c", cmd.Script)
+	// 跨平台命令执行
+	var execCmd *exec.Cmd
+	if runtime.GOOS == "windows" {
+		execCmd = exec.CommandContext(ctx, "cmd", "/C", cmd.Script)
+	} else {
+		execCmd = exec.CommandContext(ctx, "sh", "-c", cmd.Script)
+	}
+
 	output, err := execCmd.CombinedOutput()
+	exitCode := int32(0)
+	if execCmd.ProcessState != nil {
+		exitCode = int32(execCmd.ProcessState.ExitCode())
+	}
 
 	return &controllerpb.ExecuteCommandResponse{
 		Success:  err == nil,
 		Output:   string(output),
-		Error:    err.Error(),
-		ExitCode: int32(execCmd.ProcessState.ExitCode()),
+		Error:    safeError(err),
+		ExitCode: exitCode,
 	}, nil
 }
 
@@ -64,7 +84,7 @@ func (s *server) StoreCommand(ctx context.Context, req *controllerpb.StoreComman
 	if err := s.saveCommands(); err != nil {
 		return &controllerpb.StoreCommandResponse{
 			Success: false,
-			Message: "保存命令失败: " + err.Error(),
+			Message: "保存命令失败: " + safeError(err),
 		}, nil
 	}
 
