@@ -443,7 +443,7 @@ const file_proto_controller_proto_rawDesc = "" +
 	"\x11ControllerService\x12W\n" +
 	"\x0eExecuteCommand\x12!.controller.ExecuteCommandRequest\x1a\".controller.ExecuteCommandResponse\x12Q\n" +
 	"\fStoreCommand\x12\x1f.controller.StoreCommandRequest\x1a .controller.StoreCommandResponse\x12W\n" +
-	"\x0eGetAllCommands\x12!.controller.GetAllCommandsRequest\x1a\".controller.GetAllCommandsResponseB5Z3basic-grpc-controller/proto/controller;controllerpbb\x06proto3"
+	"\x0eGetAllCommands\x12!.controller.GetAllCommandsRequest\x1a\".controller.GetAllCommandsResponseB*Z(basic-grpc-controller/proto;controllerpbb\x06proto3"
 
 var (
 	file_proto_controller_proto_rawDescOnce sync.Once

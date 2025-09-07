@@ -9,7 +9,7 @@ import (
 	"os/exec"
 	"sync"
 
-	controllerpb "basic-grpc-controller/proto/controller"
+	controllerpb "basic-grpc-controller/proto"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -17,24 +17,23 @@ import (
 
 type server struct {
 	controllerpb.UnimplementedControllerServiceServer
-	commands map[string]*controllerpb.CommandInfo
+	commands map[string]*Command
 	mu       sync.RWMutex
 }
 
-func (s *server) ExecuteCommand(ctx context.Context, req *controllerpb.ExecuteCommandRequest) (*controllerpb.ExecuteCommandResponse, error) {
-	if req.CommandId == "" {
-		return &controllerpb.ExecuteCommandResponse{
-			Success:  false,
-			Error:    "命令ID不能为空",
-			ExitCode: -1,
-		}, nil
-	}
+// 简化的命令结构，消除冗余字段
+type Command struct {
+	Name   string `json:"name"`
+	Script string `json:"script"`
+	Desc   string `json:"desc"`
+}
 
+func (s *server) ExecuteCommand(ctx context.Context, req *controllerpb.ExecuteCommandRequest) (*controllerpb.ExecuteCommandResponse, error) {
 	s.mu.RLock()
-	cmd, exists := s.commands[req.CommandId]
+	cmd := s.commands[req.CommandId]
 	s.mu.RUnlock()
 
-	if !exists {
+	if cmd == nil {
 		return &controllerpb.ExecuteCommandResponse{
 			Success:  false,
 			Error:    "命令不存在",
@@ -42,46 +41,23 @@ func (s *server) ExecuteCommand(ctx context.Context, req *controllerpb.ExecuteCo
 		}, nil
 	}
 
-	execCmd := exec.CommandContext(ctx, "sh", "-c", cmd.CommandScript)
+	execCmd := exec.CommandContext(ctx, "sh", "-c", cmd.Script)
 	output, err := execCmd.CombinedOutput()
 
-	if err != nil {
-		return &controllerpb.ExecuteCommandResponse{
-			Success:  false,
-			Output:   string(output),
-			Error:    err.Error(),
-			ExitCode: int32(execCmd.ProcessState.ExitCode()),
-		}, nil
-	}
-
 	return &controllerpb.ExecuteCommandResponse{
-		Success:  true,
+		Success:  err == nil,
 		Output:   string(output),
-		ExitCode: 0,
+		Error:    err.Error(),
+		ExitCode: int32(execCmd.ProcessState.ExitCode()),
 	}, nil
 }
 
 func (s *server) StoreCommand(ctx context.Context, req *controllerpb.StoreCommandRequest) (*controllerpb.StoreCommandResponse, error) {
-	if req.CommandId == "" {
-		return &controllerpb.StoreCommandResponse{
-			Success: false,
-			Message: "命令ID不能为空",
-		}, nil
-	}
-
-	if req.CommandScript == "" {
-		return &controllerpb.StoreCommandResponse{
-			Success: false,
-			Message: "命令脚本不能为空",
-		}, nil
-	}
-
 	s.mu.Lock()
-	s.commands[req.CommandId] = &controllerpb.CommandInfo{
-		CommandId:     req.CommandId,
-		CommandName:   req.CommandName,
-		CommandScript: req.CommandScript,
-		Description:   req.Description,
+	s.commands[req.CommandId] = &Command{
+		Name:   req.CommandName,
+		Script: req.CommandScript,
+		Desc:   req.Description,
 	}
 	s.mu.Unlock()
 
@@ -101,8 +77,13 @@ func (s *server) StoreCommand(ctx context.Context, req *controllerpb.StoreComman
 func (s *server) GetAllCommands(ctx context.Context, req *controllerpb.GetAllCommandsRequest) (*controllerpb.GetAllCommandsResponse, error) {
 	s.mu.RLock()
 	commands := make([]*controllerpb.CommandInfo, 0, len(s.commands))
-	for _, cmd := range s.commands {
-		commands = append(commands, cmd)
+	for id, cmd := range s.commands {
+		commands = append(commands, &controllerpb.CommandInfo{
+			CommandId:     id,
+			CommandName:   cmd.Name,
+			CommandScript: cmd.Script,
+			Description:   cmd.Desc,
+		})
 	}
 	s.mu.RUnlock()
 
@@ -113,12 +94,8 @@ func (s *server) GetAllCommands(ctx context.Context, req *controllerpb.GetAllCom
 
 func (s *server) saveCommands() error {
 	s.mu.RLock()
-	data, err := json.Marshal(s.commands)
+	data, _ := json.Marshal(s.commands)
 	s.mu.RUnlock()
-
-	if err != nil {
-		return err
-	}
 
 	return os.WriteFile("commands.json", data, 0644)
 }
@@ -126,17 +103,14 @@ func (s *server) saveCommands() error {
 func (s *server) loadCommands() error {
 	data, err := os.ReadFile("commands.json")
 	if err != nil {
-		if os.IsNotExist(err) {
-			return nil
-		}
-		return err
+		return nil // 文件不存在是正常情况
 	}
 
 	s.mu.Lock()
-	err = json.Unmarshal(data, &s.commands)
+	json.Unmarshal(data, &s.commands)
 	s.mu.Unlock()
 
-	return err
+	return nil
 }
 
 func main() {
@@ -148,7 +122,7 @@ func main() {
 	s := grpc.NewServer()
 
 	srv := &server{
-		commands: make(map[string]*controllerpb.CommandInfo),
+		commands: make(map[string]*Command),
 	}
 
 	if err := srv.loadCommands(); err != nil {

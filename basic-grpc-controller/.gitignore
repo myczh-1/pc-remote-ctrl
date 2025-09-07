@@ -1,0 +1,49 @@
+# 编译生成的二进制文件
+real_grpc_server
+real_grpc_server.exe
+real_grpc_server.darwin
+real_grpc_server.linux
+real_grpc_server.windows
+
+# Go编译缓存
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Go测试二进制文件
+*.test
+
+# Go覆盖率文件
+*.out
+
+# Go依赖管理
+vendor/
+
+# Go工作区文件
+go.work
+go.work.sum
+
+# IDE文件
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 操作系统文件
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# 日志文件
+*.log
+
+# 临时文件
+*.tmp
+*.temp
