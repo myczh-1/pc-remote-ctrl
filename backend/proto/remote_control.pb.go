@@ -433,7 +433,7 @@ const file_remote_control_proto_rawDesc = "" +
 	"\x11ControllerService\x12_\n" +
 	"\x0eExecuteCommand\x12%.remote_control.ExecuteCommandRequest\x1a&.remote_control.ExecuteCommandResponse\x12Y\n" +
 	"\fStoreCommand\x12#.remote_control.StoreCommandRequest\x1a$.remote_control.StoreCommandResponse\x12_\n" +
-	"\x0eGetAllCommands\x12%.remote_control.GetAllCommandsRequest\x1a&.remote_control.GetAllCommandsResponseB*Z(basic-grpc-controller/proto;controllerpbb\x06proto3"
+	"\x0eGetAllCommands\x12%.remote_control.GetAllCommandsRequest\x1a&.remote_control.GetAllCommandsResponseB+Z)pc-remote-ctrl/backend/proto;controllerpbb\x06proto3"
 
 var (
 	file_remote_control_proto_rawDescOnce sync.Once

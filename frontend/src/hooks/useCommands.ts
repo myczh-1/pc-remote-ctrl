@@ -1,12 +1,12 @@
 import { useState, useCallback } from 'react'
-import { ControllerServiceClient } from '../proto/controller.client'
+import { ControllerServiceClient } from '../proto/remote_control.client'
 import { GrpcWebFetchTransport } from '@protobuf-ts/grpcweb-transport'
 import type { Command, ExecutionResult } from '../types'
 import type {
   StoreCommandRequest,
   GetAllCommandsRequest,
   ExecuteCommandRequest,
-} from '../proto/controller'
+} from '../proto/remote_control'
 
 const transport = new GrpcWebFetchTransport({ baseUrl: '/api' })
 const client = new ControllerServiceClient(transport)
