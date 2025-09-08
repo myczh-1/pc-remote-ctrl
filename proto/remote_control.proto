@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package remote_control;
 
-option go_package = "basic-grpc-controller/proto;controllerpb";
+option go_package = "pc-remote-ctrl/backend/proto;controllerpb";
 
 // 控制器服务定义
 service ControllerService {
