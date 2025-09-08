@@ -122,6 +122,25 @@ export interface GetAllCommandsResponse {
      */
     commands: CommandInfo[];
 }
+/**
+ * 日志流消息
+ *
+ * @generated from protobuf message remote_control.LogLine
+ */
+export interface LogLine {
+    /**
+     * @generated from protobuf field: int64 index = 1
+     */
+    index: string; // 递增序号
+    /**
+     * @generated from protobuf field: string stream = 2
+     */
+    stream: string; // "stdout" | "stderr"
+    /**
+     * @generated from protobuf field: string line = 3
+     */
+    line: string; // 日志文本（单行，不含换行）
+}
 // @generated message type with reflection information, may provide speed optimized methods
 class ExecuteCommandRequest$Type extends MessageType<ExecuteCommandRequest> {
     constructor() {
@@ -514,11 +533,75 @@ class GetAllCommandsResponse$Type extends MessageType<GetAllCommandsResponse> {
  * @generated MessageType for protobuf message remote_control.GetAllCommandsResponse
  */
 export const GetAllCommandsResponse = new GetAllCommandsResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class LogLine$Type extends MessageType<LogLine> {
+    constructor() {
+        super("remote_control.LogLine", [
+            { no: 1, name: "index", kind: "scalar", T: 3 /*ScalarType.INT64*/ },
+            { no: 2, name: "stream", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "line", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<LogLine>): LogLine {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        message.index = "0";
+        message.stream = "";
+        message.line = "";
+        if (value !== undefined)
+            reflectionMergePartial<LogLine>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: LogLine): LogLine {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* int64 index */ 1:
+                    message.index = reader.int64().toString();
+                    break;
+                case /* string stream */ 2:
+                    message.stream = reader.string();
+                    break;
+                case /* string line */ 3:
+                    message.line = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: LogLine, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* int64 index = 1; */
+        if (message.index !== "0")
+            writer.tag(1, WireType.Varint).int64(message.index);
+        /* string stream = 2; */
+        if (message.stream !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.stream);
+        /* string line = 3; */
+        if (message.line !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.line);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message remote_control.LogLine
+ */
+export const LogLine = new LogLine$Type();
 /**
  * @generated ServiceType for protobuf service remote_control.ControllerService
  */
 export const ControllerService = new ServiceType("remote_control.ControllerService", [
     { name: "ExecuteCommand", options: {}, I: ExecuteCommandRequest, O: ExecuteCommandResponse },
     { name: "StoreCommand", options: {}, I: StoreCommandRequest, O: StoreCommandResponse },
-    { name: "GetAllCommands", options: {}, I: GetAllCommandsRequest, O: GetAllCommandsResponse }
+    { name: "GetAllCommands", options: {}, I: GetAllCommandsRequest, O: GetAllCommandsResponse },
+    { name: "ExecuteCommandStream", serverStreaming: true, options: {}, I: ExecuteCommandRequest, O: LogLine }
 ]);
