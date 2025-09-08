@@ -1,4 +1,4 @@
-module basic-grpc-controller
+module pc-remote-ctrl/backend
 
 go 1.23.0
 

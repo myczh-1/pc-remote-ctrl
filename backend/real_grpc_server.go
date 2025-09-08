@@ -15,7 +15,7 @@ import (
 	"syscall"
 	"time"
 
-	controllerpb "basic-grpc-controller/proto"
+	controllerpb "pc-remote-ctrl/backend/proto"
 
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
 	"golang.org/x/net/http2"

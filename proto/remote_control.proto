@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package controller;
+package remote_control;
 
 option go_package = "basic-grpc-controller/proto;controllerpb";
 
@@ -21,10 +21,9 @@ message ExecuteCommandRequest {
 
 // 执行命令响应
 message ExecuteCommandResponse {
-  bool success = 1;       // 是否成功
-  string output = 2;      // 输出内容
-  string error = 3;       // 错误信息
-  int32 exit_code = 4;    // 退出码
+  string output = 1;      // 输出内容
+  string error = 2;       // 错误信息
+  int32 exit_code = 3;    // 退出码（0表示成功）
 }
 
 // 存储命令请求
