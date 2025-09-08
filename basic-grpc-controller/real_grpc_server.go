@@ -3,19 +3,23 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net"
-	"net/http" // 👈 新增
+	"net/http"
 	"os"
 	"os/exec"
+	"os/signal"
 	"runtime"
 	"sync"
+	"syscall"
+	"time"
 
 	controllerpb "basic-grpc-controller/proto"
 
-	"github.com/improbable-eng/grpc-web/go/grpcweb" // 👈 新增
-	"golang.org/x/net/http2"                        // 👈 新增
-	"golang.org/x/net/http2/h2c"                    // 👈 新增
+	"github.com/improbable-eng/grpc-web/go/grpcweb"
+	"golang.org/x/net/http2"
+	"golang.org/x/net/http2/h2c"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
@@ -26,14 +30,14 @@ type server struct {
 	mu       sync.RWMutex
 }
 
-// 简化的命令结构，消除冗余字段
+// Command represents a stored command with metadata
 type Command struct {
 	Name   string `json:"name"`
 	Script string `json:"script"`
 	Desc   string `json:"desc"`
 }
 
-// 安全的错误处理，避免panic
+// safeError safely converts error to string, avoiding panic
 func safeError(err error) string {
 	if err == nil {
 		return ""
@@ -48,13 +52,12 @@ func (s *server) ExecuteCommand(ctx context.Context, req *controllerpb.ExecuteCo
 
 	if cmd == nil {
 		return &controllerpb.ExecuteCommandResponse{
-			Success:  false,
-			Error:    "命令不存在",
+			Error:    "command not found",
 			ExitCode: -1,
 		}, nil
 	}
 
-	// 跨平台命令执行
+	// Cross-platform command execution
 	var execCmd *exec.Cmd
 	if runtime.GOOS == "windows" {
 		execCmd = exec.CommandContext(ctx, "cmd", "/C", cmd.Script)
@@ -69,7 +72,6 @@ func (s *server) ExecuteCommand(ctx context.Context, req *controllerpb.ExecuteCo
 	}
 
 	return &controllerpb.ExecuteCommandResponse{
-		Success:  err == nil,
 		Output:   string(output),
 		Error:    safeError(err),
 		ExitCode: exitCode,
@@ -88,13 +90,13 @@ func (s *server) StoreCommand(ctx context.Context, req *controllerpb.StoreComman
 	if err := s.saveCommands(); err != nil {
 		return &controllerpb.StoreCommandResponse{
 			Success: false,
-			Message: "保存命令失败: " + safeError(err),
+			Message: "failed to save command: " + safeError(err),
 		}, nil
 	}
 
 	return &controllerpb.StoreCommandResponse{
 		Success: true,
-		Message: "命令保存成功",
+		Message: "command saved successfully",
 	}, nil
 }
 
@@ -118,8 +120,11 @@ func (s *server) GetAllCommands(ctx context.Context, req *controllerpb.GetAllCom
 
 func (s *server) saveCommands() error {
 	s.mu.RLock()
-	data, _ := json.Marshal(s.commands)
+	data, err := json.Marshal(s.commands)
 	s.mu.RUnlock()
+	if err != nil {
+		return fmt.Errorf("marshal commands: %w", err)
+	}
 
 	return os.WriteFile("commands.json", data, 0644)
 }
@@ -127,61 +132,58 @@ func (s *server) saveCommands() error {
 func (s *server) loadCommands() error {
 	data, err := os.ReadFile("commands.json")
 	if err != nil {
-		return nil // 文件不存在是正常情况
+		if os.IsNotExist(err) {
+			log.Printf("commands.json not found, starting with empty commands")
+			return nil
+		}
+		return fmt.Errorf("read commands file: %w", err)
 	}
 
 	s.mu.Lock()
-	json.Unmarshal(data, &s.commands)
-	s.mu.Unlock()
+	defer s.mu.Unlock()
+	
+	if err := json.Unmarshal(data, &s.commands); err != nil {
+		return fmt.Errorf("unmarshal commands: %w", err)
+	}
 
+	log.Printf("loaded %d commands from file", len(s.commands))
 	return nil
 }
 
 func main() {
-	lis, err := net.Listen("tcp", ":7071")
-	if err != nil {
-		log.Fatalf("监听失败: %v", err)
-	}
-
-	// 1) 纯 gRPC server（保持你原有逻辑）
-	grpcServer := grpc.NewServer()
-
+	// Initialize server
 	srv := &server{
 		commands: make(map[string]*Command),
 	}
 	if err := srv.loadCommands(); err != nil {
-		log.Printf("加载命令失败: %v", err)
+		log.Fatalf("failed to load commands: %v", err)
 	}
 
+	// Setup gRPC server
+	lis, err := net.Listen("tcp", ":7071")
+	if err != nil {
+		log.Fatalf("failed to listen on port 7071: %v", err)
+	}
+
+	grpcServer := grpc.NewServer()
 	controllerpb.RegisterControllerServiceServer(grpcServer, srv)
 	reflection.Register(grpcServer)
 
-	// 2) 启动原生 gRPC 监听（7071）
-	go func() {
-		log.Printf("gRPC 在端口 7071（原生 gRPC 客户端使用）...")
-		if err := grpcServer.Serve(lis); err != nil {
-			log.Fatalf("gRPC 服务启动失败: %v", err)
-		}
-	}()
-
-	// 3) 包一层 grpc-web，提供给浏览器（8080）
+	// Setup HTTP server with grpc-web support
 	wrapped := grpcweb.WrapServer(
 		grpcServer,
 		grpcweb.WithOriginFunc(func(origin string) bool {
-			// 开发阶段先全开；生产可改成白名单校验
+			// TODO: Use whitelist in production
 			return true
 		}),
 		grpcweb.WithCorsForRegisteredEndpointsOnly(false),
 	)
 
-	// 4) HTTP 服务器（h2c 同时兼容 HTTP/1.1 与明文 HTTP/2）
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// 处理预检 / grpc-web / websocket
 		if wrapped.IsGrpcWebRequest(r) || wrapped.IsAcceptableGrpcCorsRequest(r) || wrapped.IsGrpcWebSocketRequest(r) {
 			wrapped.ServeHTTP(w, r)
 			return
 		}
-		// 可选：健康检查
 		if r.Method == http.MethodGet && r.URL.Path == "/healthz" {
 			w.WriteHeader(http.StatusOK)
 			_, _ = w.Write([]byte("ok"))
@@ -195,8 +197,51 @@ func main() {
 		Handler: h2c.NewHandler(handler, &http2.Server{}),
 	}
 
-	log.Printf("grpc-web 网关在端口 7072（浏览器/前端使用）...")
-	if err := httpSrv.ListenAndServe(); err != nil {
-		log.Fatalf("grpc-web 网关启动失败: %v", err)
+	// Setup graceful shutdown
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	// Channel to listen for interrupt signal
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+
+	// Start gRPC server in goroutine
+	go func() {
+		log.Printf("gRPC server listening on port 7071")
+		if err := grpcServer.Serve(lis); err != nil {
+			log.Printf("gRPC server error: %v", err)
+			cancel()
+		}
+	}()
+
+	// Start HTTP server in goroutine
+	go func() {
+		log.Printf("grpc-web gateway listening on port 7072")
+		if err := httpSrv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Printf("HTTP server error: %v", err)
+			cancel()
+		}
+	}()
+
+	// Wait for shutdown signal or context cancellation
+	select {
+	case <-c:
+		log.Println("shutting down servers...")
+	case <-ctx.Done():
+		log.Println("context cancelled, shutting down...")
 	}
+
+	// Graceful shutdown
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer shutdownCancel()
+
+	// Shutdown HTTP server
+	if err := httpSrv.Shutdown(shutdownCtx); err != nil {
+		log.Printf("HTTP server shutdown error: %v", err)
+	}
+
+	// Graceful stop gRPC server
+	grpcServer.GracefulStop()
+	
+	log.Println("servers shutdown complete")
 }
