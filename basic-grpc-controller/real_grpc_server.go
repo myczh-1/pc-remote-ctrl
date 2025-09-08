@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"net"
+	"net/http" // 👈 新增
 	"os"
 	"os/exec"
 	"runtime"
@@ -12,6 +13,9 @@ import (
 
 	controllerpb "basic-grpc-controller/proto"
 
+	"github.com/improbable-eng/grpc-web/go/grpcweb" // 👈 新增
+	"golang.org/x/net/http2"                        // 👈 新增
+	"golang.org/x/net/http2/h2c"                    // 👈 新增
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
@@ -139,21 +143,60 @@ func main() {
 		log.Fatalf("监听失败: %v", err)
 	}
 
-	s := grpc.NewServer()
+	// 1) 纯 gRPC server（保持你原有逻辑）
+	grpcServer := grpc.NewServer()
 
 	srv := &server{
 		commands: make(map[string]*Command),
 	}
-
 	if err := srv.loadCommands(); err != nil {
 		log.Printf("加载命令失败: %v", err)
 	}
 
-	controllerpb.RegisterControllerServiceServer(s, srv)
-	reflection.Register(s)
+	controllerpb.RegisterControllerServiceServer(grpcServer, srv)
+	reflection.Register(grpcServer)
 
-	log.Printf("真正的gRPC服务器启动在端口7071...")
-	if err := s.Serve(lis); err != nil {
-		log.Fatalf("服务启动失败: %v", err)
+	// 2) 启动原生 gRPC 监听（7071）
+	go func() {
+		log.Printf("gRPC 在端口 7071（原生 gRPC 客户端使用）...")
+		if err := grpcServer.Serve(lis); err != nil {
+			log.Fatalf("gRPC 服务启动失败: %v", err)
+		}
+	}()
+
+	// 3) 包一层 grpc-web，提供给浏览器（8080）
+	wrapped := grpcweb.WrapServer(
+		grpcServer,
+		grpcweb.WithOriginFunc(func(origin string) bool {
+			// 开发阶段先全开；生产可改成白名单校验
+			return true
+		}),
+		grpcweb.WithCorsForRegisteredEndpointsOnly(false),
+	)
+
+	// 4) HTTP 服务器（h2c 同时兼容 HTTP/1.1 与明文 HTTP/2）
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// 处理预检 / grpc-web / websocket
+		if wrapped.IsGrpcWebRequest(r) || wrapped.IsAcceptableGrpcCorsRequest(r) || wrapped.IsGrpcWebSocketRequest(r) {
+			wrapped.ServeHTTP(w, r)
+			return
+		}
+		// 可选：健康检查
+		if r.Method == http.MethodGet && r.URL.Path == "/healthz" {
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte("ok"))
+			return
+		}
+		w.WriteHeader(http.StatusNoContent)
+	})
+
+	httpSrv := &http.Server{
+		Addr:    ":7072",
+		Handler: h2c.NewHandler(handler, &http2.Server{}),
+	}
+
+	log.Printf("grpc-web 网关在端口 7072（浏览器/前端使用）...")
+	if err := httpSrv.ListenAndServe(); err != nil {
+		log.Fatalf("grpc-web 网关启动失败: %v", err)
 	}
 }
