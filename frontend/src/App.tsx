@@ -15,7 +15,6 @@ export default function App() {
     const { log, logInfo, logError, logSuccess, clearLog } = useLogger()
     const { execution, executeCommandSet, clearExecution, isRunning } = useCommandSetExecution()
     
-    const [activeTab, setActiveTab] = useState<'list' | 'manage'>('list')
     const [showCommandSetEditor, setShowCommandSetEditor] = useState(false)
     const [editingCommandSet, setEditingCommandSet] = useState<CommandSet | undefined>()
 
@@ -107,50 +106,15 @@ export default function App() {
     }
 
     return (
-        <>
-            <h1>gRPC-Web Controller</h1>
-
-            {/* 标签页导航 */}
-            <div style={{ 
-                display: 'flex', 
-                borderBottom: '2px solid #ddd', 
-                marginBottom: '20px' 
-            }}>
-                <button
-                    onClick={() => setActiveTab('list')}
-                    style={{
-                        padding: '12px 20px',
-                        border: 'none',
-                        backgroundColor: activeTab === 'list' ? '#007bff' : 'transparent',
-                        color: activeTab === 'list' ? 'white' : '#007bff',
-                        borderBottom: activeTab === 'list' ? '2px solid #007bff' : '2px solid transparent',
-                        cursor: 'pointer',
-                        fontSize: '16px',
-                        fontWeight: 'bold'
-                    }}
-                >
-                    命令集列表
-                </button>
-                <button
-                    onClick={() => setActiveTab('manage')}
-                    style={{
-                        padding: '12px 20px',
-                        border: 'none',
-                        backgroundColor: activeTab === 'manage' ? '#007bff' : 'transparent',
-                        color: activeTab === 'manage' ? 'white' : '#007bff',
-                        borderBottom: activeTab === 'manage' ? '2px solid #007bff' : '2px solid transparent',
-                        cursor: 'pointer',
-                        fontSize: '16px',
-                        fontWeight: 'bold'
-                    }}
-                >
-                    命令集管理
-                </button>
-            </div>
+        <div className="app-container">
+            <header className="app-header">
+                <h1>PC 远程控制器</h1>
+                <p>管理和执行远程命令</p>
+            </header>
 
             {/* 工作流执行状态 */}
             {execution && (
-                <div style={{ marginBottom: '20px' }}>
+                <div className="execution-status">
                     <WorkflowExecutionStatus 
                         execution={execution}
                         onStop={() => {}}
@@ -159,57 +123,44 @@ export default function App() {
                 </div>
             )}
 
-            {/* 命令集列表标签页 */}
-            {activeTab === 'list' && (
-                <>
-                    <div className="card" style={{ marginTop: 12 }}>
-                        <h3>命令集列表</h3>
-                        <CommandList 
-                            commands={commandSets}
-                            loading={loading || isRunning}
-                            onExecuteCommand={handleExecuteCommandSet}
-                        />
-                    </div>
-                </>
-            )}
-
-            {/* 命令集管理标签页 */}
-            {activeTab === 'manage' && (
-                <>
-                    <div className="card" style={{ display: 'grid', gap: 8 }}>
-                        <button disabled={loading || isRunning} onClick={handleStoreSample}>
-                            ① Store sample "echo" command set
-                        </button>
-                        <button disabled={loading || isRunning} onClick={handleListAllCommandSets}>
-                            ② List all command sets
-                        </button>
+            <main className="main-content">
+                {/* 主要控制面板 */}
+                <div className="control-panel">
+                    <div className="panel-header">
+                        <h2>命令集</h2>
+                        <div className="header-actions">
+                            <button
+                                className="btn btn-secondary"
+                                disabled={loading || isRunning}
+                                onClick={handleListAllCommandSets}
+                                title="刷新命令集列表"
+                            >
+                                🔄 刷新
+                            </button>
+                            <button
+                                className="btn btn-primary"
+                                onClick={handleCreateCommandSet}
+                                disabled={isRunning}
+                            >
+                                ➕ 新建命令集
+                            </button>
+                        </div>
                     </div>
 
-                    <div className="card" style={{ 
-                        display: 'flex', 
-                        justifyContent: 'space-between', 
-                        alignItems: 'center',
-                        padding: '16px'
-                    }}>
-                        <h3 style={{ margin: 0 }}>命令集管理</h3>
-                        <button
-                            onClick={handleCreateCommandSet}
-                            disabled={isRunning}
-                            style={{
-                                padding: '10px 20px',
-                                fontSize: '14px',
-                                backgroundColor: isRunning ? '#ccc' : '#007bff',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '4px',
-                                cursor: isRunning ? 'not-allowed' : 'pointer'
-                            }}
-                        >
-                            + 创建命令集
-                        </button>
-                    </div>
-
-                    <div className="card">
+                    {commandSets.length === 0 && !loading ? (
+                        <div className="empty-state">
+                            <div className="empty-icon">📝</div>
+                            <h3>还没有命令集</h3>
+                            <p>创建第一个命令集来开始远程控制</p>
+                            <button 
+                                className="btn btn-primary" 
+                                onClick={handleStoreSample}
+                                disabled={loading || isRunning}
+                            >
+                                创建示例命令集
+                            </button>
+                        </div>
+                    ) : (
                         <WorkflowList 
                             workflows={commandSets}
                             onExecuteWorkflow={handleExecuteCommandSet2}
@@ -218,9 +169,14 @@ export default function App() {
                             onDuplicateWorkflow={handleDuplicateCommandSet}
                             executingWorkflowId={execution?.commandSetId}
                         />
-                    </div>
-                </>
-            )}
+                    )}
+                </div>
+
+                {/* 日志面板 */}
+                <div className="log-panel">
+                    <LogDisplay log={log} onClear={clearLog} />
+                </div>
+            </main>
 
             {/* 命令集编辑器模态框 */}
             {showCommandSetEditor && (
@@ -234,8 +190,6 @@ export default function App() {
                     }}
                 />
             )}
-
-            <LogDisplay log={log} onClear={clearLog} />
-        </>
+        </div>
     )
 }

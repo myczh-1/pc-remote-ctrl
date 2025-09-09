@@ -27,116 +27,88 @@ export function WorkflowList({
   }
 
   return (
-    <div style={{ display: 'grid', gap: '12px' }}>
+    <div className="workflow-grid">
       {workflows.map((commandSet) => {
         const isExecuting = executingWorkflowId === commandSet.commandId
         
         return (
-          <div key={commandSet.commandId} style={{ 
-            border: '1px solid #ddd', 
-            borderRadius: '8px', 
-            padding: '16px',
-            backgroundColor: isExecuting ? '#f0f8ff' : 'transparent'
-          }}>
-            <div style={{ 
-              display: 'flex', 
-              justifyContent: 'space-between', 
-              alignItems: 'flex-start',
-              marginBottom: '8px' 
-            }}>
-              <div style={{ flex: 1 }}>
-                <h4 style={{ margin: '0 0 4px 0', fontSize: '16px' }}>
-                  {commandSet.commandName}
-                  {isExecuting && <span style={{ color: '#007bff', marginLeft: '8px' }}>运行中...</span>}
-                </h4>
+          <div 
+            key={commandSet.commandId} 
+            className={`workflow-card ${isExecuting ? 'executing' : ''} fade-in`}
+          >
+            <div className="workflow-header">
+              <div className="workflow-info">
+                <div className="workflow-title">
+                  <h3>{commandSet.commandName}</h3>
+                  {isExecuting && <span className="status-badge running">⚡ 执行中</span>}
+                </div>
                 {commandSet.description && (
-                  <p style={{ margin: '0 0 8px 0', color: '#666', fontSize: '14px' }}>
-                    {commandSet.description}
-                  </p>
+                  <p className="workflow-description">{commandSet.description}</p>
                 )}
-                <div style={{ fontSize: '12px', color: '#999' }}>
-                  {commandSet.commandScripts.length} 个步骤 · 创建于 {commandSet.created.toLocaleDateString()}
+                <div className="workflow-meta">
+                  <span className="meta-item">📄 {commandSet.commandScripts.length} 个步骤</span>
+                  <span className="meta-item">📅 {commandSet.created.toLocaleDateString()}</span>
                 </div>
               </div>
               
-              <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+              <div className="workflow-actions">
                 <button
+                  className={`btn btn-primary ${isExecuting ? 'btn-executing' : ''}`}
                   onClick={() => onExecuteWorkflow(commandSet)}
                   disabled={isExecuting}
-                  style={{
-                    padding: '6px 12px',
-                    fontSize: '14px',
-                    backgroundColor: isExecuting ? '#ccc' : '#007bff',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: isExecuting ? 'not-allowed' : 'pointer'
-                  }}
+                  title={isExecuting ? '命令集正在执行' : '执行命令集'}
                 >
-                  {isExecuting ? '执行中' : '执行'}
+                  {isExecuting ? '🔄 执行中' : '▶️ 执行'}
                 </button>
                 
                 <button
+                  className="btn btn-outline"
                   onClick={() => onEditWorkflow(commandSet)}
                   disabled={isExecuting}
-                  style={{
-                    padding: '6px 12px',
-                    fontSize: '14px',
-                    backgroundColor: 'transparent',
-                    color: '#007bff',
-                    border: '1px solid #007bff',
-                    borderRadius: '4px',
-                    cursor: isExecuting ? 'not-allowed' : 'pointer'
-                  }}
+                  title="编辑命令集"
                 >
-                  编辑
+                  ✏️ 编辑
                 </button>
                 
                 <button
+                  className="btn btn-outline"
                   onClick={() => onDuplicateWorkflow(commandSet.commandId)}
                   disabled={isExecuting}
-                  style={{
-                    padding: '6px 12px',
-                    fontSize: '14px',
-                    backgroundColor: 'transparent',
-                    color: '#666',
-                    border: '1px solid #ccc',
-                    borderRadius: '4px',
-                    cursor: isExecuting ? 'not-allowed' : 'pointer'
-                  }}
+                  title="复制命令集"
                 >
-                  复制
+                  📋 复制
                 </button>
                 
                 <button
+                  className="btn btn-danger"
                   onClick={() => onDeleteWorkflow(commandSet.commandId)}
                   disabled={isExecuting}
-                  style={{
-                    padding: '6px 12px',
-                    fontSize: '14px',
-                    backgroundColor: 'transparent',
-                    color: '#dc3545',
-                    border: '1px solid #dc3545',
-                    borderRadius: '4px',
-                    cursor: isExecuting ? 'not-allowed' : 'pointer'
-                  }}
+                  title="删除命令集"
                 >
-                  删除
+                  🗑️ 删除
                 </button>
               </div>
             </div>
             
-            <div style={{ fontSize: '14px' }}>
-              <strong>执行步骤:</strong>
-              <ol style={{ margin: '4px 0 0 0', paddingLeft: '20px' }}>
-                {commandSet.commandScripts.map((script, index) => (
-                  <li key={index} style={{ marginBottom: '2px' }}>
-                    <code style={{ fontSize: '12px', backgroundColor: '#f5f5f5', padding: '2px 4px', borderRadius: '2px' }}>
-                      {script}
-                    </code>
-                  </li>
+            <div className="workflow-steps">
+              <div className="steps-header">
+                <strong>📋 执行步骤</strong>
+                <span className="steps-count">{commandSet.commandScripts.length} 步</span>
+              </div>
+              <div className="steps-list">
+                {commandSet.commandScripts.slice(0, 3).map((script, index) => (
+                  <div key={index} className="step-item">
+                    <span className="step-number">{index + 1}</span>
+                    <code className="step-command">{script}</code>
+                  </div>
                 ))}
-              </ol>
+                {commandSet.commandScripts.length > 3 && (
+                  <div className="step-item more-steps">
+                    <span className="step-number">...</span>
+                    <span className="step-command">还有 {commandSet.commandScripts.length - 3} 个步骤</span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )
