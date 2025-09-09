@@ -1,4 +1,4 @@
-import { WorkflowEditor } from './WorkflowEditor'
+import { CommandSetEditor } from './CommandSetEditor'
 import type { CommandSet } from '../types'
 
 interface EditorModalProps {
@@ -21,8 +21,8 @@ export function EditorModal({
   }
 
   return (
-    <WorkflowEditor 
-      workflow={editingCommandSet}
+    <CommandSetEditor 
+      commandSet={editingCommandSet}
       availableCommands={availableCommands}
       onSave={onSave}
       onCancel={onCancel}

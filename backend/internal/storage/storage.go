@@ -12,16 +12,14 @@ import (
 
 // Storage handles command set persistence
 type Storage struct {
-	commandSets map[string]*executor.CommandSet
-	mu          sync.RWMutex
+	commandSets sync.Map // map[string]*executor.CommandSet
 	filename    string
 }
 
 // New creates a new storage instance
 func New(filename string) *Storage {
 	return &Storage{
-		commandSets: make(map[string]*executor.CommandSet),
-		filename:    filename,
+		filename: filename,
 	}
 }
 
@@ -36,22 +34,32 @@ func (s *Storage) Load() error {
 		return fmt.Errorf("read command sets file: %w", err)
 	}
 
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	
-	if err := json.Unmarshal(data, &s.commandSets); err != nil {
+	var tempMap map[string]*executor.CommandSet
+	if err := json.Unmarshal(data, &tempMap); err != nil {
 		return fmt.Errorf("unmarshal command sets: %w", err)
 	}
 
-	log.Printf("loaded %d command sets from file", len(s.commandSets))
+	// Load data into sync.Map
+	count := 0
+	for id, cmdSet := range tempMap {
+		s.commandSets.Store(id, cmdSet)
+		count++
+	}
+
+	log.Printf("loaded %d command sets from file", count)
 	return nil
 }
 
 // Save saves command sets to file
 func (s *Storage) Save() error {
-	s.mu.RLock()
-	data, err := json.Marshal(s.commandSets)
-	s.mu.RUnlock()
+	tempMap := make(map[string]*executor.CommandSet)
+	
+	s.commandSets.Range(func(key, value interface{}) bool {
+		tempMap[key.(string)] = value.(*executor.CommandSet)
+		return true
+	})
+	
+	data, err := json.Marshal(tempMap)
 	if err != nil {
 		return fmt.Errorf("marshal command sets: %w", err)
 	}
@@ -61,28 +69,25 @@ func (s *Storage) Save() error {
 
 // Store stores a command set
 func (s *Storage) Store(id string, cmdSet *executor.CommandSet) error {
-	s.mu.Lock()
-	s.commandSets[id] = cmdSet
-	s.mu.Unlock()
-
+	s.commandSets.Store(id, cmdSet)
 	return s.Save()
 }
 
 // Get retrieves a command set by ID
 func (s *Storage) Get(id string) *executor.CommandSet {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-	return s.commandSets[id]
+	value, ok := s.commandSets.Load(id)
+	if !ok {
+		return nil
+	}
+	return value.(*executor.CommandSet)
 }
 
 // GetAll returns all command sets
 func (s *Storage) GetAll() map[string]*executor.CommandSet {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-	
 	result := make(map[string]*executor.CommandSet)
-	for k, v := range s.commandSets {
-		result[k] = v
-	}
+	s.commandSets.Range(func(key, value interface{}) bool {
+		result[key.(string)] = value.(*executor.CommandSet)
+		return true
+	})
 	return result
 }

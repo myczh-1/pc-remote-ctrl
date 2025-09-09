@@ -3,10 +3,10 @@ package main
 import (
 	"context"
 	"log"
-	"net"
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -34,11 +34,6 @@ func main() {
 	srv := server.New(storage, executor)
 
 	// Setup gRPC server
-	lis, err := net.Listen("tcp", ":7071")
-	if err != nil {
-		log.Fatalf("failed to listen on port 7071: %v", err)
-	}
-
 	grpcServer := grpc.NewServer()
 	controllerpb.RegisterControllerServiceServer(grpcServer, srv)
 	reflection.Register(grpcServer)
@@ -53,6 +48,7 @@ func main() {
 		grpcweb.WithCorsForRegisteredEndpointsOnly(false),
 	)
 
+	// Single handler for both gRPC and HTTP on one port
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if wrapped.IsGrpcWebRequest(r) || wrapped.IsAcceptableGrpcCorsRequest(r) || wrapped.IsGrpcWebSocketRequest(r) {
 			wrapped.ServeHTTP(w, r)
@@ -63,11 +59,17 @@ func main() {
 			_, _ = w.Write([]byte("ok"))
 			return
 		}
+		// Try to handle as gRPC (for direct gRPC clients)
+		if r.ProtoMajor == 2 && strings.HasPrefix(r.Header.Get("Content-Type"), "application/grpc") {
+			grpcServer.ServeHTTP(w, r)
+			return
+		}
 		w.WriteHeader(http.StatusNoContent)
 	})
 
+	// Single server on port 7071
 	httpSrv := &http.Server{
-		Addr:    ":7072",
+		Addr:    ":7071",
 		Handler: h2c.NewHandler(handler, &http2.Server{}),
 	}
 
@@ -79,20 +81,11 @@ func main() {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 
-	// Start gRPC server in goroutine
+	// Start unified server on single port
 	go func() {
-		log.Printf("gRPC server listening on port 7071")
-		if err := grpcServer.Serve(lis); err != nil {
-			log.Printf("gRPC server error: %v", err)
-			cancel()
-		}
-	}()
-
-	// Start HTTP server in goroutine
-	go func() {
-		log.Printf("grpc-web gateway listening on port 7072")
+		log.Printf("Unified gRPC/HTTP server listening on port 7071")
 		if err := httpSrv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Printf("HTTP server error: %v", err)
+			log.Printf("Server error: %v", err)
 			cancel()
 		}
 	}()

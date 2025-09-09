@@ -2,25 +2,25 @@ import { useState, useEffect } from 'react'
 import { ScriptEditor } from './ScriptEditor'
 import type { CommandSet } from '../types'
 
-interface WorkflowEditorProps {
-  workflow?: CommandSet
+interface CommandSetEditorProps {
+  commandSet?: CommandSet
   availableCommands: CommandSet[]
   onSave: (commandSet: Omit<CommandSet, 'commandId' | 'created'>) => void
   onCancel: () => void
 }
 
-export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorProps) {
-  const [name, setName] = useState(workflow?.commandName || '')
-  const [description, setDescription] = useState(workflow?.description || '')
-  const [scripts, setScripts] = useState<string[]>(workflow?.commandScripts || [''])
+export function CommandSetEditor({ commandSet, onSave, onCancel }: CommandSetEditorProps) {
+  const [name, setName] = useState(commandSet?.commandName || '')
+  const [description, setDescription] = useState(commandSet?.description || '')
+  const [scripts, setScripts] = useState<string[]>(commandSet?.commandScripts || [''])
 
   useEffect(() => {
-    if (workflow) {
-      setName(workflow.commandName)
-      setDescription(workflow.description || '')
-      setScripts(workflow.commandScripts)
+    if (commandSet) {
+      setName(commandSet.commandName)
+      setDescription(commandSet.description || '')
+      setScripts(commandSet.commandScripts)
     }
-  }, [workflow])
+  }, [commandSet])
 
 
   const handleSave = () => {
@@ -63,7 +63,7 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
         overflowY: 'auto'
       }}>
         <h2 style={{ margin: '0 0 20px 0' }}>
-          {workflow ? '编辑命令集' : '创建命令集'}
+          {commandSet ? '编辑命令集' : '创建命令集'}
         </h2>
 
         <div style={{ marginBottom: '16px' }}>
