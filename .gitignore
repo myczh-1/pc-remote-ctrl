@@ -12,6 +12,23 @@ dist
 dist-ssr
 *.local
 
+# Go binaries and build artifacts
+controller
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool
+*.out
+
+# Go mod cache
+go.sum
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

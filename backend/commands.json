@@ -1,1 +1,0 @@
-{"demo":{"name":"echo-demo","script":"echo hello-from-protobuf-ts","desc":"stored from web"},"hello":{"name":"Hello命令","script":"echo 'Hello from gRPC Controller!'","desc":"简单的问候命令"},"test1":{"name":"打印hello","script":"echo hello world","desc":"测试命令"}}
