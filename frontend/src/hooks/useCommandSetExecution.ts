@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import { ControllerServiceClient } from '../proto/remote_control.client'
 import { GrpcWebFetchTransport } from '@protobuf-ts/grpcweb-transport'
 import type { CommandSet, CommandSetExecution, StepExecutionResult } from '../types'
@@ -91,6 +91,17 @@ export function useCommandSetExecution() {
     setExecution(null)
     abortRef.current = false
   }, [])
+
+  // 自动清理：执行完成后5秒自动清除状态
+  useEffect(() => {
+    if (execution && execution.status !== 'running') {
+      const timer = setTimeout(() => {
+        setExecution(null)
+      }, 5000) // 5秒后自动清除
+      
+      return () => clearTimeout(timer)
+    }
+  }, [execution?.status])
 
   return {
     execution,

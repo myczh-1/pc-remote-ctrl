@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { ScriptEditor } from './ScriptEditor'
 import type { CommandSet } from '../types'
 
 interface WorkflowEditorProps {
@@ -21,19 +22,6 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
     }
   }, [workflow])
 
-  const addScript = () => {
-    setScripts([...scripts, ''])
-  }
-
-  const updateScript = (index: number, value: string) => {
-    const newScripts = [...scripts]
-    newScripts[index] = value
-    setScripts(newScripts)
-  }
-
-  const removeScript = (index: number) => {
-    setScripts(scripts.filter((_, i) => i !== index))
-  }
 
   const handleSave = () => {
     if (!name.trim() || scripts.some(script => !script.trim())) {
@@ -117,74 +105,10 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
           />
         </div>
 
-        <div style={{ marginBottom: '20px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-            <label style={{ fontWeight: 'bold' }}>
-              执行脚本 *
-            </label>
-            <button
-              onClick={addScript}
-              style={{
-                padding: '4px 8px',
-                fontSize: '12px',
-                backgroundColor: '#007bff',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer'
-              }}
-            >
-              + 添加脚本
-            </button>
-          </div>
-
-          {scripts.map((script, index) => (
-            <div key={index} style={{ display: 'flex', marginBottom: '8px', alignItems: 'flex-start' }}>
-              <span style={{ 
-                minWidth: '20px', 
-                fontSize: '12px', 
-                color: '#666', 
-                marginTop: '8px',
-                marginRight: '8px'
-              }}>
-                {index + 1}.
-              </span>
-              <textarea
-                value={script}
-                onChange={(e) => updateScript(index, e.target.value)}
-                placeholder="输入要执行的命令脚本"
-                rows={2}
-                style={{
-                  flex: 1,
-                  padding: '6px',
-                  border: '1px solid #ddd',
-                  borderRadius: '4px',
-                  fontSize: '13px',
-                  fontFamily: 'monospace',
-                  resize: 'vertical'
-                }}
-              />
-              {scripts.length > 1 && (
-                <button
-                  onClick={() => removeScript(index)}
-                  style={{
-                    marginLeft: '8px',
-                    padding: '6px 8px',
-                    fontSize: '12px',
-                    backgroundColor: '#dc3545',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                    minWidth: '50px'
-                  }}
-                >
-                  删除
-                </button>
-              )}
-            </div>
-          ))}
-        </div>
+        <ScriptEditor 
+          scripts={scripts}
+          onScriptsChange={setScripts}
+        />
 
         <div style={{
           display: 'flex',

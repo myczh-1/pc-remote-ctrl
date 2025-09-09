@@ -31,19 +31,41 @@
 }
 
 .execution-status {
-  max-width: 1200px;
+  max-width: 1600px;
   margin: 1rem auto;
-  padding: 0 1rem;
+  padding: 0 2rem;
 }
 
 .main-content {
-  max-width: 1200px;
+  max-width: 1600px;
   margin: 0 auto;
-  padding: 2rem 1rem;
+  padding: 2rem;
   display: grid;
   grid-template-columns: 2fr 1fr;
   gap: 2rem;
   min-height: calc(100vh - 200px);
+}
+
+/* 大屏幕优化 */
+@media (min-width: 1400px) {
+  .main-content {
+    grid-template-columns: 2.5fr 1fr;
+  }
+}
+
+/* 超宽屏优化 */
+@media (min-width: 1800px) {
+  .execution-status {
+    max-width: 1800px;
+    padding: 0 3rem;
+  }
+  
+  .main-content {
+    max-width: 1800px;
+    padding: 2rem 3rem;
+    gap: 3rem;
+    grid-template-columns: 3fr 1fr;
+  }
 }
 
 @media (max-width: 768px) {
@@ -406,6 +428,18 @@
 @media (min-width: 768px) {
   .workflow-grid {
     grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  }
+}
+
+@media (min-width: 1200px) {
+  .workflow-grid {
+    grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+  }
+}
+
+@media (min-width: 1600px) {
+  .workflow-grid {
+    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
   }
 }
 

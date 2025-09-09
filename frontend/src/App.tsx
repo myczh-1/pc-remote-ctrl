@@ -3,11 +3,10 @@ import { useState } from 'react'
 import { useCommandSets } from './hooks/useCommandSets'
 import { useCommandSetExecution } from './hooks/useCommandSetExecution'
 import { useLogger } from './hooks/useLogger'
-import { CommandList } from './components/CommandList'
 import { LogDisplay } from './components/LogDisplay'
-import { WorkflowList } from './components/WorkflowList'
-import { WorkflowEditor } from './components/WorkflowEditor'
-import { WorkflowExecutionStatus } from './components/WorkflowExecutionStatus'
+import { CommandPanel } from './components/CommandPanel'
+import { ExecutionStatusPanel } from './components/ExecutionStatusPanel'
+import { EditorModal } from './components/EditorModal'
 import type { CommandSet } from './types'
 
 export default function App() {
@@ -42,21 +41,6 @@ export default function App() {
         }
     }
 
-    const handleExecuteCommandSet = async (commandSetId: string) => {
-        const commandSet = commandSets.find(cs => cs.commandId === commandSetId)
-        if (!commandSet) {
-            logError(`CommandSet not found: ${commandSetId}`)
-            return
-        }
-        
-        const result = await executeCommandSet(commandSet)
-        
-        if (result?.success) {
-            logSuccess(`ExecuteCommandSet(${commandSetId}): Successfully executed ${result.stepResults.length} steps`)
-        } else {
-            logError(`ExecuteCommandSet(${commandSetId}) ERROR: ${result?.error}`)
-        }
-    }
 
     const handleCreateCommandSet = () => {
         setEditingCommandSet(undefined)
@@ -112,84 +96,42 @@ export default function App() {
                 <p>管理和执行远程命令</p>
             </header>
 
-            {/* 工作流执行状态 */}
-            {execution && (
-                <div className="execution-status">
-                    <WorkflowExecutionStatus 
-                        execution={execution}
-                        onStop={() => {}}
-                        onClear={clearExecution}
-                    />
-                </div>
-            )}
+            <ExecutionStatusPanel 
+                execution={execution}
+                onStop={() => {}}
+                onClear={clearExecution}
+            />
 
             <main className="main-content">
-                {/* 主要控制面板 */}
-                <div className="control-panel">
-                    <div className="panel-header">
-                        <h2>命令集</h2>
-                        <div className="header-actions">
-                            <button
-                                className="btn btn-secondary"
-                                disabled={loading || isRunning}
-                                onClick={handleListAllCommandSets}
-                                title="刷新命令集列表"
-                            >
-                                🔄 刷新
-                            </button>
-                            <button
-                                className="btn btn-primary"
-                                onClick={handleCreateCommandSet}
-                                disabled={isRunning}
-                            >
-                                ➕ 新建命令集
-                            </button>
-                        </div>
-                    </div>
+                <CommandPanel
+                    commandSets={commandSets}
+                    loading={loading}
+                    isRunning={isRunning}
+                    execution={execution}
+                    onRefresh={handleListAllCommandSets}
+                    onCreate={handleCreateCommandSet}
+                    onExecute={handleExecuteCommandSet2}
+                    onEdit={handleEditCommandSet}
+                    onDelete={handleDeleteCommandSet}
+                    onDuplicate={handleDuplicateCommandSet}
+                    onCreateSample={handleStoreSample}
+                />
 
-                    {commandSets.length === 0 && !loading ? (
-                        <div className="empty-state">
-                            <div className="empty-icon">📝</div>
-                            <h3>还没有命令集</h3>
-                            <p>创建第一个命令集来开始远程控制</p>
-                            <button 
-                                className="btn btn-primary" 
-                                onClick={handleStoreSample}
-                                disabled={loading || isRunning}
-                            >
-                                创建示例命令集
-                            </button>
-                        </div>
-                    ) : (
-                        <WorkflowList 
-                            workflows={commandSets}
-                            onExecuteWorkflow={handleExecuteCommandSet2}
-                            onEditWorkflow={handleEditCommandSet}
-                            onDeleteWorkflow={handleDeleteCommandSet}
-                            onDuplicateWorkflow={handleDuplicateCommandSet}
-                            executingWorkflowId={execution?.commandSetId}
-                        />
-                    )}
-                </div>
-
-                {/* 日志面板 */}
                 <div className="log-panel">
                     <LogDisplay log={log} onClear={clearLog} />
                 </div>
             </main>
 
-            {/* 命令集编辑器模态框 */}
-            {showCommandSetEditor && (
-                <WorkflowEditor 
-                    workflow={editingCommandSet}
-                    availableCommands={commandSets}
-                    onSave={handleSaveCommandSet}
-                    onCancel={() => {
-                        setShowCommandSetEditor(false)
-                        setEditingCommandSet(undefined)
-                    }}
-                />
-            )}
+            <EditorModal
+                isVisible={showCommandSetEditor}
+                editingCommandSet={editingCommandSet}
+                availableCommands={commandSets}
+                onSave={handleSaveCommandSet}
+                onCancel={() => {
+                    setShowCommandSetEditor(false)
+                    setEditingCommandSet(undefined)
+                }}
+            />
         </div>
     )
 }
