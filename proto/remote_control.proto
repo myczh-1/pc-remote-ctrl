@@ -12,9 +12,6 @@ service ControllerService {
   rpc StoreCommand(StoreCommandRequest) returns (StoreCommandResponse);
   // 获取全部命令
   rpc GetAllCommands(GetAllCommandsRequest) returns (GetAllCommandsResponse);
-  // 流式执行，按行返回日志
-  rpc ExecuteCommandStream(ExecuteCommandRequest) returns (stream LogLine);
-
 }
 
 // 执行命令请求
@@ -59,11 +56,4 @@ message CommandInfo {
 // 获取全部命令响应
 message GetAllCommandsResponse {
   repeated CommandInfo commands = 1;
-}
-
-// 日志流消息
-message LogLine {
-  int64  index = 1;     // 递增序号
-  string stream = 2;    // "stdout" | "stderr"
-  string line  = 3;     // 日志文本（单行，不含换行）
 }

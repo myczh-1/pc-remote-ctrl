@@ -14,11 +14,6 @@ import (
 	"sync"
 	"syscall"
 	"time"
-	"bufio"
-	"io"
-	"sync/atomic"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 
 	controllerpb "pc-remote-ctrl/backend/proto"
 
@@ -52,7 +47,7 @@ func safeError(err error) string {
 
 func (s *server) ExecuteCommand(ctx context.Context, req *controllerpb.ExecuteCommandRequest) (*controllerpb.ExecuteCommandResponse, error) {
 	s.mu.RLock()
-	cmd := s.commands[req.GetCommandId()]
+	cmd := s.commands[req.CommandId]
 	s.mu.RUnlock()
 
 	if cmd == nil {
@@ -249,95 +244,4 @@ func main() {
 	grpcServer.GracefulStop()
 	
 	log.Println("servers shutdown complete")
-}
-func (s *server) ExecuteCommandStream(req *controllerpb.ExecuteCommandRequest, stream controllerpb.ControllerService_ExecuteCommandStreamServer) error {
-	// 1) 查命令
-	s.mu.RLock()
-	cmdMeta := s.commands[req.GetCommandId()]
-	s.mu.RUnlock()
-	if cmdMeta == nil {
-		// 没有就直接结束流（也可先发一条错误行）
-		return status.Errorf(codes.NotFound, "command %q not found", req.GetCommandId())
-	}
-
-	// 2) 构造命令（与 ExecuteCommand 一样的跨平台方式）
-	var execCmd *exec.Cmd
-	if runtime.GOOS == "windows" {
-		execCmd = exec.CommandContext(stream.Context(), "cmd", "/C", cmdMeta.Script)
-	} else {
-		execCmd = exec.CommandContext(stream.Context(), "sh", "-c", cmdMeta.Script)
-	}
-
-	stdout, err := execCmd.StdoutPipe()
-	if err != nil {
-		return status.Errorf(codes.Internal, "stdout pipe: %v", err)
-	}
-	stderr, err := execCmd.StderrPipe()
-	if err != nil {
-		return status.Errorf(codes.Internal, "stderr pipe: %v", err)
-	}
-
-	// 3) 启动进程
-	if err := execCmd.Start(); err != nil {
-		return status.Errorf(codes.Internal, "start command: %v", err)
-	}
-
-	// 4) 并发读取两路输出，按行往流里写
-	var idx int64
-	sendLine := func(streamName string, r io.Reader) error {
-		sc := bufio.NewScanner(r)
-		// 可选：增大单行上限（默认 64K）
-		buf := make([]byte, 0, 1024*64)
-		sc.Buffer(buf, 1024*1024) // 1MB
-		for sc.Scan() {
-			line := sc.Text()
-			i := atomic.AddInt64(&idx, 1)
-			if err := stream.Send(&controllerpb.LogLine{
-				Index:  i,
-				Stream: streamName,
-				Line:   line,
-			}); err != nil {
-				return err // 可能是客户端取消
-			}
-		}
-		return sc.Err()
-	}
-
-	errCh := make(chan error, 2)
-	go func() { errCh <- sendLine("stdout", stdout) }()
-	go func() { errCh <- sendLine("stderr", stderr) }()
-
-	// 5) 等待输出结束或上下文取消
-	waitDone := make(chan error, 1)
-	go func() { waitDone <- execCmd.Wait() }()
-
-	for finished := 0; finished < 2; {
-		select {
-		case <-stream.Context().Done():
-			// 客户端取消
-			_ = execCmd.Process.Kill()
-			return stream.Context().Err()
-		case err := <-errCh:
-			// 某一路输出结束（或出错），等两路都结束
-			finished++
-			if err != nil {
-				// 把错误映射为 gRPC 状态（也可以忽略，继续等另一边）
-				// 这里选择在日志流里结束即可
-			}
-		case err := <-waitDone:
-			// 进程退出（无论正常或异常）
-			if err != nil {
-				// 可选：在退出时追加一条 stderr 提示（也可不发）
-				_ = stream.Send(&controllerpb.LogLine{
-					Index:  atomic.AddInt64(&idx, 1),
-					Stream: "stderr",
-					Line:   safeError(err),
-				})
-			}
-			// 等待两路输出都读完（finished==2）后退出 for
-		}
-	}
-
-	// 正常结束（不需要额外返回值；关闭流即可）
-	return nil
 }

@@ -4,8 +4,6 @@
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { ControllerService } from "./remote_control";
-import type { LogLine } from "./remote_control";
-import type { ServerStreamingCall } from "@protobuf-ts/runtime-rpc";
 import type { GetAllCommandsResponse } from "./remote_control";
 import type { GetAllCommandsRequest } from "./remote_control";
 import type { StoreCommandResponse } from "./remote_control";
@@ -39,12 +37,6 @@ export interface IControllerServiceClient {
      * @generated from protobuf rpc: GetAllCommands
      */
     getAllCommands(input: GetAllCommandsRequest, options?: RpcOptions): UnaryCall<GetAllCommandsRequest, GetAllCommandsResponse>;
-    /**
-     * 流式执行，按行返回日志
-     *
-     * @generated from protobuf rpc: ExecuteCommandStream
-     */
-    executeCommandStream(input: ExecuteCommandRequest, options?: RpcOptions): ServerStreamingCall<ExecuteCommandRequest, LogLine>;
 }
 /**
  * 控制器服务定义
@@ -83,14 +75,5 @@ export class ControllerServiceClient implements IControllerServiceClient, Servic
     getAllCommands(input: GetAllCommandsRequest, options?: RpcOptions): UnaryCall<GetAllCommandsRequest, GetAllCommandsResponse> {
         const method = this.methods[2], opt = this._transport.mergeOptions(options);
         return stackIntercept<GetAllCommandsRequest, GetAllCommandsResponse>("unary", this._transport, method, opt, input);
-    }
-    /**
-     * 流式执行，按行返回日志
-     *
-     * @generated from protobuf rpc: ExecuteCommandStream
-     */
-    executeCommandStream(input: ExecuteCommandRequest, options?: RpcOptions): ServerStreamingCall<ExecuteCommandRequest, LogLine> {
-        const method = this.methods[3], opt = this._transport.mergeOptions(options);
-        return stackIntercept<ExecuteCommandRequest, LogLine>("serverStreaming", this._transport, method, opt, input);
     }
 }
