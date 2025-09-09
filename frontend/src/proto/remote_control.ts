@@ -12,64 +12,95 @@ import type { PartialMessage } from "@protobuf-ts/runtime";
 import { reflectionMergePartial } from "@protobuf-ts/runtime";
 import { MessageType } from "@protobuf-ts/runtime";
 /**
- * 执行命令请求
+ * 执行命令集请求
  *
- * @generated from protobuf message remote_control.ExecuteCommandRequest
+ * @generated from protobuf message remote_control.ExecuteCommandSetRequest
  */
-export interface ExecuteCommandRequest {
+export interface ExecuteCommandSetRequest {
     /**
-     * @generated from protobuf field: string command_id = 1
+     * @generated from protobuf field: string command_set_id = 1
      */
-    commandId: string; // 命令ID
+    commandSetId: string; // 命令集ID
 }
 /**
- * 执行命令响应
+ * 步骤执行结果
  *
- * @generated from protobuf message remote_control.ExecuteCommandResponse
+ * @generated from protobuf message remote_control.StepResult
  */
-export interface ExecuteCommandResponse {
+export interface StepResult {
     /**
-     * @generated from protobuf field: string output = 1
+     * @generated from protobuf field: int32 step_index = 1
+     */
+    stepIndex: number; // 步骤索引（从0开始）
+    /**
+     * @generated from protobuf field: string step_script = 2
+     */
+    stepScript: string; // 步骤脚本内容
+    /**
+     * @generated from protobuf field: string output = 3
      */
     output: string; // 输出内容
     /**
-     * @generated from protobuf field: string error = 2
+     * @generated from protobuf field: string error = 4
      */
     error: string; // 错误信息
     /**
-     * @generated from protobuf field: int32 exit_code = 3
+     * @generated from protobuf field: int32 exit_code = 5
      */
     exitCode: number; // 退出码（0表示成功）
+    /**
+     * @generated from protobuf field: bool success = 6
+     */
+    success: boolean; // 是否成功
 }
 /**
- * 存储命令请求
+ * 执行命令集响应
  *
- * @generated from protobuf message remote_control.StoreCommandRequest
+ * @generated from protobuf message remote_control.ExecuteCommandSetResponse
  */
-export interface StoreCommandRequest {
+export interface ExecuteCommandSetResponse {
     /**
-     * @generated from protobuf field: string command_id = 1
+     * @generated from protobuf field: repeated remote_control.StepResult step_results = 1
      */
-    commandId: string; // 命令ID
+    stepResults: StepResult[]; // 每个步骤的执行结果
     /**
-     * @generated from protobuf field: string command_name = 2
+     * @generated from protobuf field: bool success = 2
      */
-    commandName: string; // 命令名称
+    success: boolean; // 整体是否成功
     /**
-     * @generated from protobuf field: string command_script = 3
+     * @generated from protobuf field: string error = 3
      */
-    commandScript: string; // 命令脚本
+    error: string; // 整体错误信息（如果有）
+}
+/**
+ * 存储命令集请求
+ *
+ * @generated from protobuf message remote_control.StoreCommandSetRequest
+ */
+export interface StoreCommandSetRequest {
+    /**
+     * @generated from protobuf field: string command_set_id = 1
+     */
+    commandSetId: string; // 命令集ID
+    /**
+     * @generated from protobuf field: string command_set_name = 2
+     */
+    commandSetName: string; // 命令集名称
+    /**
+     * @generated from protobuf field: repeated string command_scripts = 3
+     */
+    commandScripts: string[]; // 命令脚本列表
     /**
      * @generated from protobuf field: string description = 4
      */
     description: string; // 描述
 }
 /**
- * 存储命令响应
+ * 存储命令集响应
  *
- * @generated from protobuf message remote_control.StoreCommandResponse
+ * @generated from protobuf message remote_control.StoreCommandSetResponse
  */
-export interface StoreCommandResponse {
+export interface StoreCommandSetResponse {
     /**
      * @generated from protobuf field: bool success = 1
      */
@@ -80,69 +111,69 @@ export interface StoreCommandResponse {
     message: string;
 }
 /**
- * 获取全部命令请求
+ * 获取全部命令集请求
  *
  * 空请求
  *
- * @generated from protobuf message remote_control.GetAllCommandsRequest
+ * @generated from protobuf message remote_control.GetAllCommandSetsRequest
  */
-export interface GetAllCommandsRequest {
+export interface GetAllCommandSetsRequest {
 }
 /**
- * 命令信息
+ * 命令集信息
  *
- * @generated from protobuf message remote_control.CommandInfo
+ * @generated from protobuf message remote_control.CommandSetInfo
  */
-export interface CommandInfo {
+export interface CommandSetInfo {
     /**
-     * @generated from protobuf field: string command_id = 1
+     * @generated from protobuf field: string command_set_id = 1
      */
-    commandId: string;
+    commandSetId: string; // 命令集ID
     /**
-     * @generated from protobuf field: string command_name = 2
+     * @generated from protobuf field: string command_set_name = 2
      */
-    commandName: string;
+    commandSetName: string; // 命令集名称
     /**
-     * @generated from protobuf field: string command_script = 3
+     * @generated from protobuf field: repeated string command_scripts = 3
      */
-    commandScript: string;
+    commandScripts: string[]; // 命令脚本列表
     /**
      * @generated from protobuf field: string description = 4
      */
-    description: string;
+    description: string; // 描述
 }
 /**
- * 获取全部命令响应
+ * 获取全部命令集响应
  *
- * @generated from protobuf message remote_control.GetAllCommandsResponse
+ * @generated from protobuf message remote_control.GetAllCommandSetsResponse
  */
-export interface GetAllCommandsResponse {
+export interface GetAllCommandSetsResponse {
     /**
-     * @generated from protobuf field: repeated remote_control.CommandInfo commands = 1
+     * @generated from protobuf field: repeated remote_control.CommandSetInfo command_sets = 1
      */
-    commands: CommandInfo[];
+    commandSets: CommandSetInfo[];
 }
 // @generated message type with reflection information, may provide speed optimized methods
-class ExecuteCommandRequest$Type extends MessageType<ExecuteCommandRequest> {
+class ExecuteCommandSetRequest$Type extends MessageType<ExecuteCommandSetRequest> {
     constructor() {
-        super("remote_control.ExecuteCommandRequest", [
-            { no: 1, name: "command_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        super("remote_control.ExecuteCommandSetRequest", [
+            { no: 1, name: "command_set_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
-    create(value?: PartialMessage<ExecuteCommandRequest>): ExecuteCommandRequest {
+    create(value?: PartialMessage<ExecuteCommandSetRequest>): ExecuteCommandSetRequest {
         const message = globalThis.Object.create((this.messagePrototype!));
-        message.commandId = "";
+        message.commandSetId = "";
         if (value !== undefined)
-            reflectionMergePartial<ExecuteCommandRequest>(this, message, value);
+            reflectionMergePartial<ExecuteCommandSetRequest>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ExecuteCommandRequest): ExecuteCommandRequest {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ExecuteCommandSetRequest): ExecuteCommandSetRequest {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string command_id */ 1:
-                    message.commandId = reader.string();
+                case /* string command_set_id */ 1:
+                    message.commandSetId = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -155,10 +186,10 @@ class ExecuteCommandRequest$Type extends MessageType<ExecuteCommandRequest> {
         }
         return message;
     }
-    internalBinaryWrite(message: ExecuteCommandRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string command_id = 1; */
-        if (message.commandId !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.commandId);
+    internalBinaryWrite(message: ExecuteCommandSetRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string command_set_id = 1; */
+        if (message.commandSetId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.commandSetId);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -166,40 +197,55 @@ class ExecuteCommandRequest$Type extends MessageType<ExecuteCommandRequest> {
     }
 }
 /**
- * @generated MessageType for protobuf message remote_control.ExecuteCommandRequest
+ * @generated MessageType for protobuf message remote_control.ExecuteCommandSetRequest
  */
-export const ExecuteCommandRequest = new ExecuteCommandRequest$Type();
+export const ExecuteCommandSetRequest = new ExecuteCommandSetRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class ExecuteCommandResponse$Type extends MessageType<ExecuteCommandResponse> {
+class StepResult$Type extends MessageType<StepResult> {
     constructor() {
-        super("remote_control.ExecuteCommandResponse", [
-            { no: 1, name: "output", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "error", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "exit_code", kind: "scalar", T: 5 /*ScalarType.INT32*/ }
+        super("remote_control.StepResult", [
+            { no: 1, name: "step_index", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
+            { no: 2, name: "step_script", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "output", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "error", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "exit_code", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
+            { no: 6, name: "success", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
         ]);
     }
-    create(value?: PartialMessage<ExecuteCommandResponse>): ExecuteCommandResponse {
+    create(value?: PartialMessage<StepResult>): StepResult {
         const message = globalThis.Object.create((this.messagePrototype!));
+        message.stepIndex = 0;
+        message.stepScript = "";
         message.output = "";
         message.error = "";
         message.exitCode = 0;
+        message.success = false;
         if (value !== undefined)
-            reflectionMergePartial<ExecuteCommandResponse>(this, message, value);
+            reflectionMergePartial<StepResult>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ExecuteCommandResponse): ExecuteCommandResponse {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: StepResult): StepResult {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string output */ 1:
+                case /* int32 step_index */ 1:
+                    message.stepIndex = reader.int32();
+                    break;
+                case /* string step_script */ 2:
+                    message.stepScript = reader.string();
+                    break;
+                case /* string output */ 3:
                     message.output = reader.string();
                     break;
-                case /* string error */ 2:
+                case /* string error */ 4:
                     message.error = reader.string();
                     break;
-                case /* int32 exit_code */ 3:
+                case /* int32 exit_code */ 5:
                     message.exitCode = reader.int32();
+                    break;
+                case /* bool success */ 6:
+                    message.success = reader.bool();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -212,16 +258,25 @@ class ExecuteCommandResponse$Type extends MessageType<ExecuteCommandResponse> {
         }
         return message;
     }
-    internalBinaryWrite(message: ExecuteCommandResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string output = 1; */
+    internalBinaryWrite(message: StepResult, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* int32 step_index = 1; */
+        if (message.stepIndex !== 0)
+            writer.tag(1, WireType.Varint).int32(message.stepIndex);
+        /* string step_script = 2; */
+        if (message.stepScript !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.stepScript);
+        /* string output = 3; */
         if (message.output !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.output);
-        /* string error = 2; */
+            writer.tag(3, WireType.LengthDelimited).string(message.output);
+        /* string error = 4; */
         if (message.error !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.error);
-        /* int32 exit_code = 3; */
+            writer.tag(4, WireType.LengthDelimited).string(message.error);
+        /* int32 exit_code = 5; */
         if (message.exitCode !== 0)
-            writer.tag(3, WireType.Varint).int32(message.exitCode);
+            writer.tag(5, WireType.Varint).int32(message.exitCode);
+        /* bool success = 6; */
+        if (message.success !== false)
+            writer.tag(6, WireType.Varint).bool(message.success);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -229,42 +284,105 @@ class ExecuteCommandResponse$Type extends MessageType<ExecuteCommandResponse> {
     }
 }
 /**
- * @generated MessageType for protobuf message remote_control.ExecuteCommandResponse
+ * @generated MessageType for protobuf message remote_control.StepResult
  */
-export const ExecuteCommandResponse = new ExecuteCommandResponse$Type();
+export const StepResult = new StepResult$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class StoreCommandRequest$Type extends MessageType<StoreCommandRequest> {
+class ExecuteCommandSetResponse$Type extends MessageType<ExecuteCommandSetResponse> {
     constructor() {
-        super("remote_control.StoreCommandRequest", [
-            { no: 1, name: "command_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "command_name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "command_script", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 4, name: "description", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        super("remote_control.ExecuteCommandSetResponse", [
+            { no: 1, name: "step_results", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => StepResult },
+            { no: 2, name: "success", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 3, name: "error", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
-    create(value?: PartialMessage<StoreCommandRequest>): StoreCommandRequest {
+    create(value?: PartialMessage<ExecuteCommandSetResponse>): ExecuteCommandSetResponse {
         const message = globalThis.Object.create((this.messagePrototype!));
-        message.commandId = "";
-        message.commandName = "";
-        message.commandScript = "";
-        message.description = "";
+        message.stepResults = [];
+        message.success = false;
+        message.error = "";
         if (value !== undefined)
-            reflectionMergePartial<StoreCommandRequest>(this, message, value);
+            reflectionMergePartial<ExecuteCommandSetResponse>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: StoreCommandRequest): StoreCommandRequest {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ExecuteCommandSetResponse): ExecuteCommandSetResponse {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string command_id */ 1:
-                    message.commandId = reader.string();
+                case /* repeated remote_control.StepResult step_results */ 1:
+                    message.stepResults.push(StepResult.internalBinaryRead(reader, reader.uint32(), options));
                     break;
-                case /* string command_name */ 2:
-                    message.commandName = reader.string();
+                case /* bool success */ 2:
+                    message.success = reader.bool();
                     break;
-                case /* string command_script */ 3:
-                    message.commandScript = reader.string();
+                case /* string error */ 3:
+                    message.error = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ExecuteCommandSetResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated remote_control.StepResult step_results = 1; */
+        for (let i = 0; i < message.stepResults.length; i++)
+            StepResult.internalBinaryWrite(message.stepResults[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* bool success = 2; */
+        if (message.success !== false)
+            writer.tag(2, WireType.Varint).bool(message.success);
+        /* string error = 3; */
+        if (message.error !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.error);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message remote_control.ExecuteCommandSetResponse
+ */
+export const ExecuteCommandSetResponse = new ExecuteCommandSetResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class StoreCommandSetRequest$Type extends MessageType<StoreCommandSetRequest> {
+    constructor() {
+        super("remote_control.StoreCommandSetRequest", [
+            { no: 1, name: "command_set_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "command_set_name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "command_scripts", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "description", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<StoreCommandSetRequest>): StoreCommandSetRequest {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        message.commandSetId = "";
+        message.commandSetName = "";
+        message.commandScripts = [];
+        message.description = "";
+        if (value !== undefined)
+            reflectionMergePartial<StoreCommandSetRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: StoreCommandSetRequest): StoreCommandSetRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string command_set_id */ 1:
+                    message.commandSetId = reader.string();
+                    break;
+                case /* string command_set_name */ 2:
+                    message.commandSetName = reader.string();
+                    break;
+                case /* repeated string command_scripts */ 3:
+                    message.commandScripts.push(reader.string());
                     break;
                 case /* string description */ 4:
                     message.description = reader.string();
@@ -280,16 +398,16 @@ class StoreCommandRequest$Type extends MessageType<StoreCommandRequest> {
         }
         return message;
     }
-    internalBinaryWrite(message: StoreCommandRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string command_id = 1; */
-        if (message.commandId !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.commandId);
-        /* string command_name = 2; */
-        if (message.commandName !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.commandName);
-        /* string command_script = 3; */
-        if (message.commandScript !== "")
-            writer.tag(3, WireType.LengthDelimited).string(message.commandScript);
+    internalBinaryWrite(message: StoreCommandSetRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string command_set_id = 1; */
+        if (message.commandSetId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.commandSetId);
+        /* string command_set_name = 2; */
+        if (message.commandSetName !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.commandSetName);
+        /* repeated string command_scripts = 3; */
+        for (let i = 0; i < message.commandScripts.length; i++)
+            writer.tag(3, WireType.LengthDelimited).string(message.commandScripts[i]);
         /* string description = 4; */
         if (message.description !== "")
             writer.tag(4, WireType.LengthDelimited).string(message.description);
@@ -300,26 +418,26 @@ class StoreCommandRequest$Type extends MessageType<StoreCommandRequest> {
     }
 }
 /**
- * @generated MessageType for protobuf message remote_control.StoreCommandRequest
+ * @generated MessageType for protobuf message remote_control.StoreCommandSetRequest
  */
-export const StoreCommandRequest = new StoreCommandRequest$Type();
+export const StoreCommandSetRequest = new StoreCommandSetRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class StoreCommandResponse$Type extends MessageType<StoreCommandResponse> {
+class StoreCommandSetResponse$Type extends MessageType<StoreCommandSetResponse> {
     constructor() {
-        super("remote_control.StoreCommandResponse", [
+        super("remote_control.StoreCommandSetResponse", [
             { no: 1, name: "success", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
             { no: 2, name: "message", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
-    create(value?: PartialMessage<StoreCommandResponse>): StoreCommandResponse {
+    create(value?: PartialMessage<StoreCommandSetResponse>): StoreCommandSetResponse {
         const message = globalThis.Object.create((this.messagePrototype!));
         message.success = false;
         message.message = "";
         if (value !== undefined)
-            reflectionMergePartial<StoreCommandResponse>(this, message, value);
+            reflectionMergePartial<StoreCommandSetResponse>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: StoreCommandResponse): StoreCommandResponse {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: StoreCommandSetResponse): StoreCommandSetResponse {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
@@ -341,7 +459,7 @@ class StoreCommandResponse$Type extends MessageType<StoreCommandResponse> {
         }
         return message;
     }
-    internalBinaryWrite(message: StoreCommandResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+    internalBinaryWrite(message: StoreCommandSetResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
         /* bool success = 1; */
         if (message.success !== false)
             writer.tag(1, WireType.Varint).bool(message.success);
@@ -355,21 +473,21 @@ class StoreCommandResponse$Type extends MessageType<StoreCommandResponse> {
     }
 }
 /**
- * @generated MessageType for protobuf message remote_control.StoreCommandResponse
+ * @generated MessageType for protobuf message remote_control.StoreCommandSetResponse
  */
-export const StoreCommandResponse = new StoreCommandResponse$Type();
+export const StoreCommandSetResponse = new StoreCommandSetResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class GetAllCommandsRequest$Type extends MessageType<GetAllCommandsRequest> {
+class GetAllCommandSetsRequest$Type extends MessageType<GetAllCommandSetsRequest> {
     constructor() {
-        super("remote_control.GetAllCommandsRequest", []);
+        super("remote_control.GetAllCommandSetsRequest", []);
     }
-    create(value?: PartialMessage<GetAllCommandsRequest>): GetAllCommandsRequest {
+    create(value?: PartialMessage<GetAllCommandSetsRequest>): GetAllCommandSetsRequest {
         const message = globalThis.Object.create((this.messagePrototype!));
         if (value !== undefined)
-            reflectionMergePartial<GetAllCommandsRequest>(this, message, value);
+            reflectionMergePartial<GetAllCommandSetsRequest>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetAllCommandsRequest): GetAllCommandsRequest {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetAllCommandSetsRequest): GetAllCommandSetsRequest {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
@@ -385,7 +503,7 @@ class GetAllCommandsRequest$Type extends MessageType<GetAllCommandsRequest> {
         }
         return message;
     }
-    internalBinaryWrite(message: GetAllCommandsRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+    internalBinaryWrite(message: GetAllCommandSetsRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -393,42 +511,42 @@ class GetAllCommandsRequest$Type extends MessageType<GetAllCommandsRequest> {
     }
 }
 /**
- * @generated MessageType for protobuf message remote_control.GetAllCommandsRequest
+ * @generated MessageType for protobuf message remote_control.GetAllCommandSetsRequest
  */
-export const GetAllCommandsRequest = new GetAllCommandsRequest$Type();
+export const GetAllCommandSetsRequest = new GetAllCommandSetsRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class CommandInfo$Type extends MessageType<CommandInfo> {
+class CommandSetInfo$Type extends MessageType<CommandSetInfo> {
     constructor() {
-        super("remote_control.CommandInfo", [
-            { no: 1, name: "command_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "command_name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "command_script", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+        super("remote_control.CommandSetInfo", [
+            { no: 1, name: "command_set_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "command_set_name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "command_scripts", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
             { no: 4, name: "description", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
-    create(value?: PartialMessage<CommandInfo>): CommandInfo {
+    create(value?: PartialMessage<CommandSetInfo>): CommandSetInfo {
         const message = globalThis.Object.create((this.messagePrototype!));
-        message.commandId = "";
-        message.commandName = "";
-        message.commandScript = "";
+        message.commandSetId = "";
+        message.commandSetName = "";
+        message.commandScripts = [];
         message.description = "";
         if (value !== undefined)
-            reflectionMergePartial<CommandInfo>(this, message, value);
+            reflectionMergePartial<CommandSetInfo>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CommandInfo): CommandInfo {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CommandSetInfo): CommandSetInfo {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string command_id */ 1:
-                    message.commandId = reader.string();
+                case /* string command_set_id */ 1:
+                    message.commandSetId = reader.string();
                     break;
-                case /* string command_name */ 2:
-                    message.commandName = reader.string();
+                case /* string command_set_name */ 2:
+                    message.commandSetName = reader.string();
                     break;
-                case /* string command_script */ 3:
-                    message.commandScript = reader.string();
+                case /* repeated string command_scripts */ 3:
+                    message.commandScripts.push(reader.string());
                     break;
                 case /* string description */ 4:
                     message.description = reader.string();
@@ -444,16 +562,16 @@ class CommandInfo$Type extends MessageType<CommandInfo> {
         }
         return message;
     }
-    internalBinaryWrite(message: CommandInfo, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string command_id = 1; */
-        if (message.commandId !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.commandId);
-        /* string command_name = 2; */
-        if (message.commandName !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.commandName);
-        /* string command_script = 3; */
-        if (message.commandScript !== "")
-            writer.tag(3, WireType.LengthDelimited).string(message.commandScript);
+    internalBinaryWrite(message: CommandSetInfo, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string command_set_id = 1; */
+        if (message.commandSetId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.commandSetId);
+        /* string command_set_name = 2; */
+        if (message.commandSetName !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.commandSetName);
+        /* repeated string command_scripts = 3; */
+        for (let i = 0; i < message.commandScripts.length; i++)
+            writer.tag(3, WireType.LengthDelimited).string(message.commandScripts[i]);
         /* string description = 4; */
         if (message.description !== "")
             writer.tag(4, WireType.LengthDelimited).string(message.description);
@@ -464,30 +582,30 @@ class CommandInfo$Type extends MessageType<CommandInfo> {
     }
 }
 /**
- * @generated MessageType for protobuf message remote_control.CommandInfo
+ * @generated MessageType for protobuf message remote_control.CommandSetInfo
  */
-export const CommandInfo = new CommandInfo$Type();
+export const CommandSetInfo = new CommandSetInfo$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class GetAllCommandsResponse$Type extends MessageType<GetAllCommandsResponse> {
+class GetAllCommandSetsResponse$Type extends MessageType<GetAllCommandSetsResponse> {
     constructor() {
-        super("remote_control.GetAllCommandsResponse", [
-            { no: 1, name: "commands", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => CommandInfo }
+        super("remote_control.GetAllCommandSetsResponse", [
+            { no: 1, name: "command_sets", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => CommandSetInfo }
         ]);
     }
-    create(value?: PartialMessage<GetAllCommandsResponse>): GetAllCommandsResponse {
+    create(value?: PartialMessage<GetAllCommandSetsResponse>): GetAllCommandSetsResponse {
         const message = globalThis.Object.create((this.messagePrototype!));
-        message.commands = [];
+        message.commandSets = [];
         if (value !== undefined)
-            reflectionMergePartial<GetAllCommandsResponse>(this, message, value);
+            reflectionMergePartial<GetAllCommandSetsResponse>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetAllCommandsResponse): GetAllCommandsResponse {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetAllCommandSetsResponse): GetAllCommandSetsResponse {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* repeated remote_control.CommandInfo commands */ 1:
-                    message.commands.push(CommandInfo.internalBinaryRead(reader, reader.uint32(), options));
+                case /* repeated remote_control.CommandSetInfo command_sets */ 1:
+                    message.commandSets.push(CommandSetInfo.internalBinaryRead(reader, reader.uint32(), options));
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -500,10 +618,10 @@ class GetAllCommandsResponse$Type extends MessageType<GetAllCommandsResponse> {
         }
         return message;
     }
-    internalBinaryWrite(message: GetAllCommandsResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* repeated remote_control.CommandInfo commands = 1; */
-        for (let i = 0; i < message.commands.length; i++)
-            CommandInfo.internalBinaryWrite(message.commands[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+    internalBinaryWrite(message: GetAllCommandSetsResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated remote_control.CommandSetInfo command_sets = 1; */
+        for (let i = 0; i < message.commandSets.length; i++)
+            CommandSetInfo.internalBinaryWrite(message.commandSets[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -511,14 +629,14 @@ class GetAllCommandsResponse$Type extends MessageType<GetAllCommandsResponse> {
     }
 }
 /**
- * @generated MessageType for protobuf message remote_control.GetAllCommandsResponse
+ * @generated MessageType for protobuf message remote_control.GetAllCommandSetsResponse
  */
-export const GetAllCommandsResponse = new GetAllCommandsResponse$Type();
+export const GetAllCommandSetsResponse = new GetAllCommandSetsResponse$Type();
 /**
  * @generated ServiceType for protobuf service remote_control.ControllerService
  */
 export const ControllerService = new ServiceType("remote_control.ControllerService", [
-    { name: "ExecuteCommand", options: {}, I: ExecuteCommandRequest, O: ExecuteCommandResponse },
-    { name: "StoreCommand", options: {}, I: StoreCommandRequest, O: StoreCommandResponse },
-    { name: "GetAllCommands", options: {}, I: GetAllCommandsRequest, O: GetAllCommandsResponse }
+    { name: "ExecuteCommandSet", options: {}, I: ExecuteCommandSetRequest, O: ExecuteCommandSetResponse },
+    { name: "StoreCommandSet", options: {}, I: StoreCommandSetRequest, O: StoreCommandSetResponse },
+    { name: "GetAllCommandSets", options: {}, I: GetAllCommandSetsRequest, O: GetAllCommandSetsResponse }
 ]);

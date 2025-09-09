@@ -4,42 +4,42 @@
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { ControllerService } from "./remote_control";
-import type { GetAllCommandsResponse } from "./remote_control";
-import type { GetAllCommandsRequest } from "./remote_control";
-import type { StoreCommandResponse } from "./remote_control";
-import type { StoreCommandRequest } from "./remote_control";
+import type { GetAllCommandSetsResponse } from "./remote_control";
+import type { GetAllCommandSetsRequest } from "./remote_control";
+import type { StoreCommandSetResponse } from "./remote_control";
+import type { StoreCommandSetRequest } from "./remote_control";
 import { stackIntercept } from "@protobuf-ts/runtime-rpc";
-import type { ExecuteCommandResponse } from "./remote_control";
-import type { ExecuteCommandRequest } from "./remote_control";
+import type { ExecuteCommandSetResponse } from "./remote_control";
+import type { ExecuteCommandSetRequest } from "./remote_control";
 import type { UnaryCall } from "@protobuf-ts/runtime-rpc";
 import type { RpcOptions } from "@protobuf-ts/runtime-rpc";
 /**
- * 控制器服务定义
+ * 控制器服务 - 统一基于命令集概念
  *
  * @generated from protobuf service remote_control.ControllerService
  */
 export interface IControllerServiceClient {
     /**
-     * 执行命令
+     * 执行命令集
      *
-     * @generated from protobuf rpc: ExecuteCommand
+     * @generated from protobuf rpc: ExecuteCommandSet
      */
-    executeCommand(input: ExecuteCommandRequest, options?: RpcOptions): UnaryCall<ExecuteCommandRequest, ExecuteCommandResponse>;
+    executeCommandSet(input: ExecuteCommandSetRequest, options?: RpcOptions): UnaryCall<ExecuteCommandSetRequest, ExecuteCommandSetResponse>;
     /**
-     * 存储命令
+     * 存储命令集
      *
-     * @generated from protobuf rpc: StoreCommand
+     * @generated from protobuf rpc: StoreCommandSet
      */
-    storeCommand(input: StoreCommandRequest, options?: RpcOptions): UnaryCall<StoreCommandRequest, StoreCommandResponse>;
+    storeCommandSet(input: StoreCommandSetRequest, options?: RpcOptions): UnaryCall<StoreCommandSetRequest, StoreCommandSetResponse>;
     /**
-     * 获取全部命令
+     * 获取全部命令集
      *
-     * @generated from protobuf rpc: GetAllCommands
+     * @generated from protobuf rpc: GetAllCommandSets
      */
-    getAllCommands(input: GetAllCommandsRequest, options?: RpcOptions): UnaryCall<GetAllCommandsRequest, GetAllCommandsResponse>;
+    getAllCommandSets(input: GetAllCommandSetsRequest, options?: RpcOptions): UnaryCall<GetAllCommandSetsRequest, GetAllCommandSetsResponse>;
 }
 /**
- * 控制器服务定义
+ * 控制器服务 - 统一基于命令集概念
  *
  * @generated from protobuf service remote_control.ControllerService
  */
@@ -50,30 +50,30 @@ export class ControllerServiceClient implements IControllerServiceClient, Servic
     constructor(private readonly _transport: RpcTransport) {
     }
     /**
-     * 执行命令
+     * 执行命令集
      *
-     * @generated from protobuf rpc: ExecuteCommand
+     * @generated from protobuf rpc: ExecuteCommandSet
      */
-    executeCommand(input: ExecuteCommandRequest, options?: RpcOptions): UnaryCall<ExecuteCommandRequest, ExecuteCommandResponse> {
+    executeCommandSet(input: ExecuteCommandSetRequest, options?: RpcOptions): UnaryCall<ExecuteCommandSetRequest, ExecuteCommandSetResponse> {
         const method = this.methods[0], opt = this._transport.mergeOptions(options);
-        return stackIntercept<ExecuteCommandRequest, ExecuteCommandResponse>("unary", this._transport, method, opt, input);
+        return stackIntercept<ExecuteCommandSetRequest, ExecuteCommandSetResponse>("unary", this._transport, method, opt, input);
     }
     /**
-     * 存储命令
+     * 存储命令集
      *
-     * @generated from protobuf rpc: StoreCommand
+     * @generated from protobuf rpc: StoreCommandSet
      */
-    storeCommand(input: StoreCommandRequest, options?: RpcOptions): UnaryCall<StoreCommandRequest, StoreCommandResponse> {
+    storeCommandSet(input: StoreCommandSetRequest, options?: RpcOptions): UnaryCall<StoreCommandSetRequest, StoreCommandSetResponse> {
         const method = this.methods[1], opt = this._transport.mergeOptions(options);
-        return stackIntercept<StoreCommandRequest, StoreCommandResponse>("unary", this._transport, method, opt, input);
+        return stackIntercept<StoreCommandSetRequest, StoreCommandSetResponse>("unary", this._transport, method, opt, input);
     }
     /**
-     * 获取全部命令
+     * 获取全部命令集
      *
-     * @generated from protobuf rpc: GetAllCommands
+     * @generated from protobuf rpc: GetAllCommandSets
      */
-    getAllCommands(input: GetAllCommandsRequest, options?: RpcOptions): UnaryCall<GetAllCommandsRequest, GetAllCommandsResponse> {
+    getAllCommandSets(input: GetAllCommandSetsRequest, options?: RpcOptions): UnaryCall<GetAllCommandSetsRequest, GetAllCommandSetsResponse> {
         const method = this.methods[2], opt = this._transport.mergeOptions(options);
-        return stackIntercept<GetAllCommandsRequest, GetAllCommandsResponse>("unary", this._transport, method, opt, input);
+        return stackIntercept<GetAllCommandSetsRequest, GetAllCommandSetsResponse>("unary", this._transport, method, opt, input);
     }
 }

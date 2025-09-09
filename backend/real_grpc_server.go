@@ -26,15 +26,15 @@ import (
 
 type server struct {
 	controllerpb.UnimplementedControllerServiceServer
-	commands map[string]*Command
-	mu       sync.RWMutex
+	commandSets map[string]*CommandSet
+	mu          sync.RWMutex
 }
 
-// Command represents a stored command with metadata
-type Command struct {
-	Name   string `json:"name"`
-	Script string `json:"script"`
-	Desc   string `json:"desc"`
+// CommandSet represents a stored command set with metadata
+type CommandSet struct {
+	Name    string   `json:"name"`
+	Scripts []string `json:"scripts"`
+	Desc    string   `json:"desc"`
 }
 
 // safeError safely converts error to string, avoiding panic
@@ -45,118 +45,158 @@ func safeError(err error) string {
 	return err.Error()
 }
 
-func (s *server) ExecuteCommand(ctx context.Context, req *controllerpb.ExecuteCommandRequest) (*controllerpb.ExecuteCommandResponse, error) {
+func (s *server) ExecuteCommandSet(ctx context.Context, req *controllerpb.ExecuteCommandSetRequest) (*controllerpb.ExecuteCommandSetResponse, error) {
 	s.mu.RLock()
-	cmd := s.commands[req.CommandId]
+	cmdSet := s.commandSets[req.CommandSetId]
 	s.mu.RUnlock()
 
-	if cmd == nil {
-		return &controllerpb.ExecuteCommandResponse{
-			Error:    "command not found",
-			ExitCode: -1,
+	if cmdSet == nil {
+		return &controllerpb.ExecuteCommandSetResponse{
+			Success: false,
+			Error:   "command set not found",
 		}, nil
 	}
 
-	// Cross-platform command execution
-	var execCmd *exec.Cmd
-	if runtime.GOOS == "windows" {
-		execCmd = exec.CommandContext(ctx, "cmd", "/C", cmd.Script)
-	} else {
-		execCmd = exec.CommandContext(ctx, "sh", "-c", cmd.Script)
+	var stepResults []*controllerpb.StepResult
+	allSuccess := true
+
+	// 顺序执行命令集中的每个脚本
+	for i, script := range cmdSet.Scripts {
+		// 为每个步骤创建独立的上下文，支持超时控制
+		stepCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+		
+		// Cross-platform command execution
+		var execCmd *exec.Cmd
+		if runtime.GOOS == "windows" {
+			execCmd = exec.CommandContext(stepCtx, "cmd", "/C", script)
+		} else {
+			execCmd = exec.CommandContext(stepCtx, "sh", "-c", script)
+		}
+
+		output, err := execCmd.CombinedOutput()
+		exitCode := int32(0)
+		success := true
+		
+		if execCmd.ProcessState != nil {
+			exitCode = int32(execCmd.ProcessState.ExitCode())
+			success = exitCode == 0
+		}
+		
+		if err != nil && success {
+			// 如果有错误但退出码是0，仍然认为是失败
+			success = false
+		}
+
+		stepResult := &controllerpb.StepResult{
+			StepIndex:  int32(i),
+			StepScript: script,
+			Output:     string(output),
+			Error:      safeError(err),
+			ExitCode:   exitCode,
+			Success:    success,
+		}
+		
+		stepResults = append(stepResults, stepResult)
+		cancel()
+
+		// 如果某一步失败，停止执行后续步骤
+		if !success {
+			allSuccess = false
+			break
+		}
 	}
 
-	output, err := execCmd.CombinedOutput()
-	exitCode := int32(0)
-	if execCmd.ProcessState != nil {
-		exitCode = int32(execCmd.ProcessState.ExitCode())
+	var overallError string
+	if !allSuccess {
+		overallError = "one or more steps failed"
 	}
 
-	return &controllerpb.ExecuteCommandResponse{
-		Output:   string(output),
-		Error:    safeError(err),
-		ExitCode: exitCode,
+	return &controllerpb.ExecuteCommandSetResponse{
+		StepResults: stepResults,
+		Success:     allSuccess,
+		Error:       overallError,
 	}, nil
 }
 
-func (s *server) StoreCommand(ctx context.Context, req *controllerpb.StoreCommandRequest) (*controllerpb.StoreCommandResponse, error) {
+func (s *server) StoreCommandSet(ctx context.Context, req *controllerpb.StoreCommandSetRequest) (*controllerpb.StoreCommandSetResponse, error) {
 	s.mu.Lock()
-	s.commands[req.CommandId] = &Command{
-		Name:   req.CommandName,
-		Script: req.CommandScript,
-		Desc:   req.Description,
+	s.commandSets[req.CommandSetId] = &CommandSet{
+		Name:    req.CommandSetName,
+		Scripts: req.CommandScripts,
+		Desc:    req.Description,
 	}
 	s.mu.Unlock()
 
-	if err := s.saveCommands(); err != nil {
-		return &controllerpb.StoreCommandResponse{
+	if err := s.saveCommandSets(); err != nil {
+		return &controllerpb.StoreCommandSetResponse{
 			Success: false,
-			Message: "failed to save command: " + safeError(err),
+			Message: "failed to save command set: " + safeError(err),
 		}, nil
 	}
 
-	return &controllerpb.StoreCommandResponse{
+	return &controllerpb.StoreCommandSetResponse{
 		Success: true,
-		Message: "command saved successfully",
+		Message: "command set saved successfully",
 	}, nil
 }
 
-func (s *server) GetAllCommands(ctx context.Context, req *controllerpb.GetAllCommandsRequest) (*controllerpb.GetAllCommandsResponse, error) {
+func (s *server) GetAllCommandSets(ctx context.Context, req *controllerpb.GetAllCommandSetsRequest) (*controllerpb.GetAllCommandSetsResponse, error) {
 	s.mu.RLock()
-	commands := make([]*controllerpb.CommandInfo, 0, len(s.commands))
-	for id, cmd := range s.commands {
-		commands = append(commands, &controllerpb.CommandInfo{
-			CommandId:     id,
-			CommandName:   cmd.Name,
-			CommandScript: cmd.Script,
-			Description:   cmd.Desc,
+	commandSets := make([]*controllerpb.CommandSetInfo, 0, len(s.commandSets))
+	for id, cmdSet := range s.commandSets {
+		commandSets = append(commandSets, &controllerpb.CommandSetInfo{
+			CommandSetId:     id,
+			CommandSetName:   cmdSet.Name,
+			CommandScripts:   cmdSet.Scripts,
+			Description:      cmdSet.Desc,
 		})
 	}
 	s.mu.RUnlock()
 
-	return &controllerpb.GetAllCommandsResponse{
-		Commands: commands,
+	return &controllerpb.GetAllCommandSetsResponse{
+		CommandSets: commandSets,
 	}, nil
 }
 
-func (s *server) saveCommands() error {
+func (s *server) saveCommandSets() error {
 	s.mu.RLock()
-	data, err := json.Marshal(s.commands)
+	data, err := json.Marshal(s.commandSets)
 	s.mu.RUnlock()
 	if err != nil {
-		return fmt.Errorf("marshal commands: %w", err)
+		return fmt.Errorf("marshal command sets: %w", err)
 	}
 
-	return os.WriteFile("commands.json", data, 0644)
+	return os.WriteFile("command_sets.json", data, 0644)
 }
 
-func (s *server) loadCommands() error {
-	data, err := os.ReadFile("commands.json")
+func (s *server) loadCommandSets() error {
+	data, err := os.ReadFile("command_sets.json")
 	if err != nil {
 		if os.IsNotExist(err) {
-			log.Printf("commands.json not found, starting with empty commands")
+			log.Printf("command_sets.json not found, starting with empty command sets")
 			return nil
 		}
-		return fmt.Errorf("read commands file: %w", err)
+		return fmt.Errorf("read command sets file: %w", err)
 	}
 
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	
-	if err := json.Unmarshal(data, &s.commands); err != nil {
-		return fmt.Errorf("unmarshal commands: %w", err)
+	if err := json.Unmarshal(data, &s.commandSets); err != nil {
+		return fmt.Errorf("unmarshal command sets: %w", err)
 	}
 
-	log.Printf("loaded %d commands from file", len(s.commands))
+	log.Printf("loaded %d command sets from file", len(s.commandSets))
 	return nil
 }
 
 func main() {
 	// Initialize server
 	srv := &server{
-		commands: make(map[string]*Command),
+		commandSets: make(map[string]*CommandSet),
 	}
-	if err := srv.loadCommands(); err != nil {
-		log.Fatalf("failed to load commands: %v", err)
+	if err := srv.loadCommandSets(); err != nil {
+		log.Fatalf("failed to load command sets: %v", err)
 	}
 
 	// Setup gRPC server

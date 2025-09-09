@@ -1,10 +1,13 @@
 // Type definitions for the application
 
-export interface Command {
+export interface CommandSet {
   commandId: string
   commandName: string
-  commandScript: string
+  commandScripts: string[]
   description?: string
+  isComposite?: boolean
+  sourceCommandIds?: string[]
+  created: Date
 }
 
 export interface ExecutionResult {
@@ -14,8 +17,24 @@ export interface ExecutionResult {
   success: boolean
 }
 
+export interface StepExecutionResult extends ExecutionResult {
+  stepIndex: number
+  stepScript: string
+}
+
+export interface CommandSetExecution {
+  commandSetId: string
+  commandSetName: string
+  currentStep: number
+  status: 'idle' | 'running' | 'completed' | 'failed' | 'stopped'
+  stepResults: StepExecutionResult[]
+  startTime?: Date
+  endTime?: Date
+  error?: string
+}
+
 export interface AppState {
-  commands: Command[]
+  commandSets: CommandSet[]
   log: string
   loading: boolean
 }

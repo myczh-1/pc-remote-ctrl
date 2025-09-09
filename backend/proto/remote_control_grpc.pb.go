@@ -19,23 +19,23 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ControllerService_ExecuteCommand_FullMethodName = "/remote_control.ControllerService/ExecuteCommand"
-	ControllerService_StoreCommand_FullMethodName   = "/remote_control.ControllerService/StoreCommand"
-	ControllerService_GetAllCommands_FullMethodName = "/remote_control.ControllerService/GetAllCommands"
+	ControllerService_ExecuteCommandSet_FullMethodName = "/remote_control.ControllerService/ExecuteCommandSet"
+	ControllerService_StoreCommandSet_FullMethodName   = "/remote_control.ControllerService/StoreCommandSet"
+	ControllerService_GetAllCommandSets_FullMethodName = "/remote_control.ControllerService/GetAllCommandSets"
 )
 
 // ControllerServiceClient is the client API for ControllerService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
-// 控制器服务定义
+// 控制器服务 - 统一基于命令集概念
 type ControllerServiceClient interface {
-	// 执行命令
-	ExecuteCommand(ctx context.Context, in *ExecuteCommandRequest, opts ...grpc.CallOption) (*ExecuteCommandResponse, error)
-	// 存储命令
-	StoreCommand(ctx context.Context, in *StoreCommandRequest, opts ...grpc.CallOption) (*StoreCommandResponse, error)
-	// 获取全部命令
-	GetAllCommands(ctx context.Context, in *GetAllCommandsRequest, opts ...grpc.CallOption) (*GetAllCommandsResponse, error)
+	// 执行命令集
+	ExecuteCommandSet(ctx context.Context, in *ExecuteCommandSetRequest, opts ...grpc.CallOption) (*ExecuteCommandSetResponse, error)
+	// 存储命令集
+	StoreCommandSet(ctx context.Context, in *StoreCommandSetRequest, opts ...grpc.CallOption) (*StoreCommandSetResponse, error)
+	// 获取全部命令集
+	GetAllCommandSets(ctx context.Context, in *GetAllCommandSetsRequest, opts ...grpc.CallOption) (*GetAllCommandSetsResponse, error)
 }
 
 type controllerServiceClient struct {
@@ -46,30 +46,30 @@ func NewControllerServiceClient(cc grpc.ClientConnInterface) ControllerServiceCl
 	return &controllerServiceClient{cc}
 }
 
-func (c *controllerServiceClient) ExecuteCommand(ctx context.Context, in *ExecuteCommandRequest, opts ...grpc.CallOption) (*ExecuteCommandResponse, error) {
+func (c *controllerServiceClient) ExecuteCommandSet(ctx context.Context, in *ExecuteCommandSetRequest, opts ...grpc.CallOption) (*ExecuteCommandSetResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ExecuteCommandResponse)
-	err := c.cc.Invoke(ctx, ControllerService_ExecuteCommand_FullMethodName, in, out, cOpts...)
+	out := new(ExecuteCommandSetResponse)
+	err := c.cc.Invoke(ctx, ControllerService_ExecuteCommandSet_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *controllerServiceClient) StoreCommand(ctx context.Context, in *StoreCommandRequest, opts ...grpc.CallOption) (*StoreCommandResponse, error) {
+func (c *controllerServiceClient) StoreCommandSet(ctx context.Context, in *StoreCommandSetRequest, opts ...grpc.CallOption) (*StoreCommandSetResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(StoreCommandResponse)
-	err := c.cc.Invoke(ctx, ControllerService_StoreCommand_FullMethodName, in, out, cOpts...)
+	out := new(StoreCommandSetResponse)
+	err := c.cc.Invoke(ctx, ControllerService_StoreCommandSet_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *controllerServiceClient) GetAllCommands(ctx context.Context, in *GetAllCommandsRequest, opts ...grpc.CallOption) (*GetAllCommandsResponse, error) {
+func (c *controllerServiceClient) GetAllCommandSets(ctx context.Context, in *GetAllCommandSetsRequest, opts ...grpc.CallOption) (*GetAllCommandSetsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetAllCommandsResponse)
-	err := c.cc.Invoke(ctx, ControllerService_GetAllCommands_FullMethodName, in, out, cOpts...)
+	out := new(GetAllCommandSetsResponse)
+	err := c.cc.Invoke(ctx, ControllerService_GetAllCommandSets_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -80,14 +80,14 @@ func (c *controllerServiceClient) GetAllCommands(ctx context.Context, in *GetAll
 // All implementations must embed UnimplementedControllerServiceServer
 // for forward compatibility.
 //
-// 控制器服务定义
+// 控制器服务 - 统一基于命令集概念
 type ControllerServiceServer interface {
-	// 执行命令
-	ExecuteCommand(context.Context, *ExecuteCommandRequest) (*ExecuteCommandResponse, error)
-	// 存储命令
-	StoreCommand(context.Context, *StoreCommandRequest) (*StoreCommandResponse, error)
-	// 获取全部命令
-	GetAllCommands(context.Context, *GetAllCommandsRequest) (*GetAllCommandsResponse, error)
+	// 执行命令集
+	ExecuteCommandSet(context.Context, *ExecuteCommandSetRequest) (*ExecuteCommandSetResponse, error)
+	// 存储命令集
+	StoreCommandSet(context.Context, *StoreCommandSetRequest) (*StoreCommandSetResponse, error)
+	// 获取全部命令集
+	GetAllCommandSets(context.Context, *GetAllCommandSetsRequest) (*GetAllCommandSetsResponse, error)
 	mustEmbedUnimplementedControllerServiceServer()
 }
 
@@ -98,14 +98,14 @@ type ControllerServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedControllerServiceServer struct{}
 
-func (UnimplementedControllerServiceServer) ExecuteCommand(context.Context, *ExecuteCommandRequest) (*ExecuteCommandResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ExecuteCommand not implemented")
+func (UnimplementedControllerServiceServer) ExecuteCommandSet(context.Context, *ExecuteCommandSetRequest) (*ExecuteCommandSetResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ExecuteCommandSet not implemented")
 }
-func (UnimplementedControllerServiceServer) StoreCommand(context.Context, *StoreCommandRequest) (*StoreCommandResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method StoreCommand not implemented")
+func (UnimplementedControllerServiceServer) StoreCommandSet(context.Context, *StoreCommandSetRequest) (*StoreCommandSetResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method StoreCommandSet not implemented")
 }
-func (UnimplementedControllerServiceServer) GetAllCommands(context.Context, *GetAllCommandsRequest) (*GetAllCommandsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetAllCommands not implemented")
+func (UnimplementedControllerServiceServer) GetAllCommandSets(context.Context, *GetAllCommandSetsRequest) (*GetAllCommandSetsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAllCommandSets not implemented")
 }
 func (UnimplementedControllerServiceServer) mustEmbedUnimplementedControllerServiceServer() {}
 func (UnimplementedControllerServiceServer) testEmbeddedByValue()                           {}
@@ -128,56 +128,56 @@ func RegisterControllerServiceServer(s grpc.ServiceRegistrar, srv ControllerServ
 	s.RegisterService(&ControllerService_ServiceDesc, srv)
 }
 
-func _ControllerService_ExecuteCommand_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ExecuteCommandRequest)
+func _ControllerService_ExecuteCommandSet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ExecuteCommandSetRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ControllerServiceServer).ExecuteCommand(ctx, in)
+		return srv.(ControllerServiceServer).ExecuteCommandSet(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ControllerService_ExecuteCommand_FullMethodName,
+		FullMethod: ControllerService_ExecuteCommandSet_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ControllerServiceServer).ExecuteCommand(ctx, req.(*ExecuteCommandRequest))
+		return srv.(ControllerServiceServer).ExecuteCommandSet(ctx, req.(*ExecuteCommandSetRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ControllerService_StoreCommand_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(StoreCommandRequest)
+func _ControllerService_StoreCommandSet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StoreCommandSetRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ControllerServiceServer).StoreCommand(ctx, in)
+		return srv.(ControllerServiceServer).StoreCommandSet(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ControllerService_StoreCommand_FullMethodName,
+		FullMethod: ControllerService_StoreCommandSet_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ControllerServiceServer).StoreCommand(ctx, req.(*StoreCommandRequest))
+		return srv.(ControllerServiceServer).StoreCommandSet(ctx, req.(*StoreCommandSetRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ControllerService_GetAllCommands_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetAllCommandsRequest)
+func _ControllerService_GetAllCommandSets_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAllCommandSetsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ControllerServiceServer).GetAllCommands(ctx, in)
+		return srv.(ControllerServiceServer).GetAllCommandSets(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ControllerService_GetAllCommands_FullMethodName,
+		FullMethod: ControllerService_GetAllCommandSets_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ControllerServiceServer).GetAllCommands(ctx, req.(*GetAllCommandsRequest))
+		return srv.(ControllerServiceServer).GetAllCommandSets(ctx, req.(*GetAllCommandSetsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -190,16 +190,16 @@ var ControllerService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*ControllerServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "ExecuteCommand",
-			Handler:    _ControllerService_ExecuteCommand_Handler,
+			MethodName: "ExecuteCommandSet",
+			Handler:    _ControllerService_ExecuteCommandSet_Handler,
 		},
 		{
-			MethodName: "StoreCommand",
-			Handler:    _ControllerService_StoreCommand_Handler,
+			MethodName: "StoreCommandSet",
+			Handler:    _ControllerService_StoreCommandSet_Handler,
 		},
 		{
-			MethodName: "GetAllCommands",
-			Handler:    _ControllerService_GetAllCommands_Handler,
+			MethodName: "GetAllCommandSets",
+			Handler:    _ControllerService_GetAllCommandSets_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

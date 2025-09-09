@@ -1,29 +1,29 @@
-import { type Command } from '../types'
+import { type CommandSet } from '../types'
 
 interface CommandListProps {
-  commands: Command[]
+  commands: CommandSet[]
   loading: boolean
   onExecuteCommand: (commandId: string) => void
 }
 
 export function CommandList({ commands, loading, onExecuteCommand }: CommandListProps) {
   if (commands.length === 0) {
-    return <p>No commands available</p>
+    return <p>No command sets available</p>
   }
 
   return (
     <ul>
-      {commands.map((command, index) => (
+      {commands.map((commandSet, index) => (
         <li key={index} style={{ marginBottom: 8 }}>
           <div>
             <code>
-              id={command.commandId} name={command.commandName} script={command.commandScript}
+              id={commandSet.commandId} name={commandSet.commandName} scripts={commandSet.commandScripts.length}
             </code>
           </div>
           <div>
             <button 
               disabled={loading} 
-              onClick={() => onExecuteCommand(command.commandId)}
+              onClick={() => onExecuteCommand(commandSet.commandId)}
             >
               Run
             </button>
