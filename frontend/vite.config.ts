@@ -7,7 +7,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:7072', // 你的 grpc-web 网关
+        target: 'http://localhost:7071', // 你的 grpc-web 网关
         changeOrigin: true,
         rewrite: (p) => p.replace(/^\/api/, ''), // ⬅️ 去掉前缀
       },

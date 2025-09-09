@@ -1,4 +1,4 @@
-import { WorkflowExecutionStatus } from './WorkflowExecutionStatus'
+import { WorkflowExecutionStatus } from './CommandSetExecutionStatus'
 import type { CommandSetExecution } from '../types'
 
 interface ExecutionStatusPanelProps {

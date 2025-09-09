@@ -1,4 +1,4 @@
-import { WorkflowList } from './WorkflowList'
+import { WorkflowList } from './CommandSetList'
 import type { CommandSet, CommandSetExecution } from '../types'
 
 interface CommandPanelProps {
