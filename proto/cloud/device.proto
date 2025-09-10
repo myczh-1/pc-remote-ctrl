@@ -9,6 +9,9 @@ service DeviceRegistryService {
   rpc RegisterDevice(RegisterDeviceRequest) returns (RegisterDeviceResponse);
   rpc Heartbeat(HeartbeatRequest) returns (HeartbeatResponse);
   rpc ListDevices(ListDevicesRequest) returns (ListDevicesResponse);
+  
+  // Agent主动连接Cloud的双向流
+  rpc ConnectAgent(stream AgentMessage) returns (stream CloudMessage);
 }
 
 message RegisterDeviceRequest {
@@ -44,4 +47,60 @@ message DeviceInfo {
 
 message ListDevicesResponse {
   repeated DeviceInfo devices = 1;
+}
+
+// Agent到Cloud的消息
+message AgentMessage {
+  oneof message {
+    AgentConnect connect = 1;        // Agent连接注册
+    AgentHeartbeat heartbeat = 2;    // Agent心跳
+    CommandResponse response = 3;    // 命令执行结果
+  }
+}
+
+// Cloud到Agent的消息  
+message CloudMessage {
+  oneof message {
+    ConnectAck connect_ack = 1;      // 连接确认
+    CommandRequest command = 2;      // 命令执行请求
+    Ping ping = 3;                   // 心跳ping
+  }
+}
+
+// Agent连接注册
+message AgentConnect {
+  string device_id = 1;
+  string user_id = 2;
+  string name = 3;
+  string version = 4;
+}
+
+// 连接确认
+message ConnectAck {
+  bool success = 1;
+  string message = 2;
+  string session_id = 3;
+}
+
+// Agent心跳
+message AgentHeartbeat {
+  string device_id = 1;
+  int64 timestamp = 2;
+}
+
+// 命令执行请求（Cloud->Agent）
+message CommandRequest {
+  string request_id = 1;           // 请求ID，用于响应匹配
+  bytes payload = 2;               // 序列化的ExecuteCommandSetRequest
+}
+
+// 命令执行响应（Agent->Cloud）
+message CommandResponse {
+  string request_id = 1;           // 对应的请求ID
+  bytes payload = 2;               // 序列化的ExecuteCommandSetResponse
+}
+
+// Ping消息
+message Ping {
+  int64 timestamp = 1;
 }

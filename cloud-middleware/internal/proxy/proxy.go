@@ -4,146 +4,182 @@ import (
     "context"
     "fmt"
     "log"
-    "net/http"
     "sync"
+    "time"
     
     "pc-remote-ctrl/cloud-middleware/internal/device"
-    "pc-remote-ctrl/cloud-middleware/internal/auth"
     
     "google.golang.org/grpc"
-    "google.golang.org/grpc/credentials/insecure"
-    "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 )
 
-// GrpcProxy gRPC代理服务
+// AgentStream Agent连接流
+type AgentStream struct {
+    deviceID string
+    userID   string
+    stream   StreamSender // 发送接口
+    lastSeen time.Time
+}
+
+// StreamSender 流发送接口（避免直接依赖protobuf生成类型）
+type StreamSender interface {
+    Send(interface{}) error
+}
+
+// PendingRequest 待处理的请求
+type PendingRequest struct {
+    requestID string
+    respChan  chan []byte
+    timeout   time.Time
+}
+
+// GrpcProxy gRPC代理服务 - 管理Agent连接
 type GrpcProxy struct {
-    deviceManager *device.Manager
-    authenticator *auth.Authenticator
-    connections   map[string]*grpc.ClientConn // deviceID -> connection
-    mu            sync.RWMutex                // protects connections
+    deviceManager    *device.Manager
+    agentStreams     map[string]*AgentStream    // deviceID -> Agent流
+    pendingRequests  map[string]*PendingRequest // requestID -> 待处理请求
+    mu               sync.RWMutex              // 保护maps
 }
 
 // NewGrpcProxy 创建gRPC代理
-func NewGrpcProxy(deviceManager *device.Manager, authenticator *auth.Authenticator) *GrpcProxy {
+func NewGrpcProxy(deviceManager *device.Manager) *GrpcProxy {
 	return &GrpcProxy{
-		deviceManager: deviceManager,
-		authenticator: authenticator,
-		connections:   make(map[string]*grpc.ClientConn),
+		deviceManager:   deviceManager,
+		agentStreams:    make(map[string]*AgentStream),
+		pendingRequests: make(map[string]*PendingRequest),
 	}
 }
 
-// GetDeviceConnection 获取设备连接
-func (p *GrpcProxy) GetDeviceConnection(deviceID string) (*grpc.ClientConn, error) {
-    // 检查现有连接
-    p.mu.RLock()
-    conn, exists := p.connections[deviceID]
-    p.mu.RUnlock()
-    if exists {
-        // TODO: 检查连接状态（如健康探测/状态）
-        return conn, nil
-    }
-	
-	// 获取设备信息
-	device, exists := p.deviceManager.GetDevice(deviceID)
-	if !exists {
-		return nil, fmt.Errorf("device not found: %s", deviceID)
-	}
-	
-	if device.Status != "online" {
-		return nil, fmt.Errorf("device offline: %s", deviceID)
-	}
-	
-    // 创建新连接
-    newConn, err := grpc.Dial(device.Address, grpc.WithTransportCredentials(insecure.NewCredentials()))
-    if err != nil {
-        return nil, fmt.Errorf("failed to connect to device: %w", err)
+// RegisterAgentStream 注册Agent连接流
+func (p *GrpcProxy) RegisterAgentStream(deviceID, userID string, stream StreamSender) {
+    p.mu.Lock()
+    defer p.mu.Unlock()
+    
+    // 如果已存在，先清理
+    if old, exists := p.agentStreams[deviceID]; exists {
+        log.Printf("Agent %s reconnected, closing old stream", deviceID)
+        // TODO: 关闭旧stream
+        _ = old
     }
     
-    p.mu.Lock()
-    p.connections[deviceID] = newConn
-    p.mu.Unlock()
-    return newConn, nil
+    p.agentStreams[deviceID] = &AgentStream{
+        deviceID: deviceID,
+        userID:   userID,
+        stream:   stream,
+        lastSeen: time.Now(),
+    }
+    
+    // 更新设备状态为在线
+    p.deviceManager.UpdateStatus(deviceID, device.StatusOnline)
+    log.Printf("Agent %s connected", deviceID)
 }
 
-// CloseDeviceConnection 关闭设备连接
-func (p *GrpcProxy) CloseDeviceConnection(deviceID string) {
+// UnregisterAgentStream 注销Agent连接流
+func (p *GrpcProxy) UnregisterAgentStream(deviceID string) {
     p.mu.Lock()
-    if conn, exists := p.connections[deviceID]; exists {
-        conn.Close()
-        delete(p.connections, deviceID)
+    defer p.mu.Unlock()
+    
+    delete(p.agentStreams, deviceID)
+    p.deviceManager.UpdateStatus(deviceID, device.StatusOffline)
+    log.Printf("Agent %s disconnected", deviceID)
+}
+
+// SendCommandToAgent 发送命令到Agent
+func (p *GrpcProxy) SendCommandToAgent(ctx context.Context, deviceID string, requestID string, payload []byte) ([]byte, error) {
+    p.mu.RLock()
+    agentStream, exists := p.agentStreams[deviceID]
+    p.mu.RUnlock()
+    
+    if !exists {
+        return nil, fmt.Errorf("agent not connected: %s", deviceID)
+    }
+    
+    // 创建响应通道
+    respChan := make(chan []byte, 1)
+    timeout := time.Now().Add(60 * time.Second)
+    
+    p.mu.Lock()
+    p.pendingRequests[requestID] = &PendingRequest{
+        requestID: requestID,
+        respChan:  respChan,
+        timeout:   timeout,
     }
     p.mu.Unlock()
+    
+    // 创建CommandRequest消息（这里需要导入cloudpb包）
+    cmdReq := map[string]interface{}{
+        "Message": map[string]interface{}{
+            "command": map[string]interface{}{
+                "request_id": requestID,
+                "payload":    payload,
+            },
+        },
+    }
+    
+    // 通过stream发送CommandRequest
+    if err := agentStream.stream.Send(cmdReq); err != nil {
+        p.cleanupRequest(requestID)
+        return nil, fmt.Errorf("failed to send command to agent: %w", err)
+    }
+    
+    log.Printf("Sending command %s to agent %s", requestID, deviceID)
+    
+    // 等待响应或超时
+    select {
+    case response := <-respChan:
+        p.cleanupRequest(requestID)
+        return response, nil
+    case <-ctx.Done():
+        p.cleanupRequest(requestID)
+        return nil, ctx.Err()
+    case <-time.After(60 * time.Second):
+        p.cleanupRequest(requestID)
+        return nil, fmt.Errorf("command timeout")
+    }
 }
 
-// CreateGatewayHandler 创建gRPC-Gateway处理器
-func (p *GrpcProxy) CreateGatewayHandler(ctx context.Context) (http.Handler, error) {
-	mux := runtime.NewServeMux(
-		runtime.WithIncomingHeaderMatcher(func(key string) (string, bool) {
-			// 允许设备ID头部传递
-			if key == "X-Device-Id" {
-				return key, true
-			}
-			return runtime.DefaultHeaderMatcher(key)
-		}),
-	)
-	
-	// TODO: 注册gRPC服务到gateway
-	// 这里需要根据具体的protobuf服务来实现
-	
-	return mux, nil
+// HandleCommandResponse 处理Agent的命令响应
+func (p *GrpcProxy) HandleCommandResponse(requestID string, payload []byte) {
+    p.mu.RLock()
+    pending, exists := p.pendingRequests[requestID]
+    p.mu.RUnlock()
+    
+    if !exists {
+        log.Printf("No pending request for ID: %s", requestID)
+        return
+    }
+    
+    select {
+    case pending.respChan <- payload:
+        // 响应发送成功
+    default:
+        // 通道已关闭或满
+        log.Printf("Failed to send response for request %s", requestID)
+    }
 }
 
-// ProxyHandler HTTP代理处理器
-func (p *GrpcProxy) ProxyHandler() http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// 认证检查
-		claims, err := p.authenticator.AuthenticateRequest(r)
-		if err != nil {
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
-			return
-		}
-		
-		// 获取设备ID
-		deviceID := r.Header.Get("X-Device-Id")
-		if deviceID == "" {
-			http.Error(w, "Device ID required", http.StatusBadRequest)
-			return
-		}
-		
-		// 检查用户是否有权限访问该设备
-		device, exists := p.deviceManager.GetDevice(deviceID)
-		if !exists {
-			http.Error(w, "Device not found", http.StatusNotFound)
-			return
-		}
-		
-		if device.UserID != claims.UserID {
-			http.Error(w, "Access denied", http.StatusForbidden)
-			return
-		}
-		
-		// 获取设备连接
-		_, err = p.GetDeviceConnection(deviceID)
-		if err != nil {
-			log.Printf("Failed to get device connection: %v", err)
-			http.Error(w, "Device unavailable", http.StatusServiceUnavailable)
-			return
-		}
-		
-		// TODO: 转发请求到具体的gRPC服务
-		// 这里需要根据URL路径将请求路由到对应的gRPC方法
-		
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("Proxy handler - TODO: implement request forwarding"))
-	})
+func (p *GrpcProxy) cleanupRequest(requestID string) {
+    p.mu.Lock()
+    if pending, exists := p.pendingRequests[requestID]; exists {
+        close(pending.respChan)
+        delete(p.pendingRequests, requestID)
+    }
+    p.mu.Unlock()
 }
 
 // Cleanup 清理资源
 func (p *GrpcProxy) Cleanup() {
     p.mu.Lock()
-    for deviceID, conn := range p.connections {
-        conn.Close()
-        delete(p.connections, deviceID)
+    defer p.mu.Unlock()
+    
+    // 清理所有Agent连接
+    for deviceID := range p.agentStreams {
+        // TODO: 关闭stream
+        delete(p.agentStreams, deviceID)
     }
-    p.mu.Unlock()
+    
+    // 清理待处理请求
+    for requestID, pending := range p.pendingRequests {
+        close(pending.respChan)
+        delete(p.pendingRequests, requestID)
+    }
 }
