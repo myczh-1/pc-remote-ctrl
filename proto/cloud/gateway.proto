@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package remote_control.cloud.v1;
+
+option go_package = "pc-remote-ctrl/cloud-middleware/proto;cloudpb";
+
+// 复用 Agent 的请求/响应类型
+import "remote_control.proto";
+
+// 云端网关服务：前端调用此服务，由云端转发到具体设备上的 Agent
+service GatewayService {
+  rpc ExecuteOnDevice(ExecuteOnDeviceRequest) returns (remote_control.ExecuteCommandSetResponse);
+}
+
+message ExecuteOnDeviceRequest {
+  string device_id = 1; // 目标设备ID
+  remote_control.ExecuteCommandSetRequest request = 2; // 透传到 Agent 的请求
+}

@@ -8,7 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "proto:gen": "protoc -I ../proto ../proto/*.proto --ts_out=./src/proto --ts_opt=long_type_string"
+    "proto:gen": "protoc -I ../proto ../proto/*.proto ../proto/cloud/*.proto --ts_out=./src/proto --ts_opt=long_type_string"
   },
   "dependencies": {
     "@protobuf-ts/grpcweb-transport": "^2.11.1",

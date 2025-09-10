@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+package remote_control.cloud.v1;
+
+option go_package = "pc-remote-ctrl/cloud-middleware/proto;cloudpb";
+
+// 设备注册与状态服务（云端中间件实现）
+service DeviceRegistryService {
+  rpc RegisterDevice(RegisterDeviceRequest) returns (RegisterDeviceResponse);
+  rpc Heartbeat(HeartbeatRequest) returns (HeartbeatResponse);
+  rpc ListDevices(ListDevicesRequest) returns (ListDevicesResponse);
+}
+
+message RegisterDeviceRequest {
+  string device_id = 1;
+  string user_id = 2;
+  string name = 3;
+  string address = 4; // agent 地址 host:port
+}
+
+message RegisterDeviceResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message HeartbeatRequest {
+  string device_id = 1;
+}
+
+message HeartbeatResponse {
+  bool success = 1;
+}
+
+message ListDevicesRequest {
+  string user_id = 1;
+}
+
+message DeviceInfo {
+  string device_id = 1;
+  string name = 2;
+  string address = 3;
+  string status = 4; // online/offline
+}
+
+message ListDevicesResponse {
+  repeated DeviceInfo devices = 1;
+}
