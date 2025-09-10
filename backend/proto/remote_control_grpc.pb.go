@@ -21,6 +21,8 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	ControllerService_ExecuteCommandSet_FullMethodName = "/remote_control.ControllerService/ExecuteCommandSet"
 	ControllerService_StoreCommandSet_FullMethodName   = "/remote_control.ControllerService/StoreCommandSet"
+	ControllerService_UpdateCommandSet_FullMethodName  = "/remote_control.ControllerService/UpdateCommandSet"
+	ControllerService_DeleteCommandSet_FullMethodName  = "/remote_control.ControllerService/DeleteCommandSet"
 	ControllerService_GetAllCommandSets_FullMethodName = "/remote_control.ControllerService/GetAllCommandSets"
 )
 
@@ -34,6 +36,10 @@ type ControllerServiceClient interface {
 	ExecuteCommandSet(ctx context.Context, in *ExecuteCommandSetRequest, opts ...grpc.CallOption) (*ExecuteCommandSetResponse, error)
 	// 存储命令集
 	StoreCommandSet(ctx context.Context, in *StoreCommandSetRequest, opts ...grpc.CallOption) (*StoreCommandSetResponse, error)
+	// 更新命令集
+	UpdateCommandSet(ctx context.Context, in *UpdateCommandSetRequest, opts ...grpc.CallOption) (*UpdateCommandSetResponse, error)
+	// 删除命令集
+	DeleteCommandSet(ctx context.Context, in *DeleteCommandSetRequest, opts ...grpc.CallOption) (*DeleteCommandSetResponse, error)
 	// 获取全部命令集
 	GetAllCommandSets(ctx context.Context, in *GetAllCommandSetsRequest, opts ...grpc.CallOption) (*GetAllCommandSetsResponse, error)
 }
@@ -66,6 +72,26 @@ func (c *controllerServiceClient) StoreCommandSet(ctx context.Context, in *Store
 	return out, nil
 }
 
+func (c *controllerServiceClient) UpdateCommandSet(ctx context.Context, in *UpdateCommandSetRequest, opts ...grpc.CallOption) (*UpdateCommandSetResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateCommandSetResponse)
+	err := c.cc.Invoke(ctx, ControllerService_UpdateCommandSet_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *controllerServiceClient) DeleteCommandSet(ctx context.Context, in *DeleteCommandSetRequest, opts ...grpc.CallOption) (*DeleteCommandSetResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteCommandSetResponse)
+	err := c.cc.Invoke(ctx, ControllerService_DeleteCommandSet_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *controllerServiceClient) GetAllCommandSets(ctx context.Context, in *GetAllCommandSetsRequest, opts ...grpc.CallOption) (*GetAllCommandSetsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetAllCommandSetsResponse)
@@ -86,6 +112,10 @@ type ControllerServiceServer interface {
 	ExecuteCommandSet(context.Context, *ExecuteCommandSetRequest) (*ExecuteCommandSetResponse, error)
 	// 存储命令集
 	StoreCommandSet(context.Context, *StoreCommandSetRequest) (*StoreCommandSetResponse, error)
+	// 更新命令集
+	UpdateCommandSet(context.Context, *UpdateCommandSetRequest) (*UpdateCommandSetResponse, error)
+	// 删除命令集
+	DeleteCommandSet(context.Context, *DeleteCommandSetRequest) (*DeleteCommandSetResponse, error)
 	// 获取全部命令集
 	GetAllCommandSets(context.Context, *GetAllCommandSetsRequest) (*GetAllCommandSetsResponse, error)
 	mustEmbedUnimplementedControllerServiceServer()
@@ -103,6 +133,12 @@ func (UnimplementedControllerServiceServer) ExecuteCommandSet(context.Context, *
 }
 func (UnimplementedControllerServiceServer) StoreCommandSet(context.Context, *StoreCommandSetRequest) (*StoreCommandSetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method StoreCommandSet not implemented")
+}
+func (UnimplementedControllerServiceServer) UpdateCommandSet(context.Context, *UpdateCommandSetRequest) (*UpdateCommandSetResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateCommandSet not implemented")
+}
+func (UnimplementedControllerServiceServer) DeleteCommandSet(context.Context, *DeleteCommandSetRequest) (*DeleteCommandSetResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteCommandSet not implemented")
 }
 func (UnimplementedControllerServiceServer) GetAllCommandSets(context.Context, *GetAllCommandSetsRequest) (*GetAllCommandSetsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAllCommandSets not implemented")
@@ -164,6 +200,42 @@ func _ControllerService_StoreCommandSet_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ControllerService_UpdateCommandSet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateCommandSetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ControllerServiceServer).UpdateCommandSet(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ControllerService_UpdateCommandSet_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ControllerServiceServer).UpdateCommandSet(ctx, req.(*UpdateCommandSetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ControllerService_DeleteCommandSet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteCommandSetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ControllerServiceServer).DeleteCommandSet(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ControllerService_DeleteCommandSet_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ControllerServiceServer).DeleteCommandSet(ctx, req.(*DeleteCommandSetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _ControllerService_GetAllCommandSets_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetAllCommandSetsRequest)
 	if err := dec(in); err != nil {
@@ -196,6 +268,14 @@ var ControllerService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "StoreCommandSet",
 			Handler:    _ControllerService_StoreCommandSet_Handler,
+		},
+		{
+			MethodName: "UpdateCommandSet",
+			Handler:    _ControllerService_UpdateCommandSet_Handler,
+		},
+		{
+			MethodName: "DeleteCommandSet",
+			Handler:    _ControllerService_DeleteCommandSet_Handler,
 		},
 		{
 			MethodName: "GetAllCommandSets",

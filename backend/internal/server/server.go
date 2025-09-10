@@ -74,3 +74,59 @@ func (s *Server) GetAllCommandSets(ctx context.Context, req *controllerpb.GetAll
 		CommandSets: commandSets,
 	}, nil
 }
+
+// UpdateCommandSet updates an existing command set
+func (s *Server) UpdateCommandSet(ctx context.Context, req *controllerpb.UpdateCommandSetRequest) (*controllerpb.UpdateCommandSetResponse, error) {
+	// 检查命令集是否存在
+	existing := s.storage.Get(req.CommandSetId)
+	if existing == nil {
+		return &controllerpb.UpdateCommandSetResponse{
+			Success: false,
+			Message: "command set not found",
+		}, nil
+	}
+
+	// 更新命令集
+	updatedCmdSet := &executor.CommandSet{
+		Name:    req.CommandSetName,
+		Scripts: req.CommandScripts,
+		Desc:    req.Description,
+	}
+
+	if err := s.storage.Store(req.CommandSetId, updatedCmdSet); err != nil {
+		return &controllerpb.UpdateCommandSetResponse{
+			Success: false,
+			Message: "failed to update command set: " + err.Error(),
+		}, nil
+	}
+
+	return &controllerpb.UpdateCommandSetResponse{
+		Success: true,
+		Message: "command set updated successfully",
+	}, nil
+}
+
+// DeleteCommandSet deletes a command set
+func (s *Server) DeleteCommandSet(ctx context.Context, req *controllerpb.DeleteCommandSetRequest) (*controllerpb.DeleteCommandSetResponse, error) {
+	// 检查命令集是否存在
+	existing := s.storage.Get(req.CommandSetId)
+	if existing == nil {
+		return &controllerpb.DeleteCommandSetResponse{
+			Success: false,
+			Message: "command set not found",
+		}, nil
+	}
+
+	// 删除命令集
+	if err := s.storage.Delete(req.CommandSetId); err != nil {
+		return &controllerpb.DeleteCommandSetResponse{
+			Success: false,
+			Message: "failed to delete command set: " + err.Error(),
+		}, nil
+	}
+
+	return &controllerpb.DeleteCommandSetResponse{
+		Success: true,
+		Message: "command set deleted successfully",
+	}, nil
+}

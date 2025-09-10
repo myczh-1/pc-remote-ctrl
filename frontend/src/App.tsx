@@ -54,8 +54,13 @@ export default function App() {
 
     const handleSaveCommandSet = async (commandSetData: Omit<CommandSet, 'commandId' | 'created'>) => {
         if (editingCommandSet) {
-            updateCommandSet(editingCommandSet.commandId, commandSetData)
-            logInfo(`命令集 "${commandSetData.commandName}" 已更新`)
+            const result = await updateCommandSet(editingCommandSet.commandId, commandSetData)
+            if (result.success) {
+                logSuccess(`命令集 "${commandSetData.commandName}" 已更新`)
+            } else {
+                logError(`更新命令集失败: ${result.message}`)
+                return
+            }
         } else {
             const result = await createCommandSet(commandSetData)
             if (result.success) {
@@ -69,11 +74,15 @@ export default function App() {
         setEditingCommandSet(undefined)
     }
 
-    const handleDeleteCommandSet = (id: string) => {
+    const handleDeleteCommandSet = async (id: string) => {
         const commandSet = commandSets.find(cs => cs.commandId === id)
         if (commandSet && confirm(`确定要删除命令集 "${commandSet.commandName}" 吗？`)) {
-            deleteCommandSet(id)
-            logInfo(`命令集 "${commandSet.commandName}" 已删除`)
+            const result = await deleteCommandSet(id)
+            if (result.success) {
+                logSuccess(`命令集 "${commandSet.commandName}" 已删除`)
+            } else {
+                logError(`删除命令集失败: ${result.message}`)
+            }
         }
     }
 

@@ -4,6 +4,8 @@ import { GrpcWebFetchTransport } from '@protobuf-ts/grpcweb-transport'
 import type { CommandSet } from '../types'
 import type {
   StoreCommandSetRequest,
+  UpdateCommandSetRequest,
+  DeleteCommandSetRequest,
   GetAllCommandSetsRequest,
 } from '../proto/remote_control'
 
@@ -49,7 +51,7 @@ export function useCommandSets() {
         const setsWithDates = parsed.map((cs: any) => ({
           ...cs,
           created: new Date(cs.created)
-        }))
+        })).filter((cs: any) => cs.commandScripts) // 只保留有commandScripts的数据
         setCommandSets(setsWithDates)
       } catch (error) {
         console.error('Failed to parse stored command sets:', error)
@@ -100,22 +102,72 @@ export function useCommandSets() {
     }
   }, [saveToStorage])
 
-  const updateCommandSet = useCallback((id: string, updates: Partial<Omit<CommandSet, 'commandId' | 'created'>>) => {
-    setCommandSets(prev => {
-      const updated = prev.map(commandSet =>
-        commandSet.commandId === id ? { ...commandSet, ...updates } : commandSet
-      )
-      saveToStorage(updated)
-      return updated
-    })
-  }, [saveToStorage])
+  const updateCommandSet = useCallback(async (id: string, updates: Partial<Omit<CommandSet, 'commandId' | 'created'>>) => {
+    const existing = commandSets.find(cs => cs.commandId === id)
+    if (!existing) {
+      return { success: false, message: 'Command set not found' }
+    }
 
-  const deleteCommandSet = useCallback((id: string) => {
-    setCommandSets(prev => {
-      const updated = prev.filter(commandSet => commandSet.commandId !== id)
-      saveToStorage(updated)
-      return updated
-    })
+    const updatedCommandSet = { ...existing, ...updates }
+    
+    setLoading(true)
+    try {
+      // 调用后端更新API
+      const req: UpdateCommandSetRequest = {
+        commandSetId: id,
+        commandSetName: updatedCommandSet.commandName,
+        commandScripts: updatedCommandSet.commandScripts,
+        description: updatedCommandSet.description || ''
+      }
+      
+      const { response } = await client.updateCommandSet(req)
+      
+      if (response.success) {
+        // 后端更新成功，更新本地状态
+        setCommandSets(prev => {
+          const updated = prev.map(commandSet =>
+            commandSet.commandId === id ? updatedCommandSet : commandSet
+          )
+          saveToStorage(updated)
+          return updated
+        })
+        return { success: true, message: response.message }
+      } else {
+        return { success: false, message: response.message }
+      }
+    } catch (error: any) {
+      return { success: false, message: error.message || String(error) }
+    } finally {
+      setLoading(false)
+    }
+  }, [commandSets, saveToStorage])
+
+  const deleteCommandSet = useCallback(async (id: string) => {
+    setLoading(true)
+    try {
+      // 调用后端删除API
+      const req: DeleteCommandSetRequest = {
+        commandSetId: id
+      }
+      
+      const { response } = await client.deleteCommandSet(req)
+      
+      if (response.success) {
+        // 后端删除成功，更新本地状态
+        setCommandSets(prev => {
+          const updated = prev.filter(commandSet => commandSet.commandId !== id)
+          saveToStorage(updated)
+          return updated
+        })
+        return { success: true, message: response.message }
+      } else {
+        return { success: false, message: response.message }
+      }
+    } catch (error: any) {
+      return { success: false, message: error.message || String(error) }
+    } finally {
+      setLoading(false)
+    }
   }, [saveToStorage])
 
   const getCommandSet = useCallback((id: string) => {

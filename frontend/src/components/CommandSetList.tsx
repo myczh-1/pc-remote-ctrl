@@ -46,7 +46,7 @@ export function WorkflowList({
                   <p className="workflow-description">{commandSet.description}</p>
                 )}
                 <div className="workflow-meta">
-                  <span className="meta-item">📄 {commandSet.commandScripts.length} 个步骤</span>
+                  <span className="meta-item">📄 {commandSet.commandScripts?.length || 0} 个步骤</span>
                   <span className="meta-item">📅 {commandSet.created.toLocaleDateString()}</span>
                 </div>
               </div>
@@ -93,19 +93,19 @@ export function WorkflowList({
             <div className="workflow-steps">
               <div className="steps-header">
                 <strong>📋 执行步骤</strong>
-                <span className="steps-count">{commandSet.commandScripts.length} 步</span>
+                <span className="steps-count">{commandSet.commandScripts?.length || 0} 步</span>
               </div>
               <div className="steps-list">
-                {commandSet.commandScripts.slice(0, 3).map((script, index) => (
+                {(commandSet.commandScripts || []).slice(0, 3).map((script, index) => (
                   <div key={index} className="step-item">
                     <span className="step-number">{index + 1}</span>
                     <code className="step-command">{script}</code>
                   </div>
                 ))}
-                {commandSet.commandScripts.length > 3 && (
+                {(commandSet.commandScripts?.length || 0) > 3 && (
                   <div className="step-item more-steps">
                     <span className="step-number">...</span>
-                    <span className="step-command">还有 {commandSet.commandScripts.length - 3} 个步骤</span>
+                    <span className="step-command">还有 {(commandSet.commandScripts?.length || 0) - 3} 个步骤</span>
                   </div>
                 )}
               </div>

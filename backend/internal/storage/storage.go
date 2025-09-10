@@ -91,3 +91,9 @@ func (s *Storage) GetAll() map[string]*executor.CommandSet {
 	})
 	return result
 }
+
+// Delete removes a command set by ID
+func (s *Storage) Delete(id string) error {
+	s.commandSets.Delete(id)
+	return s.Save()
+}

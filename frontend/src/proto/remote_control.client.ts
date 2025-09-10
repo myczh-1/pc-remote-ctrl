@@ -6,6 +6,10 @@ import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { ControllerService } from "./remote_control";
 import type { GetAllCommandSetsResponse } from "./remote_control";
 import type { GetAllCommandSetsRequest } from "./remote_control";
+import type { DeleteCommandSetResponse } from "./remote_control";
+import type { DeleteCommandSetRequest } from "./remote_control";
+import type { UpdateCommandSetResponse } from "./remote_control";
+import type { UpdateCommandSetRequest } from "./remote_control";
 import type { StoreCommandSetResponse } from "./remote_control";
 import type { StoreCommandSetRequest } from "./remote_control";
 import { stackIntercept } from "@protobuf-ts/runtime-rpc";
@@ -31,6 +35,18 @@ export interface IControllerServiceClient {
      * @generated from protobuf rpc: StoreCommandSet
      */
     storeCommandSet(input: StoreCommandSetRequest, options?: RpcOptions): UnaryCall<StoreCommandSetRequest, StoreCommandSetResponse>;
+    /**
+     * 更新命令集
+     *
+     * @generated from protobuf rpc: UpdateCommandSet
+     */
+    updateCommandSet(input: UpdateCommandSetRequest, options?: RpcOptions): UnaryCall<UpdateCommandSetRequest, UpdateCommandSetResponse>;
+    /**
+     * 删除命令集
+     *
+     * @generated from protobuf rpc: DeleteCommandSet
+     */
+    deleteCommandSet(input: DeleteCommandSetRequest, options?: RpcOptions): UnaryCall<DeleteCommandSetRequest, DeleteCommandSetResponse>;
     /**
      * 获取全部命令集
      *
@@ -68,12 +84,30 @@ export class ControllerServiceClient implements IControllerServiceClient, Servic
         return stackIntercept<StoreCommandSetRequest, StoreCommandSetResponse>("unary", this._transport, method, opt, input);
     }
     /**
+     * 更新命令集
+     *
+     * @generated from protobuf rpc: UpdateCommandSet
+     */
+    updateCommandSet(input: UpdateCommandSetRequest, options?: RpcOptions): UnaryCall<UpdateCommandSetRequest, UpdateCommandSetResponse> {
+        const method = this.methods[2], opt = this._transport.mergeOptions(options);
+        return stackIntercept<UpdateCommandSetRequest, UpdateCommandSetResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * 删除命令集
+     *
+     * @generated from protobuf rpc: DeleteCommandSet
+     */
+    deleteCommandSet(input: DeleteCommandSetRequest, options?: RpcOptions): UnaryCall<DeleteCommandSetRequest, DeleteCommandSetResponse> {
+        const method = this.methods[3], opt = this._transport.mergeOptions(options);
+        return stackIntercept<DeleteCommandSetRequest, DeleteCommandSetResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
      * 获取全部命令集
      *
      * @generated from protobuf rpc: GetAllCommandSets
      */
     getAllCommandSets(input: GetAllCommandSetsRequest, options?: RpcOptions): UnaryCall<GetAllCommandSetsRequest, GetAllCommandSetsResponse> {
-        const method = this.methods[2], opt = this._transport.mergeOptions(options);
+        const method = this.methods[4], opt = this._transport.mergeOptions(options);
         return stackIntercept<GetAllCommandSetsRequest, GetAllCommandSetsResponse>("unary", this._transport, method, opt, input);
     }
 }

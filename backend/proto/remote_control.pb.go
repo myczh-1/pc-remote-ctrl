@@ -485,6 +485,226 @@ func (x *GetAllCommandSetsResponse) GetCommandSets() []*CommandSetInfo {
 	return nil
 }
 
+// 更新命令集请求
+type UpdateCommandSetRequest struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	CommandSetId   string                 `protobuf:"bytes,1,opt,name=command_set_id,json=commandSetId,proto3" json:"command_set_id,omitempty"`       // 命令集ID
+	CommandSetName string                 `protobuf:"bytes,2,opt,name=command_set_name,json=commandSetName,proto3" json:"command_set_name,omitempty"` // 命令集名称
+	CommandScripts []string               `protobuf:"bytes,3,rep,name=command_scripts,json=commandScripts,proto3" json:"command_scripts,omitempty"`   // 命令脚本列表
+	Description    string                 `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"`                               // 描述
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *UpdateCommandSetRequest) Reset() {
+	*x = UpdateCommandSetRequest{}
+	mi := &file_remote_control_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateCommandSetRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateCommandSetRequest) ProtoMessage() {}
+
+func (x *UpdateCommandSetRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_remote_control_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateCommandSetRequest.ProtoReflect.Descriptor instead.
+func (*UpdateCommandSetRequest) Descriptor() ([]byte, []int) {
+	return file_remote_control_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *UpdateCommandSetRequest) GetCommandSetId() string {
+	if x != nil {
+		return x.CommandSetId
+	}
+	return ""
+}
+
+func (x *UpdateCommandSetRequest) GetCommandSetName() string {
+	if x != nil {
+		return x.CommandSetName
+	}
+	return ""
+}
+
+func (x *UpdateCommandSetRequest) GetCommandScripts() []string {
+	if x != nil {
+		return x.CommandScripts
+	}
+	return nil
+}
+
+func (x *UpdateCommandSetRequest) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+// 更新命令集响应
+type UpdateCommandSetResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateCommandSetResponse) Reset() {
+	*x = UpdateCommandSetResponse{}
+	mi := &file_remote_control_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateCommandSetResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateCommandSetResponse) ProtoMessage() {}
+
+func (x *UpdateCommandSetResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_remote_control_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateCommandSetResponse.ProtoReflect.Descriptor instead.
+func (*UpdateCommandSetResponse) Descriptor() ([]byte, []int) {
+	return file_remote_control_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *UpdateCommandSetResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *UpdateCommandSetResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+// 删除命令集请求
+type DeleteCommandSetRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	CommandSetId  string                 `protobuf:"bytes,1,opt,name=command_set_id,json=commandSetId,proto3" json:"command_set_id,omitempty"` // 命令集ID
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteCommandSetRequest) Reset() {
+	*x = DeleteCommandSetRequest{}
+	mi := &file_remote_control_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteCommandSetRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteCommandSetRequest) ProtoMessage() {}
+
+func (x *DeleteCommandSetRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_remote_control_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteCommandSetRequest.ProtoReflect.Descriptor instead.
+func (*DeleteCommandSetRequest) Descriptor() ([]byte, []int) {
+	return file_remote_control_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *DeleteCommandSetRequest) GetCommandSetId() string {
+	if x != nil {
+		return x.CommandSetId
+	}
+	return ""
+}
+
+// 删除命令集响应
+type DeleteCommandSetResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteCommandSetResponse) Reset() {
+	*x = DeleteCommandSetResponse{}
+	mi := &file_remote_control_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteCommandSetResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteCommandSetResponse) ProtoMessage() {}
+
+func (x *DeleteCommandSetResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_remote_control_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteCommandSetResponse.ProtoReflect.Descriptor instead.
+func (*DeleteCommandSetResponse) Descriptor() ([]byte, []int) {
+	return file_remote_control_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *DeleteCommandSetResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *DeleteCommandSetResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
 var File_remote_control_proto protoreflect.FileDescriptor
 
 const file_remote_control_proto_rawDesc = "" +
@@ -521,10 +741,25 @@ const file_remote_control_proto_rawDesc = "" +
 	"\x0fcommand_scripts\x18\x03 \x03(\tR\x0ecommandScripts\x12 \n" +
 	"\vdescription\x18\x04 \x01(\tR\vdescription\"^\n" +
 	"\x19GetAllCommandSetsResponse\x12A\n" +
-	"\fcommand_sets\x18\x01 \x03(\v2\x1e.remote_control.CommandSetInfoR\vcommandSets2\xcb\x02\n" +
+	"\fcommand_sets\x18\x01 \x03(\v2\x1e.remote_control.CommandSetInfoR\vcommandSets\"\xb4\x01\n" +
+	"\x17UpdateCommandSetRequest\x12$\n" +
+	"\x0ecommand_set_id\x18\x01 \x01(\tR\fcommandSetId\x12(\n" +
+	"\x10command_set_name\x18\x02 \x01(\tR\x0ecommandSetName\x12'\n" +
+	"\x0fcommand_scripts\x18\x03 \x03(\tR\x0ecommandScripts\x12 \n" +
+	"\vdescription\x18\x04 \x01(\tR\vdescription\"N\n" +
+	"\x18UpdateCommandSetResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"?\n" +
+	"\x17DeleteCommandSetRequest\x12$\n" +
+	"\x0ecommand_set_id\x18\x01 \x01(\tR\fcommandSetId\"N\n" +
+	"\x18DeleteCommandSetResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage2\x99\x04\n" +
 	"\x11ControllerService\x12h\n" +
 	"\x11ExecuteCommandSet\x12(.remote_control.ExecuteCommandSetRequest\x1a).remote_control.ExecuteCommandSetResponse\x12b\n" +
-	"\x0fStoreCommandSet\x12&.remote_control.StoreCommandSetRequest\x1a'.remote_control.StoreCommandSetResponse\x12h\n" +
+	"\x0fStoreCommandSet\x12&.remote_control.StoreCommandSetRequest\x1a'.remote_control.StoreCommandSetResponse\x12e\n" +
+	"\x10UpdateCommandSet\x12'.remote_control.UpdateCommandSetRequest\x1a(.remote_control.UpdateCommandSetResponse\x12e\n" +
+	"\x10DeleteCommandSet\x12'.remote_control.DeleteCommandSetRequest\x1a(.remote_control.DeleteCommandSetResponse\x12h\n" +
 	"\x11GetAllCommandSets\x12(.remote_control.GetAllCommandSetsRequest\x1a).remote_control.GetAllCommandSetsResponseB+Z)pc-remote-ctrl/backend/proto;controllerpbb\x06proto3"
 
 var (
@@ -539,7 +774,7 @@ func file_remote_control_proto_rawDescGZIP() []byte {
 	return file_remote_control_proto_rawDescData
 }
 
-var file_remote_control_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_remote_control_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_remote_control_proto_goTypes = []any{
 	(*ExecuteCommandSetRequest)(nil),  // 0: remote_control.ExecuteCommandSetRequest
 	(*StepResult)(nil),                // 1: remote_control.StepResult
@@ -549,21 +784,29 @@ var file_remote_control_proto_goTypes = []any{
 	(*GetAllCommandSetsRequest)(nil),  // 5: remote_control.GetAllCommandSetsRequest
 	(*CommandSetInfo)(nil),            // 6: remote_control.CommandSetInfo
 	(*GetAllCommandSetsResponse)(nil), // 7: remote_control.GetAllCommandSetsResponse
+	(*UpdateCommandSetRequest)(nil),   // 8: remote_control.UpdateCommandSetRequest
+	(*UpdateCommandSetResponse)(nil),  // 9: remote_control.UpdateCommandSetResponse
+	(*DeleteCommandSetRequest)(nil),   // 10: remote_control.DeleteCommandSetRequest
+	(*DeleteCommandSetResponse)(nil),  // 11: remote_control.DeleteCommandSetResponse
 }
 var file_remote_control_proto_depIdxs = []int32{
-	1, // 0: remote_control.ExecuteCommandSetResponse.step_results:type_name -> remote_control.StepResult
-	6, // 1: remote_control.GetAllCommandSetsResponse.command_sets:type_name -> remote_control.CommandSetInfo
-	0, // 2: remote_control.ControllerService.ExecuteCommandSet:input_type -> remote_control.ExecuteCommandSetRequest
-	3, // 3: remote_control.ControllerService.StoreCommandSet:input_type -> remote_control.StoreCommandSetRequest
-	5, // 4: remote_control.ControllerService.GetAllCommandSets:input_type -> remote_control.GetAllCommandSetsRequest
-	2, // 5: remote_control.ControllerService.ExecuteCommandSet:output_type -> remote_control.ExecuteCommandSetResponse
-	4, // 6: remote_control.ControllerService.StoreCommandSet:output_type -> remote_control.StoreCommandSetResponse
-	7, // 7: remote_control.ControllerService.GetAllCommandSets:output_type -> remote_control.GetAllCommandSetsResponse
-	5, // [5:8] is the sub-list for method output_type
-	2, // [2:5] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	1,  // 0: remote_control.ExecuteCommandSetResponse.step_results:type_name -> remote_control.StepResult
+	6,  // 1: remote_control.GetAllCommandSetsResponse.command_sets:type_name -> remote_control.CommandSetInfo
+	0,  // 2: remote_control.ControllerService.ExecuteCommandSet:input_type -> remote_control.ExecuteCommandSetRequest
+	3,  // 3: remote_control.ControllerService.StoreCommandSet:input_type -> remote_control.StoreCommandSetRequest
+	8,  // 4: remote_control.ControllerService.UpdateCommandSet:input_type -> remote_control.UpdateCommandSetRequest
+	10, // 5: remote_control.ControllerService.DeleteCommandSet:input_type -> remote_control.DeleteCommandSetRequest
+	5,  // 6: remote_control.ControllerService.GetAllCommandSets:input_type -> remote_control.GetAllCommandSetsRequest
+	2,  // 7: remote_control.ControllerService.ExecuteCommandSet:output_type -> remote_control.ExecuteCommandSetResponse
+	4,  // 8: remote_control.ControllerService.StoreCommandSet:output_type -> remote_control.StoreCommandSetResponse
+	9,  // 9: remote_control.ControllerService.UpdateCommandSet:output_type -> remote_control.UpdateCommandSetResponse
+	11, // 10: remote_control.ControllerService.DeleteCommandSet:output_type -> remote_control.DeleteCommandSetResponse
+	7,  // 11: remote_control.ControllerService.GetAllCommandSets:output_type -> remote_control.GetAllCommandSetsResponse
+	7,  // [7:12] is the sub-list for method output_type
+	2,  // [2:7] is the sub-list for method input_type
+	2,  // [2:2] is the sub-list for extension type_name
+	2,  // [2:2] is the sub-list for extension extendee
+	0,  // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_remote_control_proto_init() }
@@ -577,7 +820,7 @@ func file_remote_control_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_remote_control_proto_rawDesc), len(file_remote_control_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   8,
+			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
