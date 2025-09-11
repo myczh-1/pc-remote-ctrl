@@ -107,6 +107,7 @@ export default function App() {
         }
     }
 
+
     const handleExecuteCommandSet2 = async (commandSet: CommandSet) => {
         if (mode === 'local') {
             logInfo(`开始(本地)执行: ${commandSet.commandName}`)
@@ -156,66 +157,70 @@ export default function App() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            <header className="bg-white border-b">
-                <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-                    <div>
-                        <h1 className="text-xl font-semibold text-gray-900">PC 远程控制器</h1>
-                        <p className="text-sm text-gray-600 mt-1">管理和执行远程命令（当前模式：{mode === 'local' ? '本地' : '云端'}）</p>
-                        {mode === 'cloud' && (
-                            <div className="text-xs text-gray-500 mt-1">Cloud: {cloud.baseUrl}</div>
-                        )}
+        <div className="min-h-screen bg-bg text-slate-100 relative selection:bg-prime-400/20 selection:text-white">
+            <div className="absolute inset-0 bg-glow pointer-events-none"></div>
+            
+            <div className="relative z-10">
+                <header className="card border-b border-white/10 backdrop-blur-sm bg-card/80">
+                    <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+                        <div>
+                            <h1 className="text-xl font-semibold text-slate-100">PC 远程控制器</h1>
+                            <p className="text-sm text-slate-400 mt-1">管理和执行远程命令（当前模式：{mode === 'local' ? '本地' : '云端'}）</p>
+                            {mode === 'cloud' && (
+                                <div className="text-xs text-slate-500 mt-1">Cloud: {cloud.baseUrl}</div>
+                            )}
+                        </div>
+                        <div className="flex gap-2">
+                            <button className="px-3 py-2 text-sm rounded-xl bg-gradient-to-r from-prime-500 to-prime-600 text-white hover:from-prime-600 hover:to-prime-700 disabled:opacity-60 shadow-soft border border-prime-400/20" onClick={handleRunDemo} disabled={isRunning}>
+                                一键演示
+                            </button>
+                        </div>
                     </div>
-                    <div className="flex gap-2">
-                        <button className="px-3 py-2 text-sm rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60" onClick={handleRunDemo} disabled={isRunning}>
-                            一键演示
-                        </button>
-                    </div>
-                </div>
-            </header>
+                </header>
 
-            <ExecutionStatusPanel 
-                execution={execution}
-                onStop={() => {}}
-                onClear={clearExecution}
-            />
-
-            <main className="max-w-6xl mx-auto p-4 md:p-6 grid grid-cols-1 md:grid-cols-[2fr_1fr] gap-6">
-                <CommandPanel
-                    commandSets={commandSets}
-                    loading={loading}
-                    isRunning={isRunning}
+                <ExecutionStatusPanel 
                     execution={execution}
-                    onRefresh={handleListAllCommandSets}
-                    onCreate={handleCreateCommandSet}
-                    onExecute={handleExecuteCommandSet2}
-                    onEdit={handleEditCommandSet}
-                    onDelete={handleDeleteCommandSet}
-                    onDuplicate={handleDuplicateCommandSet}
-                    onCreateSample={handleStoreSample}
-                    mode={mode}
-                    onModeChange={(m) => { setMode(m); if (m === 'cloud') { cloud.refreshDevices() } }}
-                    cloudDevices={cloud.devices.map(d => ({ deviceId: d.deviceId, name: d.name, status: d.status }))}
-                    selectedDeviceId={selectedDeviceId}
-                    onSelectDevice={setSelectedDeviceId}
-                    cloudLoading={cloud.loadingDevices}
+                    onStop={() => {}}
+                    onClear={clearExecution}
                 />
 
-                <div className="bg-white rounded-lg shadow-sm p-4">
-                    <LogDisplay log={log} onClear={clearLog} />
-                </div>
-            </main>
+                <main className="max-w-6xl mx-auto p-4 md:p-6 grid grid-cols-1 md:grid-cols-[2fr_1fr] gap-6">
+                    <CommandPanel
+                        commandSets={commandSets}
+                        loading={loading}
+                        isRunning={isRunning}
+                        execution={execution}
+                        onRefresh={handleListAllCommandSets}
+                        onCreate={handleCreateCommandSet}
+                        onExecute={handleExecuteCommandSet2}
+                        onEdit={handleEditCommandSet}
+                        onDelete={handleDeleteCommandSet}
+                        onDuplicate={handleDuplicateCommandSet}
+                        onCreateSample={handleStoreSample}
+                        mode={mode}
+                        onModeChange={(m) => { setMode(m); if (m === 'cloud') { cloud.refreshDevices() } }}
+                        cloudDevices={cloud.devices.map(d => ({ deviceId: d.deviceId, name: d.name, status: d.status }))}
+                        selectedDeviceId={selectedDeviceId}
+                        onSelectDevice={setSelectedDeviceId}
+                        cloudLoading={cloud.loadingDevices}
+                    />
 
-            <EditorModal
-                isVisible={showCommandSetEditor}
-                editingCommandSet={editingCommandSet}
-                availableCommands={commandSets}
-                onSave={handleSaveCommandSet}
-                onCancel={() => {
-                    setShowCommandSetEditor(false)
-                    setEditingCommandSet(undefined)
-                }}
-            />
+                    <div className="card rounded-2xl shadow-soft p-4">
+                        <LogDisplay log={log} onClear={clearLog} />
+                    </div>
+                </main>
+
+                <EditorModal
+                    isVisible={showCommandSetEditor}
+                    editingCommandSet={editingCommandSet}
+                    availableCommands={commandSets}
+                    onSave={handleSaveCommandSet}
+                    onCancel={() => {
+                        setShowCommandSetEditor(false)
+                        setEditingCommandSet(undefined)
+                    }}
+                />
+            </div>
         </div>
     )
 }

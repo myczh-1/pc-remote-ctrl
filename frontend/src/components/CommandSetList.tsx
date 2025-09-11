@@ -19,7 +19,7 @@ export function WorkflowList({
 }: WorkflowListProps) {
   if (workflows.length === 0) {
     return (
-      <div className="text-center text-gray-600 py-6">
+      <div className="text-center text-slate-400 py-6">
         <p className="text-sm">暂无命令集</p>
         <p className="text-sm">创建一个命令集来批量执行命令</p>
       </div>
@@ -32,24 +32,24 @@ export function WorkflowList({
         const isExecuting = executingWorkflowId === commandSet.commandId
         
         return (
-          <div key={commandSet.commandId} className={`rounded-lg border bg-white p-4 shadow-sm ${isExecuting ? 'ring-2 ring-yellow-300' : ''}`}>
+          <div key={commandSet.commandId} className={`card rounded-2xl shadow-soft p-4 card-hover ${isExecuting ? 'ring-2 ring-yellow-400/50' : ''}`}>
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <h3 className="text-base font-semibold text-gray-900 truncate">{commandSet.commandName}</h3>
-                  {isExecuting && <span className="inline-flex items-center rounded-full bg-yellow-100 text-yellow-800 text-xs px-2 py-0.5">执行中</span>}
+                  <h3 className="text-base font-semibold text-slate-100 truncate">{commandSet.commandName}</h3>
+                  {isExecuting && <span className="inline-flex items-center rounded-full bg-yellow-500/20 text-yellow-300 text-xs px-2 py-0.5 border border-yellow-400/30">执行中</span>}
                 </div>
                 {commandSet.description && (
-                  <p className="text-sm text-gray-600 mt-1 line-clamp-2">{commandSet.description}</p>
+                  <p className="text-sm text-slate-400 mt-1 line-clamp-2">{commandSet.description}</p>
                 )}
-                <div className="flex items-center gap-4 text-xs text-gray-500 mt-2">
+                <div className="flex items-center gap-4 text-xs text-slate-500 mt-2">
                   <span>{commandSet.commandScripts?.length || 0} 个步骤</span>
                   <span>{commandSet.created.toLocaleDateString()}</span>
                 </div>
               </div>
               <div className="flex flex-wrap gap-2 shrink-0">
                 <button
-                  className={`px-3 py-1.5 text-sm rounded-md ${isExecuting ? 'bg-gray-200 text-gray-500' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+                  className={`px-3 py-1.5 text-sm rounded-lg ${isExecuting ? 'bg-slate-700 text-slate-400' : 'bg-gradient-to-r from-prime-500 to-prime-600 text-white hover:from-prime-600 hover:to-prime-700 shadow-soft border border-prime-400/20'}`}
                   onClick={() => onExecuteWorkflow(commandSet)}
                   disabled={isExecuting}
                   title={isExecuting ? '命令集正在执行' : '执行命令集'}
@@ -57,7 +57,7 @@ export function WorkflowList({
                   {isExecuting ? '执行中' : '执行'}
                 </button>
                 <button
-                  className="px-3 py-1.5 text-sm rounded-md border border-gray-300 bg-white hover:bg-gray-50"
+                  className="px-3 py-1.5 text-sm rounded-lg border border-white/10 bg-card hover:bg-white/5 text-slate-100"
                   onClick={() => onEditWorkflow(commandSet)}
                   disabled={isExecuting}
                   title="编辑命令集"
@@ -65,7 +65,7 @@ export function WorkflowList({
                   编辑
                 </button>
                 <button
-                  className="px-3 py-1.5 text-sm rounded-md border border-gray-300 bg-white hover:bg-gray-50"
+                  className="px-3 py-1.5 text-sm rounded-lg border border-white/10 bg-card hover:bg-white/5 text-slate-100"
                   onClick={() => onDuplicateWorkflow(commandSet.commandId)}
                   disabled={isExecuting}
                   title="复制命令集"
@@ -73,7 +73,7 @@ export function WorkflowList({
                   复制
                 </button>
                 <button
-                  className="px-3 py-1.5 text-sm rounded-md border border-red-300 text-red-700 bg-white hover:bg-red-50"
+                  className="px-3 py-1.5 text-sm rounded-lg border border-red-400/30 text-red-300 bg-red-900/20 hover:bg-red-900/30"
                   onClick={() => onDeleteWorkflow(commandSet.commandId)}
                   disabled={isExecuting}
                   title="删除命令集"
@@ -84,19 +84,19 @@ export function WorkflowList({
             </div>
 
             <div className="mt-3">
-              <div className="flex items-center justify-between text-sm text-gray-700 mb-1">
+              <div className="flex items-center justify-between text-sm text-slate-300 mb-1">
                 <strong>执行步骤</strong>
                 <span>{commandSet.commandScripts?.length || 0} 步</span>
               </div>
               <div className="space-y-1">
                 {(commandSet.commandScripts || []).slice(0, 3).map((script, index) => (
                   <div key={index} className="flex items-start gap-2">
-                    <span className="text-xs text-gray-500 mt-0.5 w-4">{index + 1}</span>
-                    <code className="text-sm text-gray-800 break-words">{script}</code>
+                    <span className="text-xs text-slate-500 mt-0.5 w-4">{index + 1}</span>
+                    <code className="text-sm text-slate-200 break-words bg-slate-800/30 px-1 rounded">{script}</code>
                   </div>
                 ))}
                 {(commandSet.commandScripts?.length || 0) > 3 && (
-                  <div className="text-sm text-gray-600">还有 {(commandSet.commandScripts?.length || 0) - 3} 个步骤</div>
+                  <div className="text-sm text-slate-400">还有 {(commandSet.commandScripts?.length || 0) - 3} 个步骤</div>
                 )}
               </div>
             </div>

@@ -7,6 +7,9 @@ const rootElement = document.getElementById('root')
 if (rootElement) {
   createRoot(rootElement).render(
     <StrictMode>
+      <div className='bg-red-500'>
+        aaa
+      </div>
       <App />
     </StrictMode>,
   )
