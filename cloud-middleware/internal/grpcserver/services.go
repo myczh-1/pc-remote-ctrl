@@ -12,7 +12,6 @@ import (
     "pc-remote-ctrl/cloud-middleware/internal/proxy"
     controllerpb "pc-remote-ctrl/backend/proto"
 
-    "google.golang.org/grpc"
     "google.golang.org/grpc/codes"
     "google.golang.org/grpc/status"
     "google.golang.org/protobuf/proto"
@@ -29,20 +28,7 @@ func NewDeviceRegistryServer(devMgr *device.Manager, proxy *proxy.GrpcProxy) *De
     return &DeviceRegistryServer{devMgr: devMgr, proxy: proxy}
 }
 
-func (s *DeviceRegistryServer) RegisterDevice(ctx context.Context, req *cloudpb.RegisterDeviceRequest) (*cloudpb.RegisterDeviceResponse, error) {
-    s.devMgr.Register(&device.Device{
-        ID:      req.DeviceId,
-        Name:    req.Name,
-        UserID:  req.UserId,
-        Address: req.Address,
-    })
-    return &cloudpb.RegisterDeviceResponse{Success: true, Message: "registered"}, nil
-}
-
-func (s *DeviceRegistryServer) Heartbeat(ctx context.Context, req *cloudpb.HeartbeatRequest) (*cloudpb.HeartbeatResponse, error) {
-    ok := s.devMgr.Heartbeat(req.DeviceId)
-    return &cloudpb.HeartbeatResponse{Success: ok}, nil
-}
+// 删除了 RegisterDevice/Heartbeat：改为仅通过 ConnectAgent/AgentHeartbeat 维护在线状态
 
 func (s *DeviceRegistryServer) ListDevices(ctx context.Context, req *cloudpb.ListDevicesRequest) (*cloudpb.ListDevicesResponse, error) {
     list := s.devMgr.GetDevicesByUser(req.UserId)
@@ -90,7 +76,7 @@ func (s *DeviceRegistryServer) ConnectAgent(stream cloudpb.DeviceRegistryService
                 Status: device.StatusOnline,
             })
             
-            // 注册Agent流
+            // 注册Agent流（单写协程 + 队列）
             s.proxy.RegisterAgentStream(deviceID, userID, stream)
             
             // 发送连接确认
@@ -164,3 +150,43 @@ func generateRequestID() string {
     return fmt.Sprintf("req_%d_%d", time.Now().UnixNano(), rand.Int63())
 }
 
+// StreamLogs: 处理大体量日志上报，定期ACK防止阻塞控制面
+func (s *DeviceRegistryServer) StreamLogs(stream cloudpb.DeviceRegistryService_StreamLogsServer) error {
+    var deviceID string
+    var streamID string
+    var lastAck int64
+    ackEvery := int64(50) // 每50条ACK一次，简单背压（示例）
+    count := int64(0)
+
+    for {
+        line, err := stream.Recv()
+        if err != nil {
+            // 结束/错误：若有设备ID，将其心跳更新时间
+            if deviceID != "" {
+                s.devMgr.Heartbeat(deviceID)
+            }
+            return err
+        }
+        if deviceID == "" {
+            deviceID = line.DeviceId
+        }
+        if streamID == "" {
+            streamID = line.StreamId
+        }
+        // 简单处理：更新在线状态，打印或路由日志（此处先打印）
+        s.devMgr.Heartbeat(line.DeviceId)
+        // 可替换为写入存储/消息队列
+        log.Printf("log[%s/%s] #%d %s len=%d end=%v", line.DeviceId, line.StreamId, line.Seq, line.Level, len(line.Chunk), line.End)
+
+        count++
+        if line.End || (count%ackEvery == 0) {
+            lastAck = line.Seq
+            if err := stream.Send(&cloudpb.LogAck{StreamId: streamID, AckSeq: lastAck}); err != nil {
+                return err
+            }
+            if line.End {
+                return nil
+            }
+        }
+    }
+}

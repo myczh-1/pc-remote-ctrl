@@ -6,32 +6,14 @@ option go_package = "pc-remote-ctrl/cloud-middleware/proto;cloudpb";
 
 // 设备注册与状态服务（云端中间件实现）
 service DeviceRegistryService {
-  rpc RegisterDevice(RegisterDeviceRequest) returns (RegisterDeviceResponse);
-  rpc Heartbeat(HeartbeatRequest) returns (HeartbeatResponse);
+  // 仅保留清单查询（供控制端使用）
   rpc ListDevices(ListDevicesRequest) returns (ListDevicesResponse);
-  
-  // Agent主动连接Cloud的双向流
+
+  // Agent 主动连接 Cloud 的控制面双向流：连接、心跳、命令请求/响应
   rpc ConnectAgent(stream AgentMessage) returns (stream CloudMessage);
-}
 
-message RegisterDeviceRequest {
-  string device_id = 1;
-  string user_id = 2;
-  string name = 3;
-  string address = 4; // agent 地址 host:port
-}
-
-message RegisterDeviceResponse {
-  bool success = 1;
-  string message = 2;
-}
-
-message HeartbeatRequest {
-  string device_id = 1;
-}
-
-message HeartbeatResponse {
-  bool success = 1;
+  // 日志上报（Agent -> Cloud）。用于大体量/连续日志，避免阻塞控制面流。
+  rpc StreamLogs(stream LogLine) returns (stream LogAck);
 }
 
 message ListDevicesRequest {
@@ -103,4 +85,21 @@ message CommandResponse {
 // Ping消息
 message Ping {
   int64 timestamp = 1;
+}
+
+// 日志行（分片）
+message LogLine {
+  string device_id = 1;
+  string stream_id = 2;   // 日志流会话ID
+  int64 seq = 3;          // 递增序号
+  int64 ts = 4;           // 发送时间戳（ns）
+  string level = 5;       // INFO/WARN/ERROR
+  bytes chunk = 6;        // 按块切分的日志内容（UTF-8或二进制）
+  bool end = 7;           // 本流结束
+}
+
+// 日志确认
+message LogAck {
+  string stream_id = 1;
+  int64 ack_seq = 2;      // 已确认的最大序号
 }

@@ -19,6 +19,9 @@ PROTOC         := protoc
 PROTOC_GEN_GO        := $(GO_BIN_DIR)/protoc-gen-go
 PROTOC_GEN_GO_GRPC   := $(GO_BIN_DIR)/protoc-gen-go-grpc
 
+# Path to TS plugin (absolute), used when generating frontend stubs
+PROTOC_GEN_TS := $(abspath $(FRONTEND_DIR))/node_modules/.bin/protoc-gen-ts
+
 # ---------- Tools ----------
 setup-tools:
 	@echo "Installing protobuf tools..."
@@ -33,34 +36,44 @@ setup-tools:
 
 # ---------- Generate ----------
 proto-gen: setup-tools
-    @echo "Generating protobuf code..."
-    # Go (agent protos into backend)
-    $(PROTOC) -I $(PROTO_DIR) \
-      --plugin=protoc-gen-go=$(PROTOC_GEN_GO) \
-      --plugin=protoc-gen-go-grpc=$(PROTOC_GEN_GO_GRPC) \
-      --go_out=$(BACKEND_DIR)/proto --go_opt=paths=source_relative \
-      --go-grpc_out=$(BACKEND_DIR)/proto --go-grpc_opt=paths=source_relative \
-      $(AGENT_PROTO_FILES)
-    # Go (cloud protos into cloud-middleware)
-    $(PROTOC) -I $(PROTO_DIR) \
-      --plugin=protoc-gen-go=$(PROTOC_GEN_GO) \
-      --plugin=protoc-gen-go-grpc=$(PROTOC_GEN_GO_GRPC) \
-      --go_out=$(CLOUD_DIR)/proto --go_opt=paths=source_relative \
-      --go-grpc_out=$(CLOUD_DIR)/proto --go-grpc_opt=paths=source_relative \
-      $(CLOUD_PROTO_FILES)
-    # Frontend (protobuf-ts)
-    cd $(FRONTEND_DIR) && npm run proto:gen
-    @echo "✅ proto generated for Go & TS."
+	@echo "Generating protobuf code..."
+	# Go (agent protos into backend)
+	$(PROTOC) -I $(PROTO_DIR) \
+	  --plugin=protoc-gen-go=$(PROTOC_GEN_GO) \
+	  --plugin=protoc-gen-go-grpc=$(PROTOC_GEN_GO_GRPC) \
+	  --go_out=$(BACKEND_DIR)/proto --go_opt=paths=source_relative \
+	  --go-grpc_out=$(BACKEND_DIR)/proto --go-grpc_opt=paths=source_relative \
+	  $(AGENT_PROTO_FILES)
+	# Go (cloud protos into cloud-middleware)
+	$(PROTOC) -I $(PROTO_DIR) \
+	  --plugin=protoc-gen-go=$(PROTOC_GEN_GO) \
+	  --plugin=protoc-gen-go-grpc=$(PROTOC_GEN_GO_GRPC) \
+	  --go_out=$(CLOUD_DIR)/proto --go_opt=paths=source_relative \
+	  --go-grpc_out=$(CLOUD_DIR)/proto --go-grpc_opt=paths=source_relative \
+	  $(CLOUD_PROTO_FILES)
+	# Frontend (protobuf-ts) using the same system protoc
+	cd $(FRONTEND_DIR) && \
+	  test -x "$(PROTOC_GEN_TS)" || (echo "❌ Missing protoc-gen-ts. Run: cd $(FRONTEND_DIR) && npm install"; exit 1); \
+	  $(PROTOC) -I ../$(PROTO_DIR) \
+	    ../$(PROTO_DIR)/*.proto ../$(PROTO_DIR)/cloud/*.proto \
+	    --plugin=protoc-gen-ts=$(PROTOC_GEN_TS) \
+	    --ts_out=./src/proto --ts_opt=long_type_string
+	@echo "✅ proto generated for Go & TS."
 
 proto-clean:
-    @echo "Cleaning generated protobuf code..."
-    @find $(BACKEND_DIR)/proto -name '*.pb.go' -delete || true
-    @rm -f $(FRONTEND_DIR)/src/proto/*.ts || true
+	@echo "Cleaning generated protobuf code..."
+	@find $(BACKEND_DIR)/proto -name '*.pb.go' -delete || true
+	@rm -f $(FRONTEND_DIR)/src/proto/*.ts || true
 
 # ---------- Build / Dev ----------
 build-backend: proto-gen
 	@echo "Building backend..."
 	cd $(BACKEND_DIR) && go build -o ../bin/pc-remote-ctrl .
+
+# Build agent binary (backend/cmd/agent)
+build-agent: proto-gen
+	@echo "Building agent..."
+	cd $(BACKEND_DIR)/cmd/agent && go build -o ../../../bin/pc-remote-agent .
 
 build-frontend: proto-gen
 	@echo "Building frontend..."
@@ -89,15 +102,15 @@ clean:
 	rm -f $(FRONTEND_DIR)/src/proto/*.ts
 
 help:
-    @echo "Available commands:"
-    @echo "  setup-tools     - Install required protobuf tools"
-    @echo "  proto-gen       - Generate protobuf code for both backend and frontend"
-    @echo "  proto-clean     - Clean generated protobuf code"
-    @echo "  build-backend   - Build Go backend"
-    @echo "  build-frontend  - Build React frontend"
-    @echo "  build           - Build both backend and frontend"
-    @echo "  dev-backend     - Run backend in development mode"
-    @echo "  dev-frontend    - Run frontend in development mode"
-    @echo "  install         - Install all dependencies"
-    @echo "  clean           - Clean all build artifacts"
-    @echo "  help            - Show this help message"
+	@echo "Available commands:"
+	@echo "  setup-tools     - Install required protobuf tools"
+	@echo "  proto-gen       - Generate protobuf code for both backend and frontend"
+	@echo "  proto-clean     - Clean generated protobuf code"
+	@echo "  build-backend   - Build Go backend"
+	@echo "  build-frontend  - Build React frontend"
+	@echo "  build           - Build both backend and frontend"
+	@echo "  dev-backend     - Run backend in development mode"
+	@echo "  dev-frontend    - Run frontend in development mode"
+	@echo "  install         - Install all dependencies"
+	@echo "  clean           - Clean all build artifacts"
+	@echo "  help            - Show this help message"
