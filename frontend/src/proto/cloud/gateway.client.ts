@@ -4,6 +4,14 @@
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { GatewayService } from "./gateway";
+import type { DeleteCommandSetResponse } from "../remote_control";
+import type { DeleteOnDeviceRequest } from "./gateway";
+import type { UpdateCommandSetResponse } from "../remote_control";
+import type { UpdateOnDeviceRequest } from "./gateway";
+import type { StoreCommandSetResponse } from "../remote_control";
+import type { StoreOnDeviceRequest } from "./gateway";
+import type { GetAllCommandSetsResponse } from "../remote_control";
+import type { ListDeviceCommandSetsRequest } from "./gateway";
 import { stackIntercept } from "@protobuf-ts/runtime-rpc";
 import type { ExecuteCommandSetResponse } from "../remote_control";
 import type { ExecuteOnDeviceRequest } from "./gateway";
@@ -16,9 +24,35 @@ import type { RpcOptions } from "@protobuf-ts/runtime-rpc";
  */
 export interface IGatewayServiceClient {
     /**
+     * 执行命令集（转发到 Agent 的 ExecuteCommandSet）
+     *
      * @generated from protobuf rpc: ExecuteOnDevice
      */
     executeOnDevice(input: ExecuteOnDeviceRequest, options?: RpcOptions): UnaryCall<ExecuteOnDeviceRequest, ExecuteCommandSetResponse>;
+    /**
+     * 列出设备上的命令集（转发到 Agent 的 GetAllCommandSets）
+     *
+     * @generated from protobuf rpc: ListDeviceCommandSets
+     */
+    listDeviceCommandSets(input: ListDeviceCommandSetsRequest, options?: RpcOptions): UnaryCall<ListDeviceCommandSetsRequest, GetAllCommandSetsResponse>;
+    /**
+     * 在设备上存储（创建）命令集（转发到 Agent 的 StoreCommandSet）
+     *
+     * @generated from protobuf rpc: StoreOnDevice
+     */
+    storeOnDevice(input: StoreOnDeviceRequest, options?: RpcOptions): UnaryCall<StoreOnDeviceRequest, StoreCommandSetResponse>;
+    /**
+     * 在设备上更新命令集（转发到 Agent 的 UpdateCommandSet）
+     *
+     * @generated from protobuf rpc: UpdateOnDevice
+     */
+    updateOnDevice(input: UpdateOnDeviceRequest, options?: RpcOptions): UnaryCall<UpdateOnDeviceRequest, UpdateCommandSetResponse>;
+    /**
+     * 在设备上删除命令集（转发到 Agent 的 DeleteCommandSet）
+     *
+     * @generated from protobuf rpc: DeleteOnDevice
+     */
+    deleteOnDevice(input: DeleteOnDeviceRequest, options?: RpcOptions): UnaryCall<DeleteOnDeviceRequest, DeleteCommandSetResponse>;
 }
 /**
  * 云端网关服务：前端调用此服务，由云端转发到具体设备上的 Agent
@@ -32,10 +66,48 @@ export class GatewayServiceClient implements IGatewayServiceClient, ServiceInfo 
     constructor(private readonly _transport: RpcTransport) {
     }
     /**
+     * 执行命令集（转发到 Agent 的 ExecuteCommandSet）
+     *
      * @generated from protobuf rpc: ExecuteOnDevice
      */
     executeOnDevice(input: ExecuteOnDeviceRequest, options?: RpcOptions): UnaryCall<ExecuteOnDeviceRequest, ExecuteCommandSetResponse> {
         const method = this.methods[0], opt = this._transport.mergeOptions(options);
         return stackIntercept<ExecuteOnDeviceRequest, ExecuteCommandSetResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * 列出设备上的命令集（转发到 Agent 的 GetAllCommandSets）
+     *
+     * @generated from protobuf rpc: ListDeviceCommandSets
+     */
+    listDeviceCommandSets(input: ListDeviceCommandSetsRequest, options?: RpcOptions): UnaryCall<ListDeviceCommandSetsRequest, GetAllCommandSetsResponse> {
+        const method = this.methods[1], opt = this._transport.mergeOptions(options);
+        return stackIntercept<ListDeviceCommandSetsRequest, GetAllCommandSetsResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * 在设备上存储（创建）命令集（转发到 Agent 的 StoreCommandSet）
+     *
+     * @generated from protobuf rpc: StoreOnDevice
+     */
+    storeOnDevice(input: StoreOnDeviceRequest, options?: RpcOptions): UnaryCall<StoreOnDeviceRequest, StoreCommandSetResponse> {
+        const method = this.methods[2], opt = this._transport.mergeOptions(options);
+        return stackIntercept<StoreOnDeviceRequest, StoreCommandSetResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * 在设备上更新命令集（转发到 Agent 的 UpdateCommandSet）
+     *
+     * @generated from protobuf rpc: UpdateOnDevice
+     */
+    updateOnDevice(input: UpdateOnDeviceRequest, options?: RpcOptions): UnaryCall<UpdateOnDeviceRequest, UpdateCommandSetResponse> {
+        const method = this.methods[3], opt = this._transport.mergeOptions(options);
+        return stackIntercept<UpdateOnDeviceRequest, UpdateCommandSetResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * 在设备上删除命令集（转发到 Agent 的 DeleteCommandSet）
+     *
+     * @generated from protobuf rpc: DeleteOnDevice
+     */
+    deleteOnDevice(input: DeleteOnDeviceRequest, options?: RpcOptions): UnaryCall<DeleteOnDeviceRequest, DeleteCommandSetResponse> {
+        const method = this.methods[4], opt = this._transport.mergeOptions(options);
+        return stackIntercept<DeleteOnDeviceRequest, DeleteCommandSetResponse>("unary", this._transport, method, opt, input);
     }
 }

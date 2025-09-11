@@ -38,10 +38,11 @@ func (s *Server) ExecuteCommandSet(ctx context.Context, req *controllerpb.Execut
 
 // StoreCommandSet stores a command set
 func (s *Server) StoreCommandSet(ctx context.Context, req *controllerpb.StoreCommandSetRequest) (*controllerpb.StoreCommandSetResponse, error) {
-	cmdSet := &executor.CommandSet{
-		Name:    req.CommandSetName,
-		Scripts: req.CommandScripts,
-		Desc:    req.Description,
+	cmdSet := &controllerpb.CommandSetInfo{
+		CommandSetId:   req.CommandSetId,
+		CommandSetName: req.CommandSetName,
+		CommandScripts: req.CommandScripts,
+		Description:    req.Description,
 	}
 
 	if err := s.storage.Store(req.CommandSetId, cmdSet); err != nil {
@@ -61,13 +62,8 @@ func (s *Server) StoreCommandSet(ctx context.Context, req *controllerpb.StoreCom
 func (s *Server) GetAllCommandSets(ctx context.Context, req *controllerpb.GetAllCommandSetsRequest) (*controllerpb.GetAllCommandSetsResponse, error) {
 	commandSets := make([]*controllerpb.CommandSetInfo, 0)
 	
-	for id, cmdSet := range s.storage.GetAll() {
-		commandSets = append(commandSets, &controllerpb.CommandSetInfo{
-			CommandSetId:     id,
-			CommandSetName:   cmdSet.Name,
-			CommandScripts:   cmdSet.Scripts,
-			Description:      cmdSet.Desc,
-		})
+	for _, cmdSet := range s.storage.GetAll() {
+		commandSets = append(commandSets, cmdSet)
 	}
 
 	return &controllerpb.GetAllCommandSetsResponse{
@@ -87,10 +83,11 @@ func (s *Server) UpdateCommandSet(ctx context.Context, req *controllerpb.UpdateC
 	}
 
 	// 更新命令集
-	updatedCmdSet := &executor.CommandSet{
-		Name:    req.CommandSetName,
-		Scripts: req.CommandScripts,
-		Desc:    req.Description,
+	updatedCmdSet := &controllerpb.CommandSetInfo{
+		CommandSetId:   req.CommandSetId,
+		CommandSetName: req.CommandSetName,
+		CommandScripts: req.CommandScripts,
+		Description:    req.Description,
 	}
 
 	if err := s.storage.Store(req.CommandSetId, updatedCmdSet); err != nil {

@@ -2,9 +2,9 @@
 // @generated from protobuf file "cloud/device.proto" (package "remote_control.cloud.v1", syntax proto3)
 // tslint:disable
 import { ServiceType } from "@protobuf-ts/runtime-rpc";
+import { WireType } from "@protobuf-ts/runtime";
 import type { BinaryWriteOptions } from "@protobuf-ts/runtime";
 import type { IBinaryWriter } from "@protobuf-ts/runtime";
-import { WireType } from "@protobuf-ts/runtime";
 import type { BinaryReadOptions } from "@protobuf-ts/runtime";
 import type { IBinaryReader } from "@protobuf-ts/runtime";
 import { UnknownFieldHandler } from "@protobuf-ts/runtime";
@@ -15,10 +15,6 @@ import { MessageType } from "@protobuf-ts/runtime";
  * @generated from protobuf message remote_control.cloud.v1.ListDevicesRequest
  */
 export interface ListDevicesRequest {
-    /**
-     * @generated from protobuf field: string user_id = 1
-     */
-    userId: string;
 }
 /**
  * @generated from protobuf message remote_control.cloud.v1.DeviceInfo
@@ -123,10 +119,6 @@ export interface AgentConnect {
      */
     deviceId: string;
     /**
-     * @generated from protobuf field: string user_id = 2
-     */
-    userId: string;
-    /**
      * @generated from protobuf field: string name = 3
      */
     name: string;
@@ -182,7 +174,11 @@ export interface CommandRequest {
     /**
      * @generated from protobuf field: bytes payload = 2
      */
-    payload: Uint8Array; // 序列化的ExecuteCommandSetRequest
+    payload: Uint8Array; // 序列化的请求，类型由 method 指示
+    /**
+     * @generated from protobuf field: remote_control.cloud.v1.ControllerMethod method = 3
+     */
+    method: ControllerMethod; // 控制器方法类型
 }
 /**
  * 命令执行响应（Agent->Cloud）
@@ -260,16 +256,50 @@ export interface LogAck {
      */
     ackSeq: string; // 已确认的最大序号
 }
+/**
+ * 标识要在 Agent 上调用的控制器方法
+ *
+ * @generated from protobuf enum remote_control.cloud.v1.ControllerMethod
+ */
+export enum ControllerMethod {
+    /**
+     * 执行命令集
+     *
+     * @generated from protobuf enum value: CONTROLLER_METHOD_EXECUTE = 0;
+     */
+    EXECUTE = 0,
+    /**
+     * 存储命令集
+     *
+     * @generated from protobuf enum value: CONTROLLER_METHOD_STORE = 1;
+     */
+    STORE = 1,
+    /**
+     * 更新命令集
+     *
+     * @generated from protobuf enum value: CONTROLLER_METHOD_UPDATE = 2;
+     */
+    UPDATE = 2,
+    /**
+     * 删除命令集
+     *
+     * @generated from protobuf enum value: CONTROLLER_METHOD_DELETE = 3;
+     */
+    DELETE = 3,
+    /**
+     * 获取全部命令集
+     *
+     * @generated from protobuf enum value: CONTROLLER_METHOD_LIST = 4;
+     */
+    LIST = 4
+}
 // @generated message type with reflection information, may provide speed optimized methods
 class ListDevicesRequest$Type extends MessageType<ListDevicesRequest> {
     constructor() {
-        super("remote_control.cloud.v1.ListDevicesRequest", [
-            { no: 1, name: "user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
-        ]);
+        super("remote_control.cloud.v1.ListDevicesRequest", []);
     }
     create(value?: PartialMessage<ListDevicesRequest>): ListDevicesRequest {
         const message = globalThis.Object.create((this.messagePrototype!));
-        message.userId = "";
         if (value !== undefined)
             reflectionMergePartial<ListDevicesRequest>(this, message, value);
         return message;
@@ -279,9 +309,6 @@ class ListDevicesRequest$Type extends MessageType<ListDevicesRequest> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string user_id */ 1:
-                    message.userId = reader.string();
-                    break;
                 default:
                     let u = options.readUnknownField;
                     if (u === "throw")
@@ -294,9 +321,6 @@ class ListDevicesRequest$Type extends MessageType<ListDevicesRequest> {
         return message;
     }
     internalBinaryWrite(message: ListDevicesRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string user_id = 1; */
-        if (message.userId !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.userId);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -570,7 +594,6 @@ class AgentConnect$Type extends MessageType<AgentConnect> {
     constructor() {
         super("remote_control.cloud.v1.AgentConnect", [
             { no: 1, name: "device_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "user_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 4, name: "version", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
@@ -578,7 +601,6 @@ class AgentConnect$Type extends MessageType<AgentConnect> {
     create(value?: PartialMessage<AgentConnect>): AgentConnect {
         const message = globalThis.Object.create((this.messagePrototype!));
         message.deviceId = "";
-        message.userId = "";
         message.name = "";
         message.version = "";
         if (value !== undefined)
@@ -592,9 +614,6 @@ class AgentConnect$Type extends MessageType<AgentConnect> {
             switch (fieldNo) {
                 case /* string device_id */ 1:
                     message.deviceId = reader.string();
-                    break;
-                case /* string user_id */ 2:
-                    message.userId = reader.string();
                     break;
                 case /* string name */ 3:
                     message.name = reader.string();
@@ -617,9 +636,6 @@ class AgentConnect$Type extends MessageType<AgentConnect> {
         /* string device_id = 1; */
         if (message.deviceId !== "")
             writer.tag(1, WireType.LengthDelimited).string(message.deviceId);
-        /* string user_id = 2; */
-        if (message.userId !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.userId);
         /* string name = 3; */
         if (message.name !== "")
             writer.tag(3, WireType.LengthDelimited).string(message.name);
@@ -759,13 +775,15 @@ class CommandRequest$Type extends MessageType<CommandRequest> {
     constructor() {
         super("remote_control.cloud.v1.CommandRequest", [
             { no: 1, name: "request_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "payload", kind: "scalar", T: 12 /*ScalarType.BYTES*/ }
+            { no: 2, name: "payload", kind: "scalar", T: 12 /*ScalarType.BYTES*/ },
+            { no: 3, name: "method", kind: "enum", T: () => ["remote_control.cloud.v1.ControllerMethod", ControllerMethod, "CONTROLLER_METHOD_"] }
         ]);
     }
     create(value?: PartialMessage<CommandRequest>): CommandRequest {
         const message = globalThis.Object.create((this.messagePrototype!));
         message.requestId = "";
         message.payload = new Uint8Array(0);
+        message.method = 0;
         if (value !== undefined)
             reflectionMergePartial<CommandRequest>(this, message, value);
         return message;
@@ -780,6 +798,9 @@ class CommandRequest$Type extends MessageType<CommandRequest> {
                     break;
                 case /* bytes payload */ 2:
                     message.payload = reader.bytes();
+                    break;
+                case /* remote_control.cloud.v1.ControllerMethod method */ 3:
+                    message.method = reader.int32();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -799,6 +820,9 @@ class CommandRequest$Type extends MessageType<CommandRequest> {
         /* bytes payload = 2; */
         if (message.payload.length)
             writer.tag(2, WireType.LengthDelimited).bytes(message.payload);
+        /* remote_control.cloud.v1.ControllerMethod method = 3; */
+        if (message.method !== 0)
+            writer.tag(3, WireType.Varint).int32(message.method);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

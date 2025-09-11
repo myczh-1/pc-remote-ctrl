@@ -21,7 +21,7 @@ import type { RpcOptions } from "@protobuf-ts/runtime-rpc";
  */
 export interface IDeviceRegistryServiceClient {
     /**
-     * 仅保留清单查询（供控制端使用）
+     * 设备清单查询（返回全部设备）
      *
      * @generated from protobuf rpc: ListDevices
      */
@@ -51,7 +51,7 @@ export class DeviceRegistryServiceClient implements IDeviceRegistryServiceClient
     constructor(private readonly _transport: RpcTransport) {
     }
     /**
-     * 仅保留清单查询（供控制端使用）
+     * 设备清单查询（返回全部设备）
      *
      * @generated from protobuf rpc: ListDevices
      */

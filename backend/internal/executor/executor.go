@@ -9,40 +9,51 @@ import (
 	controllerpb "pc-remote-ctrl/backend/proto"
 )
 
-// CommandSet represents a stored command set with metadata
-type CommandSet struct {
-	Name    string   `json:"name"`
-	Scripts []string `json:"scripts"`
-	Desc    string   `json:"desc"`
+type ShellRunner interface {
+	Run(ctx context.Context, script string) *exec.Cmd
 }
 
+type shellRunner struct {
+	shell string
+	flag  string
+}
+
+func newShellRunner() ShellRunner {
+	if runtime.GOOS == "windows" {
+		return &shellRunner{shell: "cmd", flag: "/C"}
+	}
+	return &shellRunner{shell: "sh", flag: "-c"}
+}
+
+func (r *shellRunner) Run(ctx context.Context, script string) *exec.Cmd {
+	return exec.CommandContext(ctx, r.shell, r.flag, script)
+}
+
+
 // Executor handles command execution
-type Executor struct{}
+type Executor struct {
+	runner ShellRunner
+}
 
 // New creates a new command executor
 func New() *Executor {
-	return &Executor{}
+	return &Executor{
+		runner: newShellRunner(),
+	}
 }
 
 // ExecuteCommandSet executes a command set and returns the results
-func (e *Executor) ExecuteCommandSet(ctx context.Context, cmdSet *CommandSet) (*controllerpb.ExecuteCommandSetResponse, error) {
+func (e *Executor) ExecuteCommandSet(ctx context.Context, cmdSet *controllerpb.CommandSetInfo) (*controllerpb.ExecuteCommandSetResponse, error) {
 	var stepResults []*controllerpb.StepResult
 	allSuccess := true
 
 	// 顺序执行命令集中的每个脚本
-	for i, script := range cmdSet.Scripts {
-		// 为每个步骤创建独立的上下文，支持超时控制
+	for i, script := range cmdSet.CommandScripts {
 		stepCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
 		
-		// Cross-platform command execution
-		var execCmd *exec.Cmd
-		if runtime.GOOS == "windows" {
-			execCmd = exec.CommandContext(stepCtx, "cmd", "/C", script)
-		} else {
-			execCmd = exec.CommandContext(stepCtx, "sh", "-c", script)
-		}
-
+		execCmd := e.runner.Run(stepCtx, script)
 		output, err := execCmd.CombinedOutput()
+		
 		exitCode := int32(0)
 		success := true
 		
@@ -52,7 +63,6 @@ func (e *Executor) ExecuteCommandSet(ctx context.Context, cmdSet *CommandSet) (*
 		}
 		
 		if err != nil && success {
-			// 如果有错误但退出码是0，仍然认为是失败
 			success = false
 		}
 
@@ -68,7 +78,6 @@ func (e *Executor) ExecuteCommandSet(ctx context.Context, cmdSet *CommandSet) (*
 		stepResults = append(stepResults, stepResult)
 		cancel()
 
-		// 如果某一步失败，停止执行后续步骤
 		if !success {
 			allSuccess = false
 			break

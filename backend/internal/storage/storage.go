@@ -8,13 +8,13 @@ import (
     "path/filepath"
     "sync"
 
-    "pc-remote-ctrl/backend/internal/executor"
+    controllerpb "pc-remote-ctrl/backend/proto"
 )
 
 // Storage handles command set persistence
 type Storage struct {
     mu         sync.RWMutex
-    commandSets map[string]*executor.CommandSet // guarded by mu
+    commandSets map[string]*controllerpb.CommandSetInfo // guarded by mu
     filename    string
 }
 
@@ -22,7 +22,7 @@ type Storage struct {
 func New(filename string) *Storage {
     return &Storage{
         filename:    filename,
-        commandSets: make(map[string]*executor.CommandSet),
+        commandSets: make(map[string]*controllerpb.CommandSetInfo),
     }
 }
 
@@ -37,13 +37,13 @@ func (s *Storage) Load() error {
         return fmt.Errorf("read command sets file: %w", err)
     }
 
-    var tempMap map[string]*executor.CommandSet
+    var tempMap map[string]*controllerpb.CommandSetInfo
     if err := json.Unmarshal(data, &tempMap); err != nil {
         return fmt.Errorf("unmarshal command sets: %w", err)
     }
 
     s.mu.Lock()
-    s.commandSets = make(map[string]*executor.CommandSet, len(tempMap))
+    s.commandSets = make(map[string]*controllerpb.CommandSetInfo, len(tempMap))
     for id, cs := range tempMap {
         s.commandSets[id] = cs
     }
@@ -57,7 +57,7 @@ func (s *Storage) Load() error {
 func (s *Storage) Save() error {
     // Take a consistent snapshot without holding the lock during IO
     s.mu.RLock()
-    snapshot := make(map[string]*executor.CommandSet, len(s.commandSets))
+    snapshot := make(map[string]*controllerpb.CommandSetInfo, len(s.commandSets))
     for k, v := range s.commandSets {
         snapshot[k] = v
     }
@@ -101,10 +101,10 @@ func (s *Storage) Save() error {
 }
 
 // Store stores a command set
-func (s *Storage) Store(id string, cmdSet *executor.CommandSet) error {
+func (s *Storage) Store(id string, cmdSet *controllerpb.CommandSetInfo) error {
     s.mu.Lock()
     if s.commandSets == nil {
-        s.commandSets = make(map[string]*executor.CommandSet)
+        s.commandSets = make(map[string]*controllerpb.CommandSetInfo)
     }
     s.commandSets[id] = cmdSet
     s.mu.Unlock()
@@ -112,7 +112,7 @@ func (s *Storage) Store(id string, cmdSet *executor.CommandSet) error {
 }
 
 // Get retrieves a command set by ID
-func (s *Storage) Get(id string) *executor.CommandSet {
+func (s *Storage) Get(id string) *controllerpb.CommandSetInfo {
     s.mu.RLock()
     defer s.mu.RUnlock()
     if s.commandSets == nil {
@@ -122,10 +122,10 @@ func (s *Storage) Get(id string) *executor.CommandSet {
 }
 
 // GetAll returns a shallow copy of all command sets
-func (s *Storage) GetAll() map[string]*executor.CommandSet {
+func (s *Storage) GetAll() map[string]*controllerpb.CommandSetInfo {
     s.mu.RLock()
     defer s.mu.RUnlock()
-    result := make(map[string]*executor.CommandSet, len(s.commandSets))
+    result := make(map[string]*controllerpb.CommandSetInfo, len(s.commandSets))
     for k, v := range s.commandSets {
         result[k] = v
     }

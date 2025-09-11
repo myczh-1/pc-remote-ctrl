@@ -17,6 +17,137 @@ import (
     "google.golang.org/protobuf/proto"
 )
 
+type CommandHandler interface {
+    Handle(ctx context.Context, payload []byte) (proto.Message, error)
+}
+
+type commandRouter struct {
+    handlers map[cloudpb.ControllerMethod]CommandHandler
+}
+
+func newCommandRouter(store *storage.Storage, exec *executor.Executor) *commandRouter {
+    return &commandRouter{
+        handlers: map[cloudpb.ControllerMethod]CommandHandler{
+            cloudpb.ControllerMethod_CONTROLLER_METHOD_EXECUTE: &executeHandler{store: store, exec: exec},
+            cloudpb.ControllerMethod_CONTROLLER_METHOD_LIST:    &listHandler{store: store},
+            cloudpb.ControllerMethod_CONTROLLER_METHOD_STORE:   &storeHandler{store: store},
+            cloudpb.ControllerMethod_CONTROLLER_METHOD_UPDATE:  &updateHandler{store: store},
+            cloudpb.ControllerMethod_CONTROLLER_METHOD_DELETE:  &deleteHandler{store: store},
+        },
+    }
+}
+
+func (r *commandRouter) handle(ctx context.Context, method cloudpb.ControllerMethod, payload []byte) (proto.Message, error) {
+    handler, exists := r.handlers[method]
+    if !exists {
+        return nil, &CommandError{Message: "unknown method"}
+    }
+    return handler.Handle(ctx, payload)
+}
+
+type CommandError struct {
+    Message string
+}
+
+func (e *CommandError) Error() string {
+    return e.Message
+}
+
+type executeHandler struct {
+    store *storage.Storage
+    exec  *executor.Executor
+}
+
+func (h *executeHandler) Handle(ctx context.Context, payload []byte) (proto.Message, error) {
+    var req controllerpb.ExecuteCommandSetRequest
+    if err := proto.Unmarshal(payload, &req); err != nil {
+        return nil, err
+    }
+    
+    cmdSet := h.store.Get(req.CommandSetId)
+    if cmdSet == nil {
+        return &controllerpb.ExecuteCommandSetResponse{Success: false, Error: "command set not found"}, nil
+    }
+    
+    return h.exec.ExecuteCommandSet(ctx, cmdSet)
+}
+
+type listHandler struct {
+    store *storage.Storage
+}
+
+func (h *listHandler) Handle(ctx context.Context, payload []byte) (proto.Message, error) {
+    var req controllerpb.GetAllCommandSetsRequest
+    if err := proto.Unmarshal(payload, &req); err != nil {
+        return nil, err
+    }
+    
+    all := h.store.GetAll()
+    out := &controllerpb.GetAllCommandSetsResponse{}
+    for _, cs := range all {
+        out.CommandSets = append(out.CommandSets, cs)
+    }
+    return out, nil
+}
+
+type storeHandler struct {
+    store *storage.Storage
+}
+
+func (h *storeHandler) Handle(ctx context.Context, payload []byte) (proto.Message, error) {
+    var req controllerpb.StoreCommandSetRequest
+    if err := proto.Unmarshal(payload, &req); err != nil {
+        return nil, err
+    }
+    
+    cs := &controllerpb.CommandSetInfo{CommandSetId: req.CommandSetId, CommandSetName: req.CommandSetName, CommandScripts: req.CommandScripts, Description: req.Description}
+    if err := h.store.Store(req.CommandSetId, cs); err != nil {
+        return &controllerpb.StoreCommandSetResponse{Success: false, Message: "failed to save command set: " + err.Error()}, nil
+    }
+    return &controllerpb.StoreCommandSetResponse{Success: true, Message: "command set saved successfully"}, nil
+}
+
+type updateHandler struct {
+    store *storage.Storage
+}
+
+func (h *updateHandler) Handle(ctx context.Context, payload []byte) (proto.Message, error) {
+    var req controllerpb.UpdateCommandSetRequest
+    if err := proto.Unmarshal(payload, &req); err != nil {
+        return nil, err
+    }
+    
+    if h.store.Get(req.CommandSetId) == nil {
+        return &controllerpb.UpdateCommandSetResponse{Success: false, Message: "command set not found"}, nil
+    }
+    
+    cs := &controllerpb.CommandSetInfo{CommandSetId: req.CommandSetId, CommandSetName: req.CommandSetName, CommandScripts: req.CommandScripts, Description: req.Description}
+    if err := h.store.Store(req.CommandSetId, cs); err != nil {
+        return &controllerpb.UpdateCommandSetResponse{Success: false, Message: "failed to update command set: " + err.Error()}, nil
+    }
+    return &controllerpb.UpdateCommandSetResponse{Success: true, Message: "command set updated successfully"}, nil
+}
+
+type deleteHandler struct {
+    store *storage.Storage
+}
+
+func (h *deleteHandler) Handle(ctx context.Context, payload []byte) (proto.Message, error) {
+    var req controllerpb.DeleteCommandSetRequest
+    if err := proto.Unmarshal(payload, &req); err != nil {
+        return nil, err
+    }
+    
+    if h.store.Get(req.CommandSetId) == nil {
+        return &controllerpb.DeleteCommandSetResponse{Success: false, Message: "command set not found"}, nil
+    }
+    
+    if err := h.store.Delete(req.CommandSetId); err != nil {
+        return &controllerpb.DeleteCommandSetResponse{Success: false, Message: "failed to delete command set: " + err.Error()}, nil
+    }
+    return &controllerpb.DeleteCommandSetResponse{Success: true, Message: "command set deleted successfully"}, nil
+}
+
 func main() {
     cfg := loadConfig()
     log.Printf("agent starting: device_id=%s cloud=%s", cfg.DeviceID, cfg.CloudAddr)
@@ -27,6 +158,7 @@ func main() {
         log.Printf("warn: load command sets failed: %v", err)
     }
     exec := executor.New()
+    router := newCommandRouter(store, exec)
 
     // Dial cloud
     conn, err := grpc.Dial(cfg.CloudAddr, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(32<<20)))
@@ -97,107 +229,12 @@ func main() {
         case *cloudpb.CloudMessage_ConnectAck:
             log.Printf("connected: %v", m.ConnectAck.Message)
         case *cloudpb.CloudMessage_Command:
-            switch m.Command.Method {
-            case cloudpb.ControllerMethod_CONTROLLER_METHOD_EXECUTE:
-                // Decode request
-                var req controllerpb.ExecuteCommandSetRequest
-                if err := proto.Unmarshal(m.Command.Payload, &req); err != nil {
-                    log.Printf("bad execute payload: %v", err)
-                    continue
-                }
-                // Lookup scripts
-                cmdSet := store.Get(req.CommandSetId)
-                if cmdSet == nil {
-                    resp := &controllerpb.ExecuteCommandSetResponse{Success: false, Error: "command set not found"}
-                    sendResponse(stream, m.Command.RequestId, resp)
-                    continue
-                }
-                // Execute
-                local := &executor.CommandSet{Name: cmdSet.Name, Scripts: cmdSet.Scripts, Desc: cmdSet.Desc}
-                res, _ := exec.ExecuteCommandSet(ctx, local)
-                sendResponse(stream, m.Command.RequestId, res)
-
-            case cloudpb.ControllerMethod_CONTROLLER_METHOD_LIST:
-                // Decode (empty) request
-                var req controllerpb.GetAllCommandSetsRequest
-                if err := proto.Unmarshal(m.Command.Payload, &req); err != nil {
-                    log.Printf("bad list payload: %v", err)
-                    continue
-                }
-                // Build response
-                all := store.GetAll()
-                out := &controllerpb.GetAllCommandSetsResponse{}
-                for id, cs := range all {
-                    out.CommandSets = append(out.CommandSets, &controllerpb.CommandSetInfo{
-                        CommandSetId:   id,
-                        CommandSetName: cs.Name,
-                        CommandScripts: cs.Scripts,
-                        Description:    cs.Desc,
-                    })
-                }
-                sendResponse(stream, m.Command.RequestId, out)
-
-            case cloudpb.ControllerMethod_CONTROLLER_METHOD_STORE:
-                var req controllerpb.StoreCommandSetRequest
-                if err := proto.Unmarshal(m.Command.Payload, &req); err != nil {
-                    log.Printf("bad store payload: %v", err)
-                    continue
-                }
-                cs := &executor.CommandSet{Name: req.CommandSetName, Scripts: req.CommandScripts, Desc: req.Description}
-                var resp controllerpb.StoreCommandSetResponse
-                if err := store.Store(req.CommandSetId, cs); err != nil {
-                    resp.Success = false
-                    resp.Message = "failed to save command set: " + err.Error()
-                } else {
-                    resp.Success = true
-                    resp.Message = "command set saved successfully"
-                }
-                sendResponse(stream, m.Command.RequestId, &resp)
-
-            case cloudpb.ControllerMethod_CONTROLLER_METHOD_UPDATE:
-                var req controllerpb.UpdateCommandSetRequest
-                if err := proto.Unmarshal(m.Command.Payload, &req); err != nil {
-                    log.Printf("bad update payload: %v", err)
-                    continue
-                }
-                var resp controllerpb.UpdateCommandSetResponse
-                if store.Get(req.CommandSetId) == nil {
-                    resp.Success = false
-                    resp.Message = "command set not found"
-                } else {
-                    cs := &executor.CommandSet{Name: req.CommandSetName, Scripts: req.CommandScripts, Desc: req.Description}
-                    if err := store.Store(req.CommandSetId, cs); err != nil {
-                        resp.Success = false
-                        resp.Message = "failed to update command set: " + err.Error()
-                    } else {
-                        resp.Success = true
-                        resp.Message = "command set updated successfully"
-                    }
-                }
-                sendResponse(stream, m.Command.RequestId, &resp)
-
-            case cloudpb.ControllerMethod_CONTROLLER_METHOD_DELETE:
-                var req controllerpb.DeleteCommandSetRequest
-                if err := proto.Unmarshal(m.Command.Payload, &req); err != nil {
-                    log.Printf("bad delete payload: %v", err)
-                    continue
-                }
-                var resp controllerpb.DeleteCommandSetResponse
-                if store.Get(req.CommandSetId) == nil {
-                    resp.Success = false
-                    resp.Message = "command set not found"
-                } else if err := store.Delete(req.CommandSetId); err != nil {
-                    resp.Success = false
-                    resp.Message = "failed to delete command set: " + err.Error()
-                } else {
-                    resp.Success = true
-                    resp.Message = "command set deleted successfully"
-                }
-                sendResponse(stream, m.Command.RequestId, &resp)
-
-            default:
-                log.Printf("unknown controller method: %v", m.Command.Method)
+            resp, err := router.handle(ctx, m.Command.Method, m.Command.Payload)
+            if err != nil {
+                log.Printf("command handler error: %v", err)
+                continue
             }
+            sendResponse(stream, m.Command.RequestId, resp)
         case *cloudpb.CloudMessage_Ping:
             // ignore; heartbeat loop maintains liveness
         default:
@@ -206,12 +243,19 @@ func main() {
     }
 }
 
-func sendResponse(stream cloudpb.DeviceRegistryService_ConnectAgentClient, requestID string, resp *controllerpb.ExecuteCommandSetResponse) {
-    b, _ := proto.Marshal(resp)
-    _ = stream.Send(&cloudpb.AgentMessage{Message: &cloudpb.AgentMessage_Response{Response: &cloudpb.CommandResponse{
+func sendResponse(stream cloudpb.DeviceRegistryService_ConnectAgentClient, requestID string, resp proto.Message) {
+    b, err := proto.Marshal(resp)
+    if err != nil {
+        log.Printf("failed to marshal response: %v", err)
+        return
+    }
+    
+    if err := stream.Send(&cloudpb.AgentMessage{Message: &cloudpb.AgentMessage_Response{Response: &cloudpb.CommandResponse{
         RequestId: requestID,
         Payload:   b,
-    }}})
+    }}}); err != nil {
+        log.Printf("failed to send response: %v", err)
+    }
 }
 
 func streamLogs(ctx context.Context, client cloudpb.DeviceRegistryServiceClient, cfg *Config) {
@@ -243,7 +287,10 @@ type Config struct {
 }
 
 func loadConfig() *Config {
-    host, _ := os.Hostname()
+    host, err := os.Hostname()
+    if err != nil {
+        host = "unknown"
+    }
     deviceID := getenv("DEVICE_ID", host)
     return &Config{
         CloudAddr:    hostPort(getenv("CLOUD_ADDR", "localhost:7073")),
