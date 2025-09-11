@@ -1,4 +1,4 @@
-.PHONY: proto-gen proto-clean build-backend build-frontend dev-backend dev-frontend clean setup-tools install help
+.PHONY: proto-gen proto-clean build-backend build-frontend dev-backend dev-frontend dev-cloud dev-agent clean setup-tools install help
 
 # ---------- Paths ----------
 PROTO_DIR      := proto
@@ -90,6 +90,16 @@ dev-frontend:
 	@echo "Starting frontend in development mode..."
 	cd $(FRONTEND_DIR) && npm run dev
 
+# Run cloud middleware (gRPC + gRPC-Web on 7073)
+dev-cloud: proto-gen
+	@echo "Starting cloud middleware in development mode..."
+	cd $(CLOUD_DIR) && go run ./cmd/server
+
+# Run agent that connects to cloud middleware
+dev-agent: proto-gen
+	@echo "Starting agent in development mode..."
+	cd $(BACKEND_DIR)/cmd/agent && go run .
+
 install:
 	@echo "Installing dependencies..."
 	cd $(BACKEND_DIR) && go mod download
@@ -112,6 +122,8 @@ help:
 	@echo "  build           - Build both backend and frontend"
 	@echo "  dev-backend     - Run backend in development mode"
 	@echo "  dev-frontend    - Run frontend in development mode"
+	@echo "  dev-cloud       - Run cloud middleware in development mode"
+	@echo "  dev-agent       - Run agent in development mode (connects to cloud)"
 	@echo "  install         - Install all dependencies"
 	@echo "  clean           - Clean all build artifacts"
 	@echo "  help            - Show this help message"

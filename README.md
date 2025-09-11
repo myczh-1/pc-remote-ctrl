@@ -69,7 +69,10 @@ make dev-backend
 make dev-frontend
 
 # Optional: Start cloud middleware (7073)
-(cd cloud-middleware && go run ./cmd/server)
+make dev-cloud
+
+# Optional: Start local agent that connects to cloud middleware
+make dev-agent
 ```
 
 ### Build for Production

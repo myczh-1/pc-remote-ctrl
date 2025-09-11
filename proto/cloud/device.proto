@@ -4,6 +4,15 @@ package remote_control.cloud.v1;
 
 option go_package = "pc-remote-ctrl/cloud-middleware/proto;cloudpb";
 
+// 标识要在 Agent 上调用的控制器方法
+enum ControllerMethod {
+  CONTROLLER_METHOD_EXECUTE = 0; // 执行命令集
+  CONTROLLER_METHOD_STORE   = 1; // 存储命令集
+  CONTROLLER_METHOD_UPDATE  = 2; // 更新命令集
+  CONTROLLER_METHOD_DELETE  = 3; // 删除命令集
+  CONTROLLER_METHOD_LIST    = 4; // 获取全部命令集
+}
+
 // 设备注册与状态服务（云端中间件实现）
 service DeviceRegistryService {
   // 设备清单查询（返回全部设备）
@@ -75,7 +84,8 @@ message AgentHeartbeat {
 // 命令执行请求（Cloud->Agent）
 message CommandRequest {
   string request_id = 1;           // 请求ID，用于响应匹配
-  bytes payload = 2;               // 序列化的ExecuteCommandSetRequest
+  bytes payload = 2;               // 序列化的请求，类型由 method 指示
+  ControllerMethod method = 3;     // 控制器方法类型
 }
 
 // 命令执行响应（Agent->Cloud）

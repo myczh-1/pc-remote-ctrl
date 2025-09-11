@@ -102,7 +102,7 @@ func (p *GrpcProxy) sendLoop(as *AgentStream) {
 }
 
 // SendCommandToAgent 发送命令到Agent（控制面流）
-func (p *GrpcProxy) SendCommandToAgent(ctx context.Context, deviceID string, requestID string, payload []byte) ([]byte, error) {
+func (p *GrpcProxy) SendCommandToAgent(ctx context.Context, deviceID string, requestID string, method cloudpb.ControllerMethod, payload []byte) ([]byte, error) {
     // 包装默认超时（若上层未设置）
     if _, ok := ctx.Deadline(); !ok {
         var cancel context.CancelFunc
@@ -130,7 +130,7 @@ func (p *GrpcProxy) SendCommandToAgent(ctx context.Context, deviceID string, req
     // 入发送队列
     cmd := &cloudpb.CloudMessage{
         Message: &cloudpb.CloudMessage_Command{
-            Command: &cloudpb.CommandRequest{RequestId: requestID, Payload: payload},
+            Command: &cloudpb.CommandRequest{RequestId: requestID, Payload: payload, Method: method},
         },
     }
 

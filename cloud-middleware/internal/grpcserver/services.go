@@ -129,7 +129,7 @@ func (s *GatewayServer) ExecuteOnDevice(ctx context.Context, req *cloudpb.Execut
     }
     
     // 通过双向流发送命令到Agent
-    respPayload, err := s.proxy.SendCommandToAgent(ctx, req.DeviceId, requestID, payload)
+    respPayload, err := s.proxy.SendCommandToAgent(ctx, req.DeviceId, requestID, cloudpb.ControllerMethod_CONTROLLER_METHOD_EXECUTE, payload)
     if err != nil {
         return nil, status.Errorf(codes.Unavailable, "failed to send command to agent: %v", err)
     }
@@ -140,6 +140,74 @@ func (s *GatewayServer) ExecuteOnDevice(ctx context.Context, req *cloudpb.Execut
         return nil, status.Errorf(codes.Internal, "failed to unmarshal response: %v", err)
     }
     
+    return &response, nil
+}
+
+func (s *GatewayServer) ListDeviceCommandSets(ctx context.Context, req *cloudpb.ListDeviceCommandSetsRequest) (*controllerpb.GetAllCommandSetsResponse, error) {
+    requestID := generateRequestID()
+    payload, err := proto.Marshal(req.Request)
+    if err != nil {
+        return nil, status.Errorf(codes.InvalidArgument, "failed to marshal request: %v", err)
+    }
+    respPayload, err := s.proxy.SendCommandToAgent(ctx, req.DeviceId, requestID, cloudpb.ControllerMethod_CONTROLLER_METHOD_LIST, payload)
+    if err != nil {
+        return nil, status.Errorf(codes.Unavailable, "failed to send to agent: %v", err)
+    }
+    var response controllerpb.GetAllCommandSetsResponse
+    if err := proto.Unmarshal(respPayload, &response); err != nil {
+        return nil, status.Errorf(codes.Internal, "failed to unmarshal response: %v", err)
+    }
+    return &response, nil
+}
+
+func (s *GatewayServer) StoreOnDevice(ctx context.Context, req *cloudpb.StoreOnDeviceRequest) (*controllerpb.StoreCommandSetResponse, error) {
+    requestID := generateRequestID()
+    payload, err := proto.Marshal(req.Request)
+    if err != nil {
+        return nil, status.Errorf(codes.InvalidArgument, "failed to marshal request: %v", err)
+    }
+    respPayload, err := s.proxy.SendCommandToAgent(ctx, req.DeviceId, requestID, cloudpb.ControllerMethod_CONTROLLER_METHOD_STORE, payload)
+    if err != nil {
+        return nil, status.Errorf(codes.Unavailable, "failed to send to agent: %v", err)
+    }
+    var response controllerpb.StoreCommandSetResponse
+    if err := proto.Unmarshal(respPayload, &response); err != nil {
+        return nil, status.Errorf(codes.Internal, "failed to unmarshal response: %v", err)
+    }
+    return &response, nil
+}
+
+func (s *GatewayServer) UpdateOnDevice(ctx context.Context, req *cloudpb.UpdateOnDeviceRequest) (*controllerpb.UpdateCommandSetResponse, error) {
+    requestID := generateRequestID()
+    payload, err := proto.Marshal(req.Request)
+    if err != nil {
+        return nil, status.Errorf(codes.InvalidArgument, "failed to marshal request: %v", err)
+    }
+    respPayload, err := s.proxy.SendCommandToAgent(ctx, req.DeviceId, requestID, cloudpb.ControllerMethod_CONTROLLER_METHOD_UPDATE, payload)
+    if err != nil {
+        return nil, status.Errorf(codes.Unavailable, "failed to send to agent: %v", err)
+    }
+    var response controllerpb.UpdateCommandSetResponse
+    if err := proto.Unmarshal(respPayload, &response); err != nil {
+        return nil, status.Errorf(codes.Internal, "failed to unmarshal response: %v", err)
+    }
+    return &response, nil
+}
+
+func (s *GatewayServer) DeleteOnDevice(ctx context.Context, req *cloudpb.DeleteOnDeviceRequest) (*controllerpb.DeleteCommandSetResponse, error) {
+    requestID := generateRequestID()
+    payload, err := proto.Marshal(req.Request)
+    if err != nil {
+        return nil, status.Errorf(codes.InvalidArgument, "failed to marshal request: %v", err)
+    }
+    respPayload, err := s.proxy.SendCommandToAgent(ctx, req.DeviceId, requestID, cloudpb.ControllerMethod_CONTROLLER_METHOD_DELETE, payload)
+    if err != nil {
+        return nil, status.Errorf(codes.Unavailable, "failed to send to agent: %v", err)
+    }
+    var response controllerpb.DeleteCommandSetResponse
+    if err := proto.Unmarshal(respPayload, &response); err != nil {
+        return nil, status.Errorf(codes.Internal, "failed to unmarshal response: %v", err)
+    }
     return &response, nil
 }
 
