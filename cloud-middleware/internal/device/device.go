@@ -7,13 +7,12 @@ import (
 
 // Device 设备信息
 type Device struct {
-	ID          string    `json:"id"`
-	Name        string    `json:"name"`
-	UserID      string    `json:"user_id"`
-	Address     string    `json:"address"`     // agent地址 (host:port)
-	Status      Status    `json:"status"`
-	LastSeen    time.Time `json:"last_seen"`
-	RegisteredAt time.Time `json:"registered_at"`
+    ID          string    `json:"id"`
+    Name        string    `json:"name"`
+    Address     string    `json:"address"`     // agent地址 (host:port)
+    Status      Status    `json:"status"`
+    LastSeen    time.Time `json:"last_seen"`
+    RegisteredAt time.Time `json:"registered_at"`
 }
 
 // Status 设备状态
@@ -58,19 +57,17 @@ func (m *Manager) GetDevice(deviceID string) (*Device, bool) {
 	return device, exists
 }
 
-// GetDevicesByUser 获取用户的所有设备
-func (m *Manager) GetDevicesByUser(userID string) []*Device {
-	m.mu.RLock()
-	defer m.mu.RUnlock()
-	
-	var devices []*Device
-	for _, device := range m.devices {
-		if device.UserID == userID {
-			devices = append(devices, device)
-		}
-	}
-	
-	return devices
+// GetAllDevices 获取所有设备
+func (m *Manager) GetAllDevices() []*Device {
+    m.mu.RLock()
+    defer m.mu.RUnlock()
+    
+    var devices []*Device
+    for _, device := range m.devices {
+        devices = append(devices, device)
+    }
+    
+    return devices
 }
 
 // UpdateStatus 更新设备状态

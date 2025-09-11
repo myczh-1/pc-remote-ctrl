@@ -14,7 +14,7 @@ const client = new ControllerServiceClient(transport)
 
 const STORAGE_KEY = 'lazy-ctrl-command-sets'
 
-export function useCommandSets() {
+export function useCommandSets(options?: { autoSync?: boolean }) {
   const [commandSets, setCommandSets] = useState<CommandSet[]>([])
   const [loading, setLoading] = useState(false)
 
@@ -42,7 +42,7 @@ export function useCommandSets() {
     }
   }, [])
 
-  // 初始化时从本地存储加载，然后从服务器同步
+  // 初始化时从本地存储加载；可选地再从服务器同步
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY)
     if (stored) {
@@ -57,9 +57,11 @@ export function useCommandSets() {
         console.error('Failed to parse stored command sets:', error)
       }
     }
-    // 从服务器加载最新数据
-    loadFromServer()
-  }, [])
+    // 根据配置选择是否从服务器加载
+    if (options?.autoSync !== false) {
+      loadFromServer()
+    }
+  }, [options?.autoSync])
 
   const saveToStorage = useCallback((commandSets: CommandSet[]) => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(commandSets))

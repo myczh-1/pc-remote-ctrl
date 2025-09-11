@@ -73,7 +73,8 @@ build-backend: proto-gen
 # Build agent binary (backend/cmd/agent)
 build-agent: proto-gen
 	@echo "Building agent..."
-	cd $(BACKEND_DIR)/cmd/agent && go build -o ../../../bin/pc-remote-agent .
+	@mkdir -p $(BACKEND_DIR)/.gocache
+	cd $(BACKEND_DIR)/cmd/agent && GOCACHE=$(CURDIR)/$(BACKEND_DIR)/.gocache go build -o ../../../bin/pc-remote-agent .
 
 build-frontend: proto-gen
 	@echo "Building frontend..."

@@ -6,7 +6,7 @@ option go_package = "pc-remote-ctrl/cloud-middleware/proto;cloudpb";
 
 // 设备注册与状态服务（云端中间件实现）
 service DeviceRegistryService {
-  // 仅保留清单查询（供控制端使用）
+  // 设备清单查询（返回全部设备）
   rpc ListDevices(ListDevicesRequest) returns (ListDevicesResponse);
 
   // Agent 主动连接 Cloud 的控制面双向流：连接、心跳、命令请求/响应
@@ -17,7 +17,8 @@ service DeviceRegistryService {
 }
 
 message ListDevicesRequest {
-  string user_id = 1;
+  // 已移除 user_id，保留字段号避免兼容性问题
+  reserved 1;
 }
 
 message DeviceInfo {
@@ -52,7 +53,8 @@ message CloudMessage {
 // Agent连接注册
 message AgentConnect {
   string device_id = 1;
-  string user_id = 2;
+  // 已移除 user_id，保留字段号
+  reserved 2;
   string name = 3;
   string version = 4;
 }

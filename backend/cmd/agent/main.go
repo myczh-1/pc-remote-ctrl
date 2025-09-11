@@ -11,7 +11,7 @@ import (
     controllerpb "pc-remote-ctrl/backend/proto"
     "pc-remote-ctrl/backend/internal/executor"
     "pc-remote-ctrl/backend/internal/storage"
-    cloudpb "pc-remote-ctrl/cloud-middleware/proto"
+    cloudpb "pc-remote-ctrl/cloud-middleware/proto/cloud"
 
     "google.golang.org/grpc"
     "google.golang.org/protobuf/proto"
@@ -19,7 +19,7 @@ import (
 
 func main() {
     cfg := loadConfig()
-    log.Printf("agent starting: device_id=%s user_id=%s cloud=%s", cfg.DeviceID, cfg.UserID, cfg.CloudAddr)
+    log.Printf("agent starting: device_id=%s cloud=%s", cfg.DeviceID, cfg.CloudAddr)
 
     // Load local command sets (if available)
     store := storage.New(cfg.CommandsFile)
@@ -58,7 +58,6 @@ func main() {
     // Send initial connect
     if err := stream.Send(&cloudpb.AgentMessage{Message: &cloudpb.AgentMessage_Connect{Connect: &cloudpb.AgentConnect{
         DeviceId: cfg.DeviceID,
-        UserId:   cfg.UserID,
         Name:     cfg.AgentName,
         Version:  cfg.Version,
     }}}); err != nil {
@@ -155,7 +154,6 @@ func streamLogs(ctx context.Context, client cloudpb.DeviceRegistryServiceClient,
 type Config struct {
     CloudAddr    string
     DeviceID     string
-    UserID       string
     AgentName    string
     Version      string
     CommandsFile string
@@ -167,7 +165,6 @@ func loadConfig() *Config {
     return &Config{
         CloudAddr:    hostPort(getenv("CLOUD_ADDR", "localhost:7073")),
         DeviceID:     deviceID,
-        UserID:       getenv("USER_ID", "default-user"),
         AgentName:    getenv("AGENT_NAME", host),
         Version:      getenv("AGENT_VERSION", "dev"),
         CommandsFile: getenv("COMMANDS_FILE", "backend/command_sets.json"),
@@ -185,4 +182,3 @@ func hostPort(addr string) string {
     if host == "" { host = "localhost" }
     return net.JoinHostPort(host, port)
 }
-

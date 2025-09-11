@@ -8,14 +8,13 @@ import (
     "sync"
     "time"
 
-    cloudpb "pc-remote-ctrl/cloud-middleware/proto"
+    cloudpb "pc-remote-ctrl/cloud-middleware/proto/cloud"
     "pc-remote-ctrl/cloud-middleware/internal/device"
 )
 
 // AgentStream 绑定每台设备的控制面流与发送队列
 type AgentStream struct {
     deviceID string
-    userID   string
     stream   cloudpb.DeviceRegistryService_ConnectAgentServer
     sendQ    chan *cloudpb.CloudMessage
     closed   chan struct{}
@@ -48,7 +47,7 @@ func NewGrpcProxy(deviceManager *device.Manager) *GrpcProxy {
 }
 
 // RegisterAgentStream 注册/替换设备流（单写协程）
-func (p *GrpcProxy) RegisterAgentStream(deviceID, userID string, stream cloudpb.DeviceRegistryService_ConnectAgentServer) {
+func (p *GrpcProxy) RegisterAgentStream(deviceID string, stream cloudpb.DeviceRegistryService_ConnectAgentServer) {
     p.mu.Lock()
     // 若已有旧流，先取消该设备所有挂起请求
     if old := p.agentStreams[deviceID]; old != nil {
@@ -59,7 +58,6 @@ func (p *GrpcProxy) RegisterAgentStream(deviceID, userID string, stream cloudpb.
 
     as := &AgentStream{
         deviceID: deviceID,
-        userID:   userID,
         stream:   stream,
         sendQ:    make(chan *cloudpb.CloudMessage, 1024),
         closed:   make(chan struct{}),

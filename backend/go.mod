@@ -18,6 +18,14 @@ require (
 	golang.org/x/net v0.43.0 // indirect
 	golang.org/x/sys v0.35.0 // indirect
 	golang.org/x/text v0.28.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250707201910-8d1bb00bc6a7 // indirect
+	// avoid split genproto imports ambiguity
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20210126160654-44e461bb6506 // indirect
 	nhooyr.io/websocket v1.8.6 // indirect
 )
+
+// force split path to monorepo to avoid ambiguity with older deps
+replace google.golang.org/genproto/googleapis/rpc => google.golang.org/genproto v0.0.0-20210126160654-44e461bb6506
+
+// link local cloud-middleware module so agent can import its generated protos
+require pc-remote-ctrl/cloud-middleware v0.0.0-00010101000000-000000000000 // indirect
+replace pc-remote-ctrl/cloud-middleware => ../cloud-middleware

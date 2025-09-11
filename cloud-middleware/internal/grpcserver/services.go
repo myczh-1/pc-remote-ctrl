@@ -7,7 +7,7 @@ import (
     "math/rand"
     "time"
 
-    cloudpb "pc-remote-ctrl/cloud-middleware/proto"
+    cloudpb "pc-remote-ctrl/cloud-middleware/proto/cloud"
     "pc-remote-ctrl/cloud-middleware/internal/device"
     "pc-remote-ctrl/cloud-middleware/internal/proxy"
     controllerpb "pc-remote-ctrl/backend/proto"
@@ -31,7 +31,7 @@ func NewDeviceRegistryServer(devMgr *device.Manager, proxy *proxy.GrpcProxy) *De
 // 删除了 RegisterDevice/Heartbeat：改为仅通过 ConnectAgent/AgentHeartbeat 维护在线状态
 
 func (s *DeviceRegistryServer) ListDevices(ctx context.Context, req *cloudpb.ListDevicesRequest) (*cloudpb.ListDevicesResponse, error) {
-    list := s.devMgr.GetDevicesByUser(req.UserId)
+    list := s.devMgr.GetAllDevices()
     out := make([]*cloudpb.DeviceInfo, 0, len(list))
     for _, d := range list {
         out = append(out, &cloudpb.DeviceInfo{
@@ -49,7 +49,6 @@ func (s *DeviceRegistryServer) ConnectAgent(stream cloudpb.DeviceRegistryService
     log.Printf("New agent connection attempt")
     
     var deviceID string
-    var userID string
     
     // 等待Agent的连接消息
     for {
@@ -66,18 +65,16 @@ func (s *DeviceRegistryServer) ConnectAgent(stream cloudpb.DeviceRegistryService
         case *cloudpb.AgentMessage_Connect:
             // 处理Agent连接
             deviceID = payload.Connect.DeviceId
-            userID = payload.Connect.UserId
             
             // 注册设备
             s.devMgr.Register(&device.Device{
                 ID:     deviceID,
                 Name:   payload.Connect.Name,
-                UserID: userID,
                 Status: device.StatusOnline,
             })
             
             // 注册Agent流（单写协程 + 队列）
-            s.proxy.RegisterAgentStream(deviceID, userID, stream)
+            s.proxy.RegisterAgentStream(deviceID, stream)
             
             // 发送连接确认
             ack := &cloudpb.CloudMessage{

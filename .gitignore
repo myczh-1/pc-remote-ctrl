@@ -12,6 +12,11 @@ dist
 dist-ssr
 *.local
 
+# Build outputs
+bin/
+backend/.gocache/
+vendor/
+
 # Go binaries and build artifacts
 controller
 *.exe
@@ -27,8 +32,8 @@ cloud-middleware/server
 # Output of the go coverage tool
 *.out
 
-# Go mod cache
-go.sum
+# Go module/workspace artifacts (keep tracked)
+# do NOT ignore go.mod, go.sum, go.work, go.work.sum
 
 # Editor directories and files
 .vscode/*
@@ -40,3 +45,9 @@ go.sum
 *.njsproj
 *.sln
 *.sw?
+
+# Environment files (do not commit secrets)
+.env
+.env.*
+frontend/.env
+frontend/.env.*
