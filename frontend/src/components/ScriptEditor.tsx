@@ -57,7 +57,7 @@ export function ScriptEditor({ scripts, onScriptsChange }: ScriptEditorProps) {
             }}
             title="删除脚本"
           >
-            🗑️
+            删除
           </button>
         </div>
       ))}
@@ -75,7 +75,7 @@ export function ScriptEditor({ scripts, onScriptsChange }: ScriptEditorProps) {
           fontSize: '12px'
         }}
       >
-        ➕ 添加脚本
+        添加脚本
       </button>
     </div>
   )

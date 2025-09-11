@@ -10,8 +10,8 @@ export function StepResultCard({ step, index }: StepResultCardProps) {
     return success ? '#28a745' : '#dc3545'
   }
 
-  const getStepStatusIcon = (success: boolean) => {
-    return success ? '✅' : '❌'
+  const getStepStatusText = (success: boolean) => {
+    return success ? 'SUCCESS' : 'FAIL'
   }
 
   return (
@@ -30,7 +30,7 @@ export function StepResultCard({ step, index }: StepResultCardProps) {
         fontWeight: 'bold'
       }}>
         <span style={{ color: getStepStatusColor(step.success) }}>
-          {getStepStatusIcon(step.success)} 步骤 {index + 1}
+          {getStepStatusText(step.success)} · 步骤 {index + 1}
         </span>
         <span style={{ marginLeft: '8px', color: '#6c757d', fontSize: '12px' }}>
           退出码: {step.exitCode}

@@ -1,4 +1,3 @@
-import './App.css'
 import { useMemo, useState } from 'react'
 import { useCommandSets } from './hooks/useCommandSets'
 import { useCommandSetExecution } from './hooks/useCommandSetExecution'
@@ -11,7 +10,8 @@ import type { CommandSet } from './types'
 import { useCloudApi } from './hooks/useCloudApi'
 
 export default function App() {
-    const [mode, setMode] = useState<'local'|'cloud'>('cloud')
+    // 默认使用本地模式，确保开箱即用的演示体验
+    const [mode, setMode] = useState<'local'|'cloud'>('local')
     const [selectedDeviceId, setSelectedDeviceId] = useState<string>('')
     const { commandSets, loading, createCommandSet, updateCommandSet, deleteCommandSet, duplicateCommandSet, loadFromServer } = useCommandSets({ autoSync: mode === 'local' })
     const { log, logInfo, logError, logSuccess, clearLog } = useLogger()
@@ -126,7 +126,7 @@ export default function App() {
         const resp = r.response!
         if (resp.stepResults?.length) {
             for (const s of resp.stepResults) {
-                const tag = s.success ? '✅' : '❌'
+                const tag = s.success ? '[OK]' : '[ERR]'
                 logInfo(`${tag} [${s.stepIndex}] ${s.stepScript}\n${s.output || s.error || ''}`)
             }
         }
@@ -134,14 +134,44 @@ export default function App() {
         else logError(`云端执行出错: ${resp.error}`)
     }
 
+    // 一键演示：若无示例则创建；随后执行（依据当前模式）
+    const handleRunDemo = async () => {
+        // 尝试找到已存在的 demo 命令集
+        let demo = commandSets.find(cs => cs.commandName === 'echo-demo')
+        if (!demo) {
+            const created = await createCommandSet({
+                commandName: 'echo-demo',
+                commandScripts: ['echo hello-from-demo'],
+                description: 'demo sample generated'
+            })
+            if (!created.success || !created.commandSet) {
+                logError(`创建示例命令集失败: ${created.message}`)
+                return
+            }
+            demo = created.commandSet
+            logSuccess('已创建示例命令集: echo-demo')
+        }
+
+        await handleExecuteCommandSet2(demo)
+    }
+
     return (
-        <div className="app-container">
-            <header className="app-header">
-                <h1>PC 远程控制器</h1>
-                <p>管理和执行远程命令（模式：{mode === 'local' ? '本地' : '云端'}）</p>
-                {mode === 'cloud' && (
-                    <small style={{opacity:0.75}}>Cloud: {cloud.baseUrl}</small>
-                )}
+        <div className="min-h-screen bg-gray-50">
+            <header className="bg-white border-b">
+                <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+                    <div>
+                        <h1 className="text-xl font-semibold text-gray-900">PC 远程控制器</h1>
+                        <p className="text-sm text-gray-600 mt-1">管理和执行远程命令（当前模式：{mode === 'local' ? '本地' : '云端'}）</p>
+                        {mode === 'cloud' && (
+                            <div className="text-xs text-gray-500 mt-1">Cloud: {cloud.baseUrl}</div>
+                        )}
+                    </div>
+                    <div className="flex gap-2">
+                        <button className="px-3 py-2 text-sm rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60" onClick={handleRunDemo} disabled={isRunning}>
+                            一键演示
+                        </button>
+                    </div>
+                </div>
             </header>
 
             <ExecutionStatusPanel 
@@ -150,7 +180,7 @@ export default function App() {
                 onClear={clearExecution}
             />
 
-            <main className="main-content">
+            <main className="max-w-6xl mx-auto p-4 md:p-6 grid grid-cols-1 md:grid-cols-[2fr_1fr] gap-6">
                 <CommandPanel
                     commandSets={commandSets}
                     loading={loading}
@@ -171,7 +201,7 @@ export default function App() {
                     cloudLoading={cloud.loadingDevices}
                 />
 
-                <div className="log-panel">
+                <div className="bg-white rounded-lg shadow-sm p-4">
                     <LogDisplay log={log} onClear={clearLog} />
                 </div>
             </main>
