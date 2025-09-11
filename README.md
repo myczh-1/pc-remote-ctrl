@@ -6,25 +6,46 @@ A gRPC-based remote PC control system with web interface.
 
 ```
 pc-remote-ctrl/
-├── proto/                      # Shared protobuf definitions
-│   └── remote_control.proto
-├── backend/                    # Go backend server
-│   ├── main.go                 # Application entry point
-│   ├── handlers.go             # gRPC service handlers
-│   ├── models.go               # Data structures
-│   ├── proto/                  # Generated Go code
-│   └── data/
-│       └── commands.json       # Stored commands
-├── frontend/                   # React frontend
+├── proto/                        # Shared protobuf sources
+│   ├── remote_control.proto
+│   └── cloud/
+│       ├── device.proto
+│       └── gateway.proto
+├── backend/                      # Go backend (agent/server)
+│   ├── real_grpc_server.go       # Unified gRPC + gRPC-Web entry
+│   ├── internal/
+│   │   ├── executor/             # Command execution
+│   │   ├── server/               # gRPC handlers (ControllerService)
+│   │   └── storage/              # Command set persistence (JSON)
+│   ├── proto/                    # Generated Go stubs (do not edit)
+│   └── command_sets.json         # Stored command sets (data file)
+├── cloud-middleware/             # Cloud registry & proxy
+│   ├── cmd/server/main.go        # Unified gRPC + gRPC-Web entry (7073)
+│   ├── internal/{device,proxy,grpcserver}
+│   └── proto/                    # Generated Go stubs (do not edit)
+├── frontend/                     # React + TypeScript web UI
 │   ├── src/
-│   │   ├── proto/              # Generated TypeScript code
-│   │   ├── hooks/              # React hooks
-│   │   ├── components/         # React components
-│   │   └── App.tsx
-│   └── package.json
-├── Makefile                    # Build automation
+│   │   ├── proto/                # Generated TS stubs (do not edit)
+│   │   ├── hooks/                # React hooks
+│   │   └── components/           # UI components
+│   └── vite.config.ts            # Dev proxy (/api -> 7071)
+├── Makefile                      # Build automation
 └── README.md
 ```
+
+## Ports & Endpoints
+
+- Backend (local agent/server):
+  - Port 7071 serves BOTH native gRPC and gRPC-Web on a single listener (h2c + grpc-web wrapper).
+  - Health endpoint: `GET /healthz` → 200 OK.
+  - Note: No auth or strict CORS in dev. Do NOT expose publicly without a reverse proxy and ACL.
+- Cloud middleware:
+  - Default gRPC/gRPC-Web port 7073 (env `GRPC_PORT` to override).
+  - Configure allowed CORS origins via `CORS_ALLOWED_ORIGINS` (comma-separated list). Example: `http://localhost:5173`.
+- Frontend:
+  - Dev server on 5173.
+  - Vite proxy maps `/api` → `http://localhost:7071` for gRPC-Web to backend.
+  - For cloud calls, set `VITE_CLOUD_GRPCWEB_URL` (defaults to `http://localhost:7073`).
 
 ## Quick Start
 
@@ -38,36 +59,83 @@ pc-remote-ctrl/
 # Install dependencies
 make install
 
-# Generate protobuf code
+# Generate protobuf code (Go + TS)
 make proto-gen
 
-# Start backend (port 7071 gRPC, 7072 grpc-web)
+# Start backend (unified gRPC + gRPC-Web on 7071)
 make dev-backend
 
-# Start frontend (port 5173) - in another terminal
+# Start frontend (5173) - in another terminal
 make dev-frontend
+
+# Optional: Start cloud middleware (7073)
+(cd cloud-middleware && go run ./cmd/server)
 ```
 
 ### Build for Production
 ```bash
-# Build everything
+# Build everything (backend binary -> bin/pc-remote-ctrl; frontend -> frontend/dist)
 make build
 
-# Run the built backend
+# Run the built backend (7071)
 ./bin/pc-remote-ctrl
 ```
 
 ## Architecture
 
-- **gRPC Server (Port 7071)**: Native gRPC for Go clients
-- **gRPC-Web Gateway (Port 7072)**: HTTP/2 gateway for web clients
-- **Web Frontend (Port 5173)**: React app with gRPC-Web client
+- Backend: unified listener (7071) that handles both gRPC and gRPC-Web; executes command sets as shell scripts (platform-specific: `sh -c` / `cmd /C`).
+- Cloud middleware (7073): device registry + proxy via bi-di streaming; provides `DeviceRegistryService` and `GatewayService` that forwards `ExecuteCommandSet` to agents.
+- Frontend: gRPC-Web clients (protobuf-ts) to call backend locally or cloud middleware remotely.
+
+## Proto & Codegen
+
+- Edit sources only under `proto/` and `proto/cloud/`.
+- Run `make proto-gen` to generate:
+  - Go stubs → `backend/proto` and `cloud-middleware/proto`
+  - TS stubs → `frontend/src/proto`
+- Do not hand-edit generated code.
+
+## Security Notes
+
+- Backend currently allows all origins for gRPC-Web in dev and has no auth; it executes arbitrary shell scripts from stored command sets. Treat it as a local/development component.
+- For cloud middleware, set `CORS_ALLOWED_ORIGINS` and place behind a firewall/reverse proxy. Do not expose unauthenticated execution endpoints to the internet.
 
 ## Available Commands
 
-- `make proto-gen` - Generate protobuf code
-- `make build` - Build backend and frontend
-- `make dev-backend` - Run backend in development
-- `make dev-frontend` - Run frontend in development
-- `make clean` - Clean build artifacts
-- `make help` - Show all commands
+- `make install`     - Install Go and Node dependencies
+- `make setup-tools` - Verify protoc and install Go plugins
+- `make proto-gen`   - Generate protobuf code for Go & TS
+- `make build`       - Build backend and frontend
+- `make dev-backend` - Run backend (dev)
+- `make dev-frontend`- Run frontend (dev)
+- `make clean`       - Clean build artifacts
+- `make help`        - Show all commands
+
+## Makefile Usage
+
+- Development
+  - Backend (7071): `make dev-backend`
+  - Frontend (5173): `make dev-frontend`
+  - Proto generation: `make proto-gen` (runs Go + TS codegen)
+- Build
+  - Backend binary: `make build-backend` → `bin/pc-remote-ctrl`
+  - Frontend assets: `make build-frontend` → `frontend/dist`
+  - All: `make build`
+- Tooling
+  - Protobuf toolchain check/install: `make setup-tools`
+  - Clean artifacts and generated stubs: `make clean`
+
+## Environment Variables
+
+- Cloud middleware
+  - `GRPC_PORT`: gRPC/gRPC-Web listen port (default `7073`).
+    - Example: `GRPC_PORT=9090 go run ./cmd/server`
+  - `CORS_ALLOWED_ORIGINS`: comma-separated list of allowed origins for grpc-web.
+    - Example (local dev): `CORS_ALLOWED_ORIGINS="http://localhost:5173, http://127.0.0.1:5173"`
+- Frontend
+  - `VITE_CLOUD_GRPCWEB_URL`: grpc-web base URL for cloud middleware (default `http://localhost:7073`).
+    - Example: `VITE_CLOUD_GRPCWEB_URL=http://localhost:9090 npm run dev`
+
+Notes
+- Backend currently listens on `7071` and accepts grpc + grpc-web on a single port; no environment flags yet. Use a reverse proxy if you need to remap externally.
+- For production, always set `CORS_ALLOWED_ORIGINS` on cloud middleware and deploy behind a firewall/reverse proxy.
