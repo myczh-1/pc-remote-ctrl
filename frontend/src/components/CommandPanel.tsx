@@ -13,13 +13,6 @@ interface CommandPanelProps {
   onDelete: (id: string) => void
   onDuplicate: (id: string) => Promise<void>
   onCreateSample: () => Promise<void>
-  // Cloud mode additions (optional)
-  mode?: 'local' | 'cloud'
-  onModeChange?: (mode: 'local' | 'cloud') => void
-  cloudDevices?: { deviceId: string; name: string; status?: string }[]
-  selectedDeviceId?: string
-  onSelectDevice?: (deviceId: string) => void
-  cloudLoading?: boolean
 }
 
 export function CommandPanel({
@@ -34,45 +27,12 @@ export function CommandPanel({
   onDelete,
   onDuplicate,
   onCreateSample,
-  mode = 'local',
-  onModeChange,
-  cloudDevices = [],
-  selectedDeviceId,
-  onSelectDevice,
 }: CommandPanelProps) {
   return (
     <div className="card rounded-2xl shadow-soft p-4">
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-lg font-semibold text-slate-100">命令集</h2>
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-2">
-            <label className="text-xs text-slate-400">模式</label>
-            <select
-              value={mode}
-              onChange={e => onModeChange?.(e.target.value as 'local' | 'cloud')}
-              className="px-2 py-1 text-sm border border-white/10 rounded-lg bg-card text-slate-100"
-            >
-              <option value="local">本地</option>
-              <option value="cloud">云端</option>
-            </select>
-            {mode === 'cloud' && (
-              <>
-                <label className="text-xs text-slate-400">设备</label>
-                <select
-                  value={selectedDeviceId ?? ''}
-                  onChange={e => onSelectDevice?.(e.target.value)}
-                  className="px-2 py-1 text-sm border border-white/10 rounded-lg bg-card text-slate-100"
-                >
-                  <option value="" disabled>选择设备</option>
-                  {cloudDevices.map(d => (
-                    <option key={d.deviceId} value={d.deviceId}>
-                      {d.name || d.deviceId}{d.status ? ` (${d.status})` : ''}
-                    </option>
-                  ))}
-                </select>
-              </>
-            )}
-          </div>
           <button
             className="px-3 py-2 text-sm border border-white/10 rounded-lg bg-card hover:bg-white/5 disabled:opacity-60 text-slate-100"
             disabled={loading || isRunning}

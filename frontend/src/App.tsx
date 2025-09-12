@@ -8,13 +8,16 @@ import { ExecutionStatusPanel } from './components/ExecutionStatusPanel'
 import { EditorModal } from './components/EditorModal'
 import type { CommandSet } from './types'
 import { useCloudApi } from './hooks/useCloudApi'
+import { Sidebar } from './components/Sidebar'
+import { Topbar } from './components/Topbar'
+import { Console } from './components/Console'
 
 export default function App() {
     // 默认使用本地模式，确保开箱即用的演示体验
     const [mode, setMode] = useState<'local'|'cloud'>('local')
     const [selectedDeviceId, setSelectedDeviceId] = useState<string>('')
     const { commandSets, loading, createCommandSet, updateCommandSet, deleteCommandSet, duplicateCommandSet, loadFromServer } = useCommandSets({ autoSync: mode === 'local' })
-    const { log, logInfo, logError, logSuccess, clearLog } = useLogger()
+    const { log, logInfo, logError, logSuccess, clearLog, entries } = useLogger()
     const { execution, executeCommandSet, clearExecution, isRunning } = useCommandSetExecution()
     const cloud = useCloudApi()
     
@@ -114,12 +117,19 @@ export default function App() {
             await executeCommandSet(commandSet)
             return
         }
-        if (!selectedDeviceId) {
-            logError('云端模式需要先选择设备')
-            return
+        let targetId = selectedDeviceId
+        if (!targetId) {
+            // 自动选择第一个可用设备
+            const first = cloud.devices[0]
+            if (!first) {
+                logError('云端模式需要先选择设备（当前无设备）')
+                return
+            }
+            targetId = first.deviceId
+            setSelectedDeviceId(targetId)
         }
-        logInfo(`开始(云端)执行: ${commandSet.commandName} @ ${selectedDeviceId}`)
-        const r = await cloud.executeOnDevice(selectedDeviceId, commandSet.commandId)
+        logInfo(`开始(云端)执行: ${commandSet.commandName} @ ${targetId}`)
+        const r = await cloud.executeOnDevice(targetId, commandSet.commandId)
         if (!r.success) {
             logError(`云端执行失败: ${r.error}`)
             return
@@ -156,71 +166,104 @@ export default function App() {
         await handleExecuteCommandSet2(demo)
     }
 
+    const sidebarDevices = mode === 'cloud'
+      ? cloud.devices.map(d => ({ id: d.deviceId, name: d.name || d.deviceId, online: d.status === 'online' }))
+      : [
+          { id: 'local-1', name: '本地设备', online: true },
+        ]
+
+    const onlineCount = sidebarDevices.filter(d => d.online).length
+    const queueCount = 0
+    const failCount = 0
+
+    const consoleLogs = entries.map(e => ({
+      text: e.message,
+      type: e.level === 'success' ? 'ok' : e.level === 'error' ? 'err' : 'info' as const,
+      timestamp: e.timestamp,
+    }))
+
     return (
-        <div className="min-h-screen bg-bg text-slate-100 relative selection:bg-prime-400/20 selection:text-white">
-            <div className="absolute inset-0 bg-glow pointer-events-none"></div>
-            
-            <div className="relative z-10">
-                <header className="card border-b border-white/10 backdrop-blur-sm bg-card/80">
-                    <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-                        <div>
-                            <h1 className="text-xl font-semibold text-slate-100">PC 远程控制器</h1>
-                            <p className="text-sm text-slate-400 mt-1">管理和执行远程命令（当前模式：{mode === 'local' ? '本地' : '云端'}）</p>
-                            {mode === 'cloud' && (
-                                <div className="text-xs text-slate-500 mt-1">Cloud: {cloud.baseUrl}</div>
-                            )}
-                        </div>
-                        <div className="flex gap-2">
-                            <button className="px-3 py-2 text-sm rounded-xl bg-gradient-to-r from-prime-500 to-prime-600 text-white hover:from-prime-600 hover:to-prime-700 disabled:opacity-60 shadow-soft border border-prime-400/20" onClick={handleRunDemo} disabled={isRunning}>
-                                一键演示
-                            </button>
-                        </div>
-                    </div>
-                </header>
+      <div className="min-h-screen bg-bg text-slate-100 relative selection:bg-prime-400/20 selection:text-white overflow-hidden">
+        <div className="absolute inset-0 bg-glow pointer-events-none overflow-hidden"></div>
 
-                <ExecutionStatusPanel 
+        <div className="relative z-10 flex h-screen overflow-hidden">
+          {mode === 'cloud' && (
+            <Sidebar 
+              devices={sidebarDevices}
+              onAddDevice={() => { /* optional hook */ }}
+            />
+          )}
+
+          <main className="flex-1 flex flex-col overflow-hidden">
+            <Topbar 
+              mode={mode}
+              onModeChange={(m) => { setMode(m); if (m === 'cloud') { cloud.refreshDevices() } }}
+              onlineCount={onlineCount}
+              queueCount={queueCount}
+              failCount={failCount}
+              onRunAll={handleRunDemo}
+              onSearch={() => { /* no-op */ }}
+            />
+
+            <ExecutionStatusPanel 
+              execution={execution}
+              onStop={() => {}}
+              onClear={clearExecution}
+            />
+
+            <div className="p-4 md:p-6 flex-1 overflow-auto bg-bg">
+              <div className="grid grid-cols-1 gap-6">
+                <div className="card rounded-2xl shadow-soft p-4 border border-white/10 bg-card/80">
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <h1 className="text-lg font-semibold">PC 远程控制器</h1>
+                      <p className="text-sm text-slate-400 mt-1">管理和执行远程命令（当前模式：{mode === 'local' ? '本地' : '云端'}）</p>
+                      {mode === 'cloud' && (
+                        <div className="text-xs text-slate-500 mt-1">Cloud: {cloud.baseUrl}</div>
+                      )}
+                    </div>
+                    <button className="px-3 py-2 text-sm rounded-xl bg-gradient-to-r from-prime-500 to-prime-600 text-white hover:from-prime-600 hover:to-prime-700 disabled:opacity-60 shadow-soft border border-prime-400/20" onClick={handleRunDemo} disabled={isRunning}>
+                      一键演示
+                    </button>
+                  </div>
+
+                  <CommandPanel
+                    commandSets={commandSets}
+                    loading={loading}
+                    isRunning={isRunning}
                     execution={execution}
-                    onStop={() => {}}
-                    onClear={clearExecution}
-                />
-
-                <main className="max-w-6xl mx-auto p-4 md:p-6 grid grid-cols-1 md:grid-cols-[2fr_1fr] gap-6">
-                    <CommandPanel
-                        commandSets={commandSets}
-                        loading={loading}
-                        isRunning={isRunning}
-                        execution={execution}
-                        onRefresh={handleListAllCommandSets}
-                        onCreate={handleCreateCommandSet}
-                        onExecute={handleExecuteCommandSet2}
-                        onEdit={handleEditCommandSet}
-                        onDelete={handleDeleteCommandSet}
-                        onDuplicate={handleDuplicateCommandSet}
-                        onCreateSample={handleStoreSample}
-                        mode={mode}
-                        onModeChange={(m) => { setMode(m); if (m === 'cloud') { cloud.refreshDevices() } }}
-                        cloudDevices={cloud.devices.map(d => ({ deviceId: d.deviceId, name: d.name, status: d.status }))}
-                        selectedDeviceId={selectedDeviceId}
-                        onSelectDevice={setSelectedDeviceId}
-                        cloudLoading={cloud.loadingDevices}
-                    />
-
-                    <div className="card rounded-2xl shadow-soft p-4">
-                        <LogDisplay log={log} onClear={clearLog} />
-                    </div>
-                </main>
-
-                <EditorModal
-                    isVisible={showCommandSetEditor}
-                    editingCommandSet={editingCommandSet}
-                    availableCommands={commandSets}
-                    onSave={handleSaveCommandSet}
-                    onCancel={() => {
-                        setShowCommandSetEditor(false)
-                        setEditingCommandSet(undefined)
-                    }}
-                />
+                    onRefresh={handleListAllCommandSets}
+                    onCreate={handleCreateCommandSet}
+                    onExecute={handleExecuteCommandSet2}
+                    onEdit={handleEditCommandSet}
+                    onDelete={handleDeleteCommandSet}
+                    onDuplicate={handleDuplicateCommandSet}
+                    onCreateSample={handleStoreSample}
+                  />
+                </div>
+              </div>
             </div>
+
+            <Console 
+              logs={consoleLogs}
+              onClear={clearLog}
+              onCopy={() => {
+                try { navigator.clipboard.writeText(entries.map(e => e.message).join('\n')) } catch {}
+              }}
+            />
+          </main>
         </div>
+
+        <EditorModal
+          isVisible={showCommandSetEditor}
+          editingCommandSet={editingCommandSet}
+          availableCommands={commandSets}
+          onSave={handleSaveCommandSet}
+          onCancel={() => {
+            setShowCommandSetEditor(false)
+            setEditingCommandSet(undefined)
+          }}
+        />
+      </div>
     )
 }

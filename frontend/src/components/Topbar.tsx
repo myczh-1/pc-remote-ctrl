@@ -1,12 +1,14 @@
 interface TopbarProps {
-  onlineCount: number;
-  queueCount: number;
-  failCount: number;
-  onRunAll?: () => void;
-  onSearch?: (query: string) => void;
+  mode: 'local' | 'cloud'
+  onModeChange?: (mode: 'local' | 'cloud') => void
+  onlineCount: number
+  queueCount: number
+  failCount: number
+  onRunAll?: () => void
+  onSearch?: (query: string) => void
 }
 
-export function Topbar({ onlineCount, queueCount, failCount, onRunAll, onSearch }: TopbarProps) {
+export function Topbar({ mode, onModeChange, onlineCount, queueCount, failCount, onRunAll, onSearch }: TopbarProps) {
   return (
     <header className="glass border-b border-white/5 px-5 py-3 flex items-center gap-3">
       <div className="xl:hidden flex items-center gap-2 mr-2">
@@ -29,18 +31,34 @@ export function Topbar({ onlineCount, queueCount, failCount, onRunAll, onSearch 
       </div>
       
       <div className="flex items-center gap-2 ml-auto">
-        <span className="hidden md:inline-flex items-center gap-2 rounded-xl border border-white/5 px-3 py-1.5 bg-slate-900/60">
-          <span className="status-dot status-on"></span>
-          <span className="text-sm">在线 <b>{onlineCount}</b></span>
-        </span>
-        <span className="hidden md:inline-flex items-center gap-2 rounded-xl border border-white/5 px-3 py-1.5 bg-slate-900/60">
-          <span className="status-dot status-idle"></span>
-          <span className="text-sm">排队 <b>{queueCount}</b></span>
-        </span>
-        <span className="hidden md:inline-flex items-center gap-2 rounded-xl border border-white/5 px-3 py-1.5 bg-slate-900/60">
-          <span className="status-dot status-off"></span>
-          <span className="text-sm">失败 <b>{failCount}</b></span>
-        </span>
+        <div className="hidden md:flex items-center gap-2 mr-2">
+          <label className="text-xs text-slate-400">模式</label>
+          <select
+            value={mode}
+            onChange={e => onModeChange?.(e.target.value as 'local' | 'cloud')}
+            className="px-2 py-1 text-sm border border-white/10 rounded-lg bg-card text-slate-100"
+          >
+            <option value="local">本地</option>
+            <option value="cloud">云端</option>
+          </select>
+        </div>
+
+        {mode === 'cloud' && (
+          <>
+            <span className="hidden md:inline-flex items-center gap-2 rounded-xl border border-white/5 px-3 py-1.5 bg-slate-900/60">
+              <span className="status-dot status-on"></span>
+              <span className="text-sm">在线 <b>{onlineCount}</b></span>
+            </span>
+            <span className="hidden md:inline-flex items-center gap-2 rounded-xl border border-white/5 px-3 py-1.5 bg-slate-900/60">
+              <span className="status-dot status-idle"></span>
+              <span className="text-sm">排队 <b>{queueCount}</b></span>
+            </span>
+            <span className="hidden md:inline-flex items-center gap-2 rounded-xl border border-white/5 px-3 py-1.5 bg-slate-900/60">
+              <span className="status-dot status-off"></span>
+              <span className="text-sm">失败 <b>{failCount}</b></span>
+            </span>
+          </>
+        )}
         <button 
           onClick={onRunAll}
           className="ml-2 inline-flex items-center gap-2 rounded-xl bg-gradient-to-br from-prime-400/80 to-indigo-400/80 hover:from-prime-400 hover:to-indigo-400 text-slate-900 font-semibold px-4 py-2 shadow-soft"
