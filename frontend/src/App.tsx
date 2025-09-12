@@ -171,6 +171,26 @@ export default function App() {
         timestamp: e.timestamp,
     }))
 
+    type AnyEvt = MouseEvent | PointerEvent | TouchEvent | (React.SyntheticEvent & { nativeEvent?: any });
+
+    function getTransitionOrigin(e?: AnyEvt): { x: number; y: number } {
+        // 1) 鼠标 / 指针坐标（优先）
+        const ne = (e as any)?.nativeEvent ?? e;
+        const mx = (ne && typeof ne.clientX === "number") ? ne.clientX : undefined;
+        const my = (ne && typeof ne.clientY === "number") ? ne.clientY : undefined;
+        if (mx != null && my != null) return { x: mx, y: my };
+
+        // 2) 触发元素中心（键盘触发、无鼠标坐标时）
+        const ct = (e as any)?.currentTarget as HTMLElement | undefined;
+        if (ct && ct.getBoundingClientRect) {
+            const r = ct.getBoundingClientRect();
+            return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+        }
+
+        // 3) 最后退：屏幕中心
+        return { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+    }
+
     // Apply theme class to <html>
     if (typeof document !== 'undefined') {
         const root = document.documentElement
@@ -221,15 +241,57 @@ export default function App() {
                                 return next
                             })
                         }}
-                        onToggleTheme={() => {
-                            setTheme(t => {
-                                const next = t === 'dark' ? 'light' : 'dark'
-                                try {
-                                    localStorage.setItem('theme', next)
-                                } catch {
-                                }
-                                return next
-                            })
+                        onToggleTheme={(e) => {
+                            const root = document.documentElement;
+
+                            // 1) 降噪：是否允许 VT
+                            const prefersReduced = matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
+                            const supportsVT = "startViewTransition" in document && !prefersReduced;
+
+                            // 2) 计算点击中心（优先用触发元素中心；没有就用视口中心）
+                            const { x, y } = getTransitionOrigin(e as any);
+
+                            const maxX = Math.max(x, innerWidth - x);
+                            const maxY = Math.max(y, innerHeight - y);
+                            const r = Math.hypot(maxX, maxY) + 24; // 多给一点 padding，避免边缘露底
+
+                            // 3) 写入变量 + 打上“正在做 VT”的标记（用于冻结普通 transition）
+                            root.style.setProperty("--vt-x", `${x}px`);
+                            root.style.setProperty("--vt-y", `${y}px`);
+                            root.style.setProperty("--vt-r", `${r}px`);
+                            root.setAttribute("theme-transition", "radial");
+
+                            const next = root.classList.contains("dark") ? "light" : "dark";
+
+                            if (supportsVT) {
+                                // @ts-ignore
+                                const vt = (document as any).startViewTransition(() => {
+                                    root.classList.toggle("dark");               // ① 同步切换
+                                    try { localStorage.setItem("theme", next); } catch {}
+                                });
+
+                                // ② 结束后“延迟两帧”再解除冻结，避免第二段闪烁
+                                vt.finished
+                                    .then(() => new Promise<void>(resolve => {
+                                        requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+                                    }))
+                                    .finally(() => {
+                                        root.removeAttribute("theme-transition");
+                                        root.style.removeProperty("--vt-x");
+                                        root.style.removeProperty("--vt-y");
+                                        root.style.removeProperty("--vt-r");
+                                        setTheme(next);
+                                    });
+
+                                return;
+                            }
+
+                            // 4) Fallback：只有在不支持 VT 时才启用普通 CSS 过渡
+                            root.classList.add("theme-transition");
+                            root.classList.toggle("dark");
+                            try { localStorage.setItem("theme", next); } catch {}
+                            setTheme(next);
+                            setTimeout(() => root.classList.remove("theme-transition"), 320);
                         }}
                         onCreate={handleCreateCommandSet}
                     />

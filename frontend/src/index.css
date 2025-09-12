@@ -32,6 +32,72 @@
   --shadow-soft: 0 8px 30px rgba(0,0,0,0.35);
   --shadow-ring: inset 0 1px 0 rgba(255,255,255,0.04), 0 8px 24px rgba(2,8,23,0.6);
 }
+:root { view-transition-name: root; }
+
+/* Ensure base background matches theme to avoid flash-through */
+html { background-color: #ffffff; }
+html.dark { background-color: #0B0F14; }
+
+body { background-color: inherit; }
+
+/* Smooth theme switch transition */
+/* Applies brief transitions to common color-related properties when toggling themes */
+html.theme-transition, html.theme-transition * {
+  transition-property: background-color, color, border-color, fill, stroke, box-shadow;
+  transition-duration: 220ms;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  html.theme-transition, html.theme-transition * { transition-duration: 0ms; }
+}
+
+/* View Transitions API: radial wipe for theme switch */
+@media (prefers-reduced-motion: no-preference) {
+  /* disable default cross-fade */
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
+  }
+  /* Enable radial clip on demand when toggling */
+  html[theme-transition='radial']::view-transition-old(root) {
+    clip-path: circle(var(--vt-r, 0px) at var(--vt-x, 0px) var(--vt-y, 0px));
+  }
+  html[theme-transition='radial']::view-transition-new(root) {
+    clip-path: circle(0px at var(--vt-x, 0px) var(--vt-y, 0px));
+  }
+  html[theme-transition='radial'].dark::view-transition-new(root),
+  html[theme-transition='radial']:not(.dark)::view-transition-new(root) {
+    animation: vt-reveal 520ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  @keyframes vt-reveal {
+    to { clip-path: circle(var(--vt-r, 1600px) at var(--vt-x, 0px) var(--vt-y, 0px)); }
+  }
+}
+
+/* Theme icon spin-once animation */
+@keyframes spin-once {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.spin-once { animation: spin-once 520ms cubic-bezier(0.22, 1, 0.36, 1); will-change: transform; }
+@media (prefers-reduced-motion: reduce) {
+  .spin-once { animation-duration: 0ms; }
+}
+
+/* Exclude large blurred background from view transitions to reduce flicker */
+.bg-glow { view-transition-name: none; }
+
+/* Theme toggle icon cross-fade + half-rotate */
+.theme-icon { position: relative; width: 1rem; height: 1rem; display: inline-block; }
+.theme-icon svg { position: absolute; inset: 0; transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1), opacity 260ms cubic-bezier(0.22, 1, 0.36, 1); will-change: transform, opacity; }
+html:not(.dark) .theme-icon .sun { opacity: 1; transform: rotate(0deg) scale(1); }
+html:not(.dark) .theme-icon .moon { opacity: 0; transform: rotate(-180deg) scale(0.8); }
+html.dark .theme-icon .sun { opacity: 0; transform: rotate(180deg) scale(0.8); }
+html.dark .theme-icon .moon { opacity: 1; transform: rotate(0deg) scale(1); }
+@media (prefers-reduced-motion: reduce) {
+  .theme-icon svg { transition-duration: 0ms; }
+}
 /* Custom UI styles from prototype with light/dark variants */
 .bg-glow::before, .bg-glow::after { 
   content: ""; 
