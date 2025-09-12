@@ -179,25 +179,55 @@ export function Sidebar({ devices, onAddDevice, isOpen = false, onClose, onToggl
           animate={{ width: isOpen ? expandedWidth : collapseWidth }}
           transition={drawerTransition}
           aria-hidden={false}
+          layout
         >
           {/* 折叠态：窄图标栏（本地模式） */}
           <motion.div
-            className="w-full h-[56px] p-2 flex items-center justify-center gap-2 flex-none"
-            initial={false}
-            transition={drawerTransition}
-            style={{ pointerEvents: 'auto', opacity: 1 }}
-            aria-hidden={false}
+              className="h-[56px] flex items-center flex-none"
+              initial={false}
+              layout   // 容器也参与布局动画
+              animate={{
+                paddingLeft: isOpen ? 12 : 8,
+                paddingRight: isOpen ? 12 : 8,
+                gap: isOpen ? 10 : 8,
+              }}
+              transition={drawerTransition}
+              style={{ pointerEvents: "auto" }}
           >
-            <button
-              onClick={onToggleMode}
-              className="w-9 h-9 rounded-xl bg-gradient-to-br from-prime-400/70 to-indigo-400/70 grid place-items-center shadow-soft hover:brightness-105 active:brightness-95"
-              title="切换本地/云端"
+            {/* 按钮本体：进场 + hover/tap；随展开给一点 margin-right */}
+            <motion.button
+                onClick={onToggleMode}
+                className="w-9 h-9 rounded-xl bg-gradient-to-br from-prime-400/70 to-indigo-400/70 grid place-items-center shadow-soft"
+                title="切换本地/云端"
+                layout
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1, marginRight: isOpen ? 12 : 0,marginLeft: isOpen ? 6 : 0 }}
+                whileHover={{ scale: 1.06 }}
+                whileTap={{ scale: 0.96 }}
+                transition={{ type: "spring", stiffness: 500, damping: 28 }}
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                       d="M3 12a9 9 0 1018 0A9 9 0 003 12zm9-7v14m-7-7h14"/>
               </svg>
-            </button>
+            </motion.button>
+
+            {/* 随展开出现的文字：右侧“有动画的字” */}
+            <AnimatePresence initial={false} mode="popLayout">
+              {isOpen && (
+                  <motion.span
+                      key="drawer-label"
+                      className="text-sm font-medium text-slate-700 dark:text-slate-200 select-none"
+                      // 让文字更丝滑：位移 + 淡入 + 轻微模糊
+                      initial={{ opacity: 0, x: -8, filter: "blur(4px)" }}
+                      animate={{ opacity: 1, x: 0,  filter: "blur(0px)" }}
+                      exit={{    opacity: 0, x: -6, filter: "blur(4px)" }}
+                      transition={{ duration: 0.18 }}
+                  >
+                    云端模式
+                  </motion.span>
+              )}
+            </AnimatePresence>
           </motion.div>
           <motion.div
             className="flex flex-col gap-4 p-4 flex-1 min-w-0"

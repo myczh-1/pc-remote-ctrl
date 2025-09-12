@@ -27,7 +27,7 @@ export function CommandPanel({
   onDuplicate,
 }: CommandPanelProps) {
   return (
-    <div className="card rounded-2xl shadow-soft p-4">
+    <div className="card rounded-2xl p-4">
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">命令集</h2>
         <div className="flex items-center gap-2">

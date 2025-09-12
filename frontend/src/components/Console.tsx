@@ -8,11 +8,13 @@ interface ConsoleProps {
   logs: LogEntry[];
   onClear?: () => void;
   onCopy?: () => void;
+  fullHeight?: boolean; // 横向布局时填满父容器高度
 }
 
-export function Console({ logs, onClear, onCopy }: ConsoleProps) {
+export function Console({ logs, onClear, onCopy, fullHeight = false }: ConsoleProps) {
+  const outerBorder = fullHeight ? 'border-l' : 'border-t'
   return (
-    <section className="glass border-t border-black/10 dark:border-white/5 px-4 py-3">
+    <section className={`glass ${outerBorder} border-black/10 dark:border-white/5 px-4 py-3 h-full ${fullHeight ? 'flex flex-col min-h-0' : ''}`}>
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2 text-sm text-slate-300">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -35,7 +37,7 @@ export function Console({ logs, onClear, onCopy }: ConsoleProps) {
           </button>
         </div>
       </div>
-      <div className="h-52 overflow-auto rounded-xl bg-white/70 dark:bg-slate-950/70 border border-black/10 dark:border-white/5 p-3 font-mono text-sm leading-6 text-slate-900 dark:text-slate-100">
+      <div className={`${fullHeight ? 'flex-1 min-h-0' : 'h-52'} overflow-auto rounded-xl bg-white/70 dark:bg-slate-950/70 border border-black/10 dark:border-white/5 p-3 font-mono text-sm leading-6 text-slate-900 dark:text-slate-100`}>
         <div className="whitespace-pre-wrap">
           {logs.map((log, index) => (
             <div key={index} className={`log-line ${log.type}`}>

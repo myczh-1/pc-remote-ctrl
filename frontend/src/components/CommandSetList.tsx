@@ -32,7 +32,7 @@ export function WorkflowList({
         const isExecuting = executingWorkflowId === commandSet.commandId
         
         return (
-          <div key={commandSet.commandId} className={`card rounded-2xl shadow-soft p-4 card-hover ${isExecuting ? 'ring-2 ring-yellow-400/50' : ''}`}>
+          <div key={commandSet.commandId} className={`card rounded-2xl p-4 card-hover ${isExecuting ? 'ring-2 ring-yellow-400/50' : ''}`}>
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <div className="flex items-center gap-2">

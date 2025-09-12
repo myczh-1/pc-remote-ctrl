@@ -8,9 +8,10 @@ import {EditorModal} from './components/EditorModal'
 import type {CommandSet} from './types'
 import {useCloudApi} from './hooks/useCloudApi'
 import {Sidebar} from './components/Sidebar'
-import { motion } from 'motion/react'
+import { motion, useReducedMotion } from 'motion/react'
 import {Topbar} from './components/Topbar'
 import {Console} from './components/Console'
+import { useMediaQuery } from './hooks/useMediaQuery'
 
 export default function App() {
     const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -37,6 +38,12 @@ export default function App() {
     const {logInfo, logError, logSuccess, clearLog, entries} = useLogger()
     const {execution, executeCommandSet, clearExecution, isRunning} = useCommandSetExecution()
     const cloud = useCloudApi()
+    const prefersReduced = useReducedMotion()
+    const isUltraWide = useMediaQuery('(min-width: 1920px)')
+    const isWideLocal = isUltraWide && mode === 'local'
+    const layoutTransition = useMemo(() => (
+        prefersReduced ? { duration: 0 } : { duration: 0.32, ease: [0.22, 1, 0.36, 1] as any }
+    ), [prefersReduced])
 
     const [showCommandSetEditor, setShowCommandSetEditor] = useState(false)
     const [editingCommandSet, setEditingCommandSet] = useState<CommandSet | undefined>()
@@ -214,33 +221,43 @@ export default function App() {
                         onClear={clearExecution}
                     />
 
-                    <div className="p-4 md:p-6 flex-1 overflow-auto bg-white dark:bg-surface">
-                        <div className="grid grid-cols-1 gap-6">
-                            <CommandPanel
-                                commandSets={commandSets}
-                                loading={loading}
-                                isRunning={isRunning}
-                                execution={execution}
-                                onRefresh={handleListAllCommandSets}
-                                onCreate={handleCreateCommandSet}
-                                onExecute={handleExecuteCommandSet2}
-                                onEdit={handleEditCommandSet}
-                                onDelete={handleDeleteCommandSet}
-                                onDuplicate={handleDuplicateCommandSet}
-                            />
-                        </div>
-                    </div>
+                    {/* 主工作区：命令集 与 控制台 上下/左右切换（≥1920 且本地模式为左右） */}
+                    <div className={`p-4 md:p-6 flex-1 ${isWideLocal ? 'overflow-hidden' : 'overflow-auto'} bg-white dark:bg-surface`}>
+                        <motion.section
+                            layout
+                            transition={layoutTransition}
+                            className={`flex gap-6 h-full min-h-0 ${isWideLocal ? 'flex-row items-stretch' : 'flex-col'} `}
+                        >
+                            <motion.div layout transition={layoutTransition} className={`${isWideLocal ? 'flex-[2] min-w-0' : ''}`}>
+                                <CommandPanel
+                                    commandSets={commandSets}
+                                    loading={loading}
+                                    isRunning={isRunning}
+                                    execution={execution}
+                                    onRefresh={handleListAllCommandSets}
+                                    onCreate={handleCreateCommandSet}
+                                    onExecute={handleExecuteCommandSet2}
+                                    onEdit={handleEditCommandSet}
+                                    onDelete={handleDeleteCommandSet}
+                                    onDuplicate={handleDuplicateCommandSet}
+                                />
+                            </motion.div>
 
-                    <Console
-                        logs={consoleLogs}
-                        onClear={clearLog}
-                        onCopy={() => {
-                            try {
-                                navigator.clipboard.writeText(entries.map(e => e.message).join('\n'))
-                            } catch {
-                            }
-                        }}
-                    />
+                            <motion.div layout transition={layoutTransition} className={`${isWideLocal ? 'flex-[1] min-w-[360px] min-h-0 flex flex-col' : ''}`}>
+                                <Console
+                                    logs={consoleLogs}
+                                    fullHeight={isWideLocal}
+                                    onClear={clearLog}
+                                    onCopy={() => {
+                                        try {
+                                            navigator.clipboard.writeText(entries.map(e => e.message).join('\n'))
+                                        } catch {
+                                        }
+                                    }}
+                                />
+                            </motion.div>
+                        </motion.section>
+                    </div>
                 </motion.main>
             </div>
 
