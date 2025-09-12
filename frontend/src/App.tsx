@@ -152,9 +152,7 @@ export default function App() {
 
     const sidebarDevices = mode === 'cloud'
         ? cloud.devices.map(d => ({id: d.deviceId, name: d.name || d.deviceId, online: d.status === 'online'}))
-        : [
-            {id: 'local-1', name: '本地设备', online: true},
-        ]
+        : []
 
     const consoleLogs = entries.map(e => ({
         text: e.message,
@@ -179,7 +177,15 @@ export default function App() {
                 <Sidebar
                     isOpen={mode === 'cloud'}
                     devices={sidebarDevices}
-                    onAddDevice={() => { /* optional hook */
+                    onAddDevice={() => { /* optional hook */ }}
+                    onToggleMode={() => {
+                        setMode(m => {
+                            const next = m === 'local' ? 'cloud' : 'local'
+                            if (next === 'cloud') {
+                                cloud.refreshDevices()
+                            }
+                            return next
+                        })
                     }}
                 />
 
@@ -187,12 +193,6 @@ export default function App() {
                 <motion.main layout className="flex-1 flex flex-col overflow-hidden">
                     <Topbar
                         mode={mode}
-                        onModeChange={(m) => {
-                            setMode(m);
-                            if (m === 'cloud') {
-                                cloud.refreshDevices()
-                            }
-                        }}
                         theme={theme}
                         onToggleTheme={() => {
                             setTheme(t => {

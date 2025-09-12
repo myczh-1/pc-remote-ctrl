@@ -5,14 +5,20 @@ interface Device { id: string; name: string; online: boolean }
 interface SidebarProps {
   devices: Device[];
   onAddDevice?: () => void;
-  isOpen?: boolean;          // 移动端抽屉开关
-  onClose?: () => void;      // 点击蒙层/ESC 关闭
+  isOpen?: boolean;          // 云端模式开关：桌面展开/移动端抽屉
+  onClose?: () => void;      // 点击蒙层/ESC 关闭（移动端）
+  onToggleMode?: () => void; // 折叠态图标点击，切换本地/云端
+}
+
+interface SidebarContentProps {
+  devices: Device[];
+  onAddDevice?: () => void;
+  onClose?: () => void;
+  showHeader?: boolean;
 }
 
 /** 侧边栏内容（桌面与移动端复用，避免重复 JSX） */
-function SidebarContent({
-                          devices, onAddDevice, onClose
-                        }: { devices: Device[]; onAddDevice?: () => void; onClose?: () => void }) {
+function SidebarContent({ devices, onAddDevice, onClose, showHeader = true }: SidebarContentProps) {
   const prefersReduced = useReducedMotion();
   const listItemTransition = useMemo(() => (
     prefersReduced ? { duration: 0 } : { duration: 0.18, ease: [0.22, 1, 0.36, 1] as any }
@@ -23,6 +29,7 @@ function SidebarContent({
 
   return (
       <>
+        {showHeader && (
         <div className="flex items-center gap-2 px-2 pt-1 w-full">
           <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-prime-400/70 to-indigo-400/70 grid place-items-center shadow-soft">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -42,6 +49,7 @@ function SidebarContent({
               >✕</button>
           )}
         </div>
+        )}
 
         <div className="mt-2 w-full">
           <div className="text-xs uppercase tracking-wider text-slate-400 px-2 mb-2">设备</div>
@@ -91,19 +99,26 @@ function SidebarContent({
   );
 }
 
-export function Sidebar({ devices, onAddDevice, isOpen = false, onClose }: SidebarProps) {
+export function Sidebar({ devices, onAddDevice, isOpen = false, onClose, onToggleMode }: SidebarProps) {
   const prefersReduced = useReducedMotion();
-  // ESC 关闭
+  const collapseWidth = 56;
+  const expandedWidth = 280;
+  // ESC 关闭（移动端关闭抽屉；桌面切回本地）
   useEffect(() => {
     if (!isOpen) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose?.();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        (onClose || onToggleMode)?.();
+      }
+    };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, onToggleMode]);
 
-  // 锁定滚动（移动端抽屉开启时）
+  // 锁定滚动（仅移动端抽屉开启时）
   useEffect(() => {
     if (!isOpen) return;
+    if (typeof window !== 'undefined' && window.innerWidth >= 1280) return; // xl 及以上不锁定
     const original = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     return () => {
@@ -152,27 +167,46 @@ export function Sidebar({ devices, onAddDevice, isOpen = false, onClose }: Sideb
                   }}
                   role="dialog" aria-modal
               >
-                <SidebarContent devices={devices} onAddDevice={onAddDevice} onClose={onClose} />
+            <SidebarContent devices={devices} onAddDevice={onAddDevice} onClose={onClose} />
               </motion.aside>
           )}
         </AnimatePresence>
 
-        {/* 桌面版（云端模式，宽度过渡，联动主内容） */}
+        {/* 桌面版（本地折叠至窄栏，云端展开；联动主内容） */}
         <motion.aside
-          className="hidden xl:block overflow-hidden glass bg-white dark:bg-surface-soft border-r border-black/10 dark:border-white/10 will-change-transform transform-gpu"
+          className="hidden xl:flex xl:flex-col overflow-hidden glass bg-white dark:bg-surface-soft border-r border-black/10 dark:border-white/10 will-change-transform transform-gpu"
           initial={false}
-          animate={{ width: isOpen ? 280 : 0 }}
+          animate={{ width: isOpen ? expandedWidth : collapseWidth }}
           transition={drawerTransition}
-          aria-hidden={!isOpen}
+          aria-hidden={false}
         >
+          {/* 折叠态：窄图标栏（本地模式） */}
           <motion.div
-            className="flex flex-col gap-4 p-4 w-[280px]"
+            className="w-full h-[56px] p-2 flex items-center justify-center gap-2 flex-none"
+            initial={false}
+            transition={drawerTransition}
+            style={{ pointerEvents: 'auto', opacity: 1 }}
+            aria-hidden={false}
+          >
+            <button
+              onClick={onToggleMode}
+              className="w-9 h-9 rounded-xl bg-gradient-to-br from-prime-400/70 to-indigo-400/70 grid place-items-center shadow-soft hover:brightness-105 active:brightness-95"
+              title="切换本地/云端"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                      d="M3 12a9 9 0 1018 0A9 9 0 003 12zm9-7v14m-7-7h14"/>
+              </svg>
+            </button>
+          </motion.div>
+          <motion.div
+            className="flex flex-col gap-4 p-4 flex-1 min-w-0"
             initial={false}
             animate={prefersReduced ? { opacity: 1, x: 0 } : { opacity: isOpen ? 1 : 0, x: isOpen ? 0 : -8 }}
             transition={drawerTransition}
             style={{ pointerEvents: isOpen ? 'auto' : 'none' }}
           >
-            <SidebarContent devices={devices} onAddDevice={onAddDevice} />
+            <SidebarContent devices={devices} onAddDevice={onAddDevice} onClose={onToggleMode} showHeader={false} />
           </motion.div>
         </motion.aside>
       </>

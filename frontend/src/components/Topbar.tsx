@@ -1,12 +1,11 @@
 interface TopbarProps {
   mode: 'local' | 'cloud'
-  onModeChange?: (mode: 'local' | 'cloud') => void
   theme: 'light' | 'dark'
   onToggleTheme?: () => void
   onCreate?: () => void
 }
 
-export function Topbar({ mode, onModeChange, theme, onToggleTheme, onCreate }: TopbarProps) {
+export function Topbar({ mode, theme, onToggleTheme, onCreate }: TopbarProps) {
   return (
     <header className="glass border-b border-black/10 dark:border-white/5 px-5 py-3 flex items-center gap-3">
       <div className="xl:hidden flex items-center gap-2 mr-2">
@@ -25,17 +24,6 @@ export function Topbar({ mode, onModeChange, theme, onToggleTheme, onCreate }: T
       </div>
       
       <div className="flex items-center gap-2 ml-auto">
-        <div className="hidden md:flex items-center gap-2 mr-2">
-          <label className="text-xs text-slate-700 dark:text-slate-400">模式</label>
-          <select
-            value={mode}
-            onChange={e => onModeChange?.(e.target.value as 'local' | 'cloud')}
-            className="px-2 py-1 text-sm border border-black/10 dark:border-white/10 rounded-lg bg-white/50 dark:bg-card text-slate-900 dark:text-slate-100"
-          >
-            <option value="local">本地</option>
-            <option value="cloud">云端</option>
-          </select>
-        </div>
         <button 
           onClick={onToggleTheme}
           className="rounded-lg p-2 hover:bg-white/5 border border-white/10"
