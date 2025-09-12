@@ -13,7 +13,7 @@ export function Toolbar({ activeTab, onTabChange, onFilter, onCreateCommand }: T
   ];
 
   return (
-    <div className="px-5 py-3 flex items-center gap-2 border-b border-white/5 bg-bg/60">
+    <div className="px-5 py-3 flex items-center gap-2 border-b border-white/5 bg-surface/60">
       <nav className="flex gap-2 text-sm">
         {tabs.map(tab => (
           <button

@@ -1,6 +1,38 @@
 @import "tailwindcss";
 
-/* Custom UI styles from prototype */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@keyframes fade-in { from { opacity: 0 } to { opacity: 1 } }
+@utility animate-fade-in { animation: fade-in 180ms var(--tw-ease-out, ease-out) }
+
+@keyframes fade-out { from { opacity: 1 } to { opacity: 0 } }
+@utility animate-fade-out { animation: fade-out 180ms var(--tw-ease-in, ease-in) }
+@theme {
+  /* 如果你想用 .dark 作为暗色选择器（默认就是 .dark），可显式声明 */
+  --tw-dark-selector: ".dark";
+
+  /* 你的颜色表：会自动生成 bg-surface / text-prime-500 等 */
+  --color-surface: #0B0F14;
+  --color-surface-soft: #0F141A;
+  --color-surface-softer: #0C1117;
+
+  --color-card: #0F141A;
+  --color-card-stroke: #1E2630;
+
+  --color-prime-50:  #ECFEFF;
+  --color-prime-100: #CFFAFE;
+  --color-prime-200: #A5F3FC;
+  --color-prime-300: #67E8F9;
+  --color-prime-400: #22D3EE;
+  --color-prime-500: #06B6D4;
+  --color-prime-600: #0891B2;
+  --color-prime-700: #0E7490;
+
+  /* 阴影（v4 也支持 token 命名，随后用 shadow-soft 等）*/
+  --shadow-soft: 0 8px 30px rgba(0,0,0,0.35);
+  --shadow-ring: inset 0 1px 0 rgba(255,255,255,0.04), 0 8px 24px rgba(2,8,23,0.6);
+}
+/* Custom UI styles from prototype with light/dark variants */
 .bg-glow::before, .bg-glow::after { 
   content: ""; 
   position: absolute; 
@@ -8,6 +40,10 @@
   z-index: 0; 
   filter: blur(80px); 
   opacity: .35; 
+}
+html.dark .bg-glow::before, html.dark .bg-glow::after {
+  opacity: .22;
+  filter: blur(110px);
 }
 .bg-glow::before{ 
   width: 420px; 
@@ -44,13 +80,24 @@
 }
 
 .glass { 
-  background: rgba(13,18,26,.7); 
   backdrop-filter: saturate(140%) blur(8px); 
-  border:1px solid rgba(255,255,255,0.06); 
 }
-.card { 
+html.dark .glass {
+  background: rgba(13,18,26,.7);
+  border:1px solid rgba(255,255,255,0.06);
+}
+html:not(.dark) .glass {
+  background: rgba(255,255,255,.7);
+  border:1px solid rgba(0,0,0,0.06);
+}
+.card { }
+html.dark .card { 
   background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); 
   border:1px solid rgba(255,255,255,0.06); 
+}
+html:not(.dark) .card {
+  background: linear-gradient(180deg, rgba(0,0,0,0.02), rgba(0,0,0,0.01));
+  border:1px solid rgba(0,0,0,0.06);
 }
 .card-hover { 
   transition: all .18s ease; 

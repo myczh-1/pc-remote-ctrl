@@ -1,42 +1,47 @@
-import { useMemo, useState } from 'react'
-import { useCommandSets } from './hooks/useCommandSets'
-import { useCommandSetExecution } from './hooks/useCommandSetExecution'
-import { useLogger } from './hooks/useLogger'
-import { LogDisplay } from './components/LogDisplay'
-import { CommandPanel } from './components/CommandPanel'
-import { ExecutionStatusPanel } from './components/ExecutionStatusPanel'
-import { EditorModal } from './components/EditorModal'
-import type { CommandSet } from './types'
-import { useCloudApi } from './hooks/useCloudApi'
-import { Sidebar } from './components/Sidebar'
-import { Topbar } from './components/Topbar'
-import { Console } from './components/Console'
+import {useMemo, useState} from 'react'
+import {useCommandSets} from './hooks/useCommandSets'
+import {useCommandSetExecution} from './hooks/useCommandSetExecution'
+import {useLogger} from './hooks/useLogger'
+import {CommandPanel} from './components/CommandPanel'
+import {ExecutionStatusPanel} from './components/ExecutionStatusPanel'
+import {EditorModal} from './components/EditorModal'
+import type {CommandSet} from './types'
+import {useCloudApi} from './hooks/useCloudApi'
+import {Sidebar} from './components/Sidebar'
+import { motion } from 'motion/react'
+import {Topbar} from './components/Topbar'
+import {Console} from './components/Console'
 
 export default function App() {
+    const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+        if (typeof window !== 'undefined') {
+            const saved = localStorage.getItem('theme') as 'light' | 'dark' | null
+            if (saved) return saved
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+            return prefersDark ? 'dark' : 'light'
+        }
+        return 'dark'
+    })
     // 默认使用本地模式，确保开箱即用的演示体验
-    const [mode, setMode] = useState<'local'|'cloud'>('local')
+    const [mode, setMode] = useState<'local' | 'cloud'>('local')
     const [selectedDeviceId, setSelectedDeviceId] = useState<string>('')
-    const { commandSets, loading, createCommandSet, updateCommandSet, deleteCommandSet, duplicateCommandSet, loadFromServer } = useCommandSets({ autoSync: mode === 'local' })
-    const { log, logInfo, logError, logSuccess, clearLog, entries } = useLogger()
-    const { execution, executeCommandSet, clearExecution, isRunning } = useCommandSetExecution()
+    const {
+        commandSets,
+        loading,
+        createCommandSet,
+        updateCommandSet,
+        deleteCommandSet,
+        duplicateCommandSet,
+        loadFromServer
+    } = useCommandSets({autoSync: mode === 'local'})
+    const {logInfo, logError, logSuccess, clearLog, entries} = useLogger()
+    const {execution, executeCommandSet, clearExecution, isRunning} = useCommandSetExecution()
     const cloud = useCloudApi()
-    
+
     const [showCommandSetEditor, setShowCommandSetEditor] = useState(false)
     const [editingCommandSet, setEditingCommandSet] = useState<CommandSet | undefined>()
 
-    const handleStoreSample = async () => {
-        const result = await createCommandSet({
-            commandName: 'echo-demo',
-            commandScripts: ['echo hello-from-protobuf-ts'],
-            description: 'stored from web',
-        })
-        
-        if (result.success) {
-            logSuccess(`StoreCommandSet: ${result.message}`)
-        } else {
-            logError(`StoreCommandSet ERROR: ${result.message}`)
-        }
-    }
+    // removed sample creation button and related logic
 
     const handleListAllCommandSets = async () => {
         // 在云端模式下，刷新设备列表；本地模式刷新命令集
@@ -50,7 +55,7 @@ export default function App() {
             return
         }
         const result = await loadFromServer()
-        
+
         if (result.success) {
             logInfo(`GetAllCommandSets: ${result.commandSets.length} items`)
         } else {
@@ -145,125 +150,110 @@ export default function App() {
         else logError(`云端执行出错: ${resp.error}`)
     }
 
-    // 一键演示：若无示例则创建；随后执行（依据当前模式）
-    const handleRunDemo = async () => {
-        // 尝试找到已存在的 demo 命令集
-        let demo = commandSets.find(cs => cs.commandName === 'echo-demo')
-        if (!demo) {
-            const created = await createCommandSet({
-                commandName: 'echo-demo',
-                commandScripts: ['echo hello-from-demo'],
-                description: 'demo sample generated'
-            })
-            if (!created.success || !created.commandSet) {
-                logError(`创建示例命令集失败: ${created.message}`)
-                return
-            }
-            demo = created.commandSet
-            logSuccess('已创建示例命令集: echo-demo')
-        }
-
-        await handleExecuteCommandSet2(demo)
-    }
-
     const sidebarDevices = mode === 'cloud'
-      ? cloud.devices.map(d => ({ id: d.deviceId, name: d.name || d.deviceId, online: d.status === 'online' }))
-      : [
-          { id: 'local-1', name: '本地设备', online: true },
+        ? cloud.devices.map(d => ({id: d.deviceId, name: d.name || d.deviceId, online: d.status === 'online'}))
+        : [
+            {id: 'local-1', name: '本地设备', online: true},
         ]
 
-    const onlineCount = sidebarDevices.filter(d => d.online).length
-    const queueCount = 0
-    const failCount = 0
-
     const consoleLogs = entries.map(e => ({
-      text: e.message,
-      type: e.level === 'success' ? 'ok' : e.level === 'error' ? 'err' : 'info' as const,
-      timestamp: e.timestamp,
+        text: e.message,
+        type: e.level === 'success' ? 'ok' : e.level === 'error' ? 'err' : 'info' as const,
+        timestamp: e.timestamp,
     }))
 
+    // Apply theme class to <html>
+    if (typeof document !== 'undefined') {
+        const root = document.documentElement
+        if (theme === 'dark') root.classList.add('dark')
+        else root.classList.remove('dark')
+    }
+
     return (
-      <div className="min-h-screen bg-bg text-slate-100 relative selection:bg-prime-400/20 selection:text-white overflow-hidden">
-        <div className="absolute inset-0 bg-glow pointer-events-none overflow-hidden"></div>
+        <div
+            className="min-h-screen bg-white text-slate-900 dark:bg-surface dark:text-slate-100 relative selection:bg-prime-400/20 selection:text-white overflow-hidden">
+            <div className="absolute inset-0 bg-glow pointer-events-none overflow-hidden"></div>
 
-        <div className="relative z-10 flex h-screen overflow-hidden">
-          {mode === 'cloud' && (
-            <Sidebar 
-              devices={sidebarDevices}
-              onAddDevice={() => { /* optional hook */ }}
-            />
-          )}
+            <div className="relative z-10 flex h-screen overflow-hidden">
 
-          <main className="flex-1 flex flex-col overflow-hidden">
-            <Topbar 
-              mode={mode}
-              onModeChange={(m) => { setMode(m); if (m === 'cloud') { cloud.refreshDevices() } }}
-              onlineCount={onlineCount}
-              queueCount={queueCount}
-              failCount={failCount}
-              onRunAll={handleRunDemo}
-              onSearch={() => { /* no-op */ }}
-            />
+                <Sidebar
+                    isOpen={mode === 'cloud'}
+                    devices={sidebarDevices}
+                    onAddDevice={() => { /* optional hook */
+                    }}
+                />
 
-            <ExecutionStatusPanel 
-              execution={execution}
-              onStop={() => {}}
-              onClear={clearExecution}
-            />
 
-            <div className="p-4 md:p-6 flex-1 overflow-auto bg-bg">
-              <div className="grid grid-cols-1 gap-6">
-                <div className="card rounded-2xl shadow-soft p-4 border border-white/10 bg-card/80">
-                  <div className="flex items-center justify-between mb-3">
-                    <div>
-                      <h1 className="text-lg font-semibold">PC 远程控制器</h1>
-                      <p className="text-sm text-slate-400 mt-1">管理和执行远程命令（当前模式：{mode === 'local' ? '本地' : '云端'}）</p>
-                      {mode === 'cloud' && (
-                        <div className="text-xs text-slate-500 mt-1">Cloud: {cloud.baseUrl}</div>
-                      )}
+                <motion.main layout className="flex-1 flex flex-col overflow-hidden">
+                    <Topbar
+                        mode={mode}
+                        onModeChange={(m) => {
+                            setMode(m);
+                            if (m === 'cloud') {
+                                cloud.refreshDevices()
+                            }
+                        }}
+                        theme={theme}
+                        onToggleTheme={() => {
+                            setTheme(t => {
+                                const next = t === 'dark' ? 'light' : 'dark'
+                                try {
+                                    localStorage.setItem('theme', next)
+                                } catch {
+                                }
+                                return next
+                            })
+                        }}
+                        onCreate={handleCreateCommandSet}
+                    />
+
+                    <ExecutionStatusPanel
+                        execution={execution}
+                        onStop={() => {
+                        }}
+                        onClear={clearExecution}
+                    />
+
+                    <div className="p-4 md:p-6 flex-1 overflow-auto bg-white dark:bg-surface">
+                        <div className="grid grid-cols-1 gap-6">
+                            <CommandPanel
+                                commandSets={commandSets}
+                                loading={loading}
+                                isRunning={isRunning}
+                                execution={execution}
+                                onRefresh={handleListAllCommandSets}
+                                onCreate={handleCreateCommandSet}
+                                onExecute={handleExecuteCommandSet2}
+                                onEdit={handleEditCommandSet}
+                                onDelete={handleDeleteCommandSet}
+                                onDuplicate={handleDuplicateCommandSet}
+                            />
+                        </div>
                     </div>
-                    <button className="px-3 py-2 text-sm rounded-xl bg-gradient-to-r from-prime-500 to-prime-600 text-white hover:from-prime-600 hover:to-prime-700 disabled:opacity-60 shadow-soft border border-prime-400/20" onClick={handleRunDemo} disabled={isRunning}>
-                      一键演示
-                    </button>
-                  </div>
 
-                  <CommandPanel
-                    commandSets={commandSets}
-                    loading={loading}
-                    isRunning={isRunning}
-                    execution={execution}
-                    onRefresh={handleListAllCommandSets}
-                    onCreate={handleCreateCommandSet}
-                    onExecute={handleExecuteCommandSet2}
-                    onEdit={handleEditCommandSet}
-                    onDelete={handleDeleteCommandSet}
-                    onDuplicate={handleDuplicateCommandSet}
-                    onCreateSample={handleStoreSample}
-                  />
-                </div>
-              </div>
+                    <Console
+                        logs={consoleLogs}
+                        onClear={clearLog}
+                        onCopy={() => {
+                            try {
+                                navigator.clipboard.writeText(entries.map(e => e.message).join('\n'))
+                            } catch {
+                            }
+                        }}
+                    />
+                </motion.main>
             </div>
 
-            <Console 
-              logs={consoleLogs}
-              onClear={clearLog}
-              onCopy={() => {
-                try { navigator.clipboard.writeText(entries.map(e => e.message).join('\n')) } catch {}
-              }}
+            <EditorModal
+                isVisible={showCommandSetEditor}
+                editingCommandSet={editingCommandSet}
+                availableCommands={commandSets}
+                onSave={handleSaveCommandSet}
+                onCancel={() => {
+                    setShowCommandSetEditor(false)
+                    setEditingCommandSet(undefined)
+                }}
             />
-          </main>
         </div>
-
-        <EditorModal
-          isVisible={showCommandSetEditor}
-          editingCommandSet={editingCommandSet}
-          availableCommands={commandSets}
-          onSave={handleSaveCommandSet}
-          onCancel={() => {
-            setShowCommandSetEditor(false)
-            setEditingCommandSet(undefined)
-          }}
-        />
-      </div>
     )
 }

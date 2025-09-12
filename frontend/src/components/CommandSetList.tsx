@@ -36,7 +36,7 @@ export function WorkflowList({
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <h3 className="text-base font-semibold text-slate-100 truncate">{commandSet.commandName}</h3>
+                  <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100 truncate">{commandSet.commandName}</h3>
                   {isExecuting && <span className="inline-flex items-center rounded-full bg-yellow-500/20 text-yellow-300 text-xs px-2 py-0.5 border border-yellow-400/30">执行中</span>}
                 </div>
                 {commandSet.description && (
@@ -57,7 +57,7 @@ export function WorkflowList({
                   {isExecuting ? '执行中' : '执行'}
                 </button>
                 <button
-                  className="px-3 py-1.5 text-sm rounded-lg border border-white/10 bg-card hover:bg-white/5 text-slate-100"
+                  className="px-3 py-1.5 text-sm rounded-lg border border-black/10 dark:border-white/10 bg-white/50 dark:bg-card hover:bg-black/5 dark:hover:bg-white/5 text-slate-900 dark:text-slate-100"
                   onClick={() => onEditWorkflow(commandSet)}
                   disabled={isExecuting}
                   title="编辑命令集"
@@ -65,7 +65,7 @@ export function WorkflowList({
                   编辑
                 </button>
                 <button
-                  className="px-3 py-1.5 text-sm rounded-lg border border-white/10 bg-card hover:bg-white/5 text-slate-100"
+                  className="px-3 py-1.5 text-sm rounded-lg border border-black/10 dark:border-white/10 bg-white/50 dark:bg-card hover:bg-black/5 dark:hover:bg-white/5 text-slate-900 dark:text-slate-100"
                   onClick={() => onDuplicateWorkflow(commandSet.commandId)}
                   disabled={isExecuting}
                   title="复制命令集"
@@ -84,7 +84,7 @@ export function WorkflowList({
             </div>
 
             <div className="mt-3">
-              <div className="flex items-center justify-between text-sm text-slate-300 mb-1">
+              <div className="flex items-center justify-between text-sm text-slate-700 dark:text-slate-300 mb-1">
                 <strong>执行步骤</strong>
                 <span>{commandSet.commandScripts?.length || 0} 步</span>
               </div>
@@ -92,11 +92,11 @@ export function WorkflowList({
                 {(commandSet.commandScripts || []).slice(0, 3).map((script, index) => (
                   <div key={index} className="flex items-start gap-2">
                     <span className="text-xs text-slate-500 mt-0.5 w-4">{index + 1}</span>
-                    <code className="text-sm text-slate-200 break-words bg-slate-800/30 px-1 rounded">{script}</code>
+                    <code className="text-sm break-words bg-black/5 dark:bg-slate-800/30 text-slate-900 dark:text-slate-200 px-1 rounded">{script}</code>
                   </div>
                 ))}
                 {(commandSet.commandScripts?.length || 0) > 3 && (
-                  <div className="text-sm text-slate-400">还有 {(commandSet.commandScripts?.length || 0) - 3} 个步骤</div>
+                  <div className="text-sm text-slate-600 dark:text-slate-400">还有 {(commandSet.commandScripts?.length || 0) - 3} 个步骤</div>
                 )}
               </div>
             </div>

@@ -12,6 +12,7 @@
   "dependencies": {
     "@protobuf-ts/grpcweb-transport": "^2.11.1",
     "@protobuf-ts/runtime": "^2.11.1",
+    "motion": "^12.23.12",
     "react": "^19.1.1",
     "react-dom": "^19.1.1"
   },
