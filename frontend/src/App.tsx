@@ -7,7 +7,7 @@ import {ExecutionStatusPanel} from './components/ExecutionStatusPanel'
 import {EditorModal} from './components/EditorModal'
 import type {CommandSet} from './types'
 import {useCloudApi} from './hooks/useCloudApi'
-import {Sidebar} from './components/Sidebar'
+import {Sidebar, SidebarContent} from './components/Sidebar'
 import { motion, useReducedMotion } from 'motion/react'
 import {Topbar} from './components/Topbar'
 import {Console} from './components/Console'
@@ -40,10 +40,14 @@ export default function App() {
     const cloud = useCloudApi()
     const prefersReduced = useReducedMotion()
     const isUltraWide = useMediaQuery('(min-width: 1920px)')
+    const isDesktopXL = useMediaQuery('(min-width: 1280px)')
     const isWideLocal = isUltraWide && mode === 'local'
     const layoutTransition = useMemo(() => (
         prefersReduced ? { duration: 0 } : { duration: 0.32, ease: [0.22, 1, 0.36, 1] as any }
     ), [prefersReduced])
+    const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false)
+    const [mobileSidebarFull, setMobileSidebarFull] = useState(false)
+    const [mobileInlineExpanded, setMobileInlineExpanded] = useState(false)
 
     const [showCommandSetEditor, setShowCommandSetEditor] = useState(false)
     const [editingCommandSet, setEditingCommandSet] = useState<CommandSet | undefined>()
@@ -182,15 +186,18 @@ export default function App() {
             <div className="relative z-10 flex h-screen overflow-hidden">
 
                 <Sidebar
-                    isOpen={mode === 'cloud'}
+                    isOpen={isDesktopXL ? (mode === 'cloud') : false}
                     devices={sidebarDevices}
                     onAddDevice={() => { /* optional hook */ }}
+                    onClose={() => { setMobileDrawerOpen(false); setMobileSidebarFull(false) }}
+                    mobileFullWidth={false}
                     onToggleMode={() => {
                         setMode(m => {
                             const next = m === 'local' ? 'cloud' : 'local'
                             if (next === 'cloud') {
                                 cloud.refreshDevices()
                             }
+                            if (!isDesktopXL) { setMobileDrawerOpen(false); setMobileSidebarFull(false); setMobileInlineExpanded(false) }
                             return next
                         })
                     }}
@@ -201,6 +208,19 @@ export default function App() {
                     <Topbar
                         mode={mode}
                         theme={theme}
+                        onToggleMode={() => {
+                            setMode(m => {
+                                const next = m === 'local' ? 'cloud' : 'local'
+                                if (next === 'cloud') {
+                                    cloud.refreshDevices()
+                                }
+                                // 切换模式时关闭移动端内联侧栏
+                                setMobileDrawerOpen(false)
+                                setMobileSidebarFull(false)
+                                setMobileInlineExpanded(false)
+                                return next
+                            })
+                        }}
                         onToggleTheme={() => {
                             setTheme(t => {
                                 const next = t === 'dark' ? 'light' : 'dark'
@@ -223,11 +243,62 @@ export default function App() {
 
                     {/* 主工作区：命令集 与 控制台 上下/左右切换（≥1920 且本地模式为左右） */}
                     <div className={`p-4 md:p-6 flex-1 overflow-hidden bg-white dark:bg-surface`}>
-                        <motion.section
-                            layout
-                            transition={layoutTransition}
-                            className={`flex gap-6 h-full min-h-0 ${isWideLocal ? 'flex-row items-stretch' : 'flex-col'} `}
-                        >
+                        <div className="h-full min-h-0 flex gap-4">
+                            {/* 移动端云端模式：左侧显示窄栏（设备图标 + 统计），点击统计打开抽屉 */}
+                            {!isDesktopXL && mode === 'cloud' && (
+                                <motion.div
+                                    layout
+                                    initial={false}
+                                    animate={{ width: mobileInlineExpanded ? '100%' as any : 56 }}
+                                    transition={layoutTransition}
+                                    className="flex-none overflow-hidden bg-white dark:bg-surface-soft border-r border-black/10 dark:border-white/10 glass"
+                                    style={{ borderTopLeftRadius: 12, borderBottomLeftRadius: 12 }}
+                                >
+                                    {mobileInlineExpanded ? (
+                                        <div className="h-full flex flex-col relative">
+                                            <button
+                                                className="absolute right-2 top-2 inline-flex size-8 items-center justify-center rounded-lg hover:bg-black/5 dark:hover:bg-white/5"
+                                                onClick={() => setMobileInlineExpanded(false)}
+                                                aria-label="关闭侧栏"
+                                            >✕</button>
+                                            <SidebarContent
+                                                devices={sidebarDevices}
+                                                onAddDevice={() => {}}
+                                                onClose={() => setMobileInlineExpanded(false)}
+                                                showHeader={false}
+                                            />
+                                        </div>
+                                    ) : (
+                                        <div className="h-full flex flex-col items-center py-3 gap-3">
+                                            {sidebarDevices.some(d=>d.online) && (
+                                                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-prime-400/70 to-indigo-400/70 grid place-items-center shadow-soft">
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                                              d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/>
+                                                    </svg>
+                                                </div>
+                                            )}
+                                            <button
+                                                onClick={() => setMobileInlineExpanded(true)}
+                                                className="mt-auto card rounded-xl p-2 text-center text-[11px] text-slate-400"
+                                                title="查看设备详情"
+                                            >
+                                                <div>在线</div>
+                                                <div className="font-semibold text-slate-800 dark:text-slate-100">{sidebarDevices.filter(d=>d.online).length}</div>
+                                                <div className="mt-1">离线</div>
+                                                <div className="font-semibold text-slate-800 dark:text-slate-100">{sidebarDevices.filter(d=>!d.online).length}</div>
+                                            </button>
+                                        </div>
+                                    )}
+                                </motion.div>
+                            )}
+
+                            {!mobileInlineExpanded && (
+                            <motion.section
+                                layout
+                                transition={layoutTransition}
+                                className={`flex gap-6 h-full min-h-0 flex-1 min-w-0 ${isWideLocal ? 'flex-row items-stretch' : 'flex-col'} `}
+                            >
                             <motion.div
                                 layout
                                 transition={layoutTransition}
@@ -260,7 +331,9 @@ export default function App() {
                                     }}
                                 />
                             </motion.div>
-                        </motion.section>
+                            </motion.section>
+                            )}
+                        </div>
                     </div>
                 </motion.main>
             </div>

@@ -3,20 +3,21 @@ interface TopbarProps {
   theme: 'light' | 'dark'
   onToggleTheme?: () => void
   onCreate?: () => void
+  onToggleMode?: () => void // 移动端：切换本地/云端
 }
 
-export function Topbar({ mode, theme, onToggleTheme, onCreate }: TopbarProps) {
+export function Topbar({ mode, theme, onToggleTheme, onCreate, onToggleMode }: TopbarProps) {
   return (
     <header className="glass border-b border-black/10 dark:border-white/5 px-5 py-3 flex items-center gap-3">
       <div className="xl:hidden flex items-center gap-2 mr-2">
-        <button className="rounded-lg p-2 hover:bg-white/5" title="Menu">
+        <button className="rounded-lg p-2 hover:bg-white/5" title="切换本地/云端" onClick={onToggleMode}>
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
       </div>
       
-      <div className="flex-1 max-w-2xl">
+      <div className="hidden md:block flex-1 max-w-2xl">
         <div>
           <div className="text-base font-semibold text-slate-900 dark:text-slate-100">PC 远程控制器</div>
           <div className="text-sm text-slate-600 dark:text-slate-400 mt-0.5">管理和执行远程命令（当前模式：{mode === 'local' ? '本地' : '云端'}）</div>

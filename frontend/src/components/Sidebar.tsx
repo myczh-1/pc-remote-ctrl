@@ -8,6 +8,7 @@ interface SidebarProps {
   isOpen?: boolean;          // 云端模式开关：桌面展开/移动端抽屉
   onClose?: () => void;      // 点击蒙层/ESC 关闭（移动端）
   onToggleMode?: () => void; // 折叠态图标点击，切换本地/云端
+  mobileFullWidth?: boolean; // 移动端抽屉是否占满全宽
 }
 
 interface SidebarContentProps {
@@ -18,7 +19,7 @@ interface SidebarContentProps {
 }
 
 /** 侧边栏内容（桌面与移动端复用，避免重复 JSX） */
-function SidebarContent({ devices, onAddDevice, onClose, showHeader = true }: SidebarContentProps) {
+export function SidebarContent({ devices, onAddDevice, onClose, showHeader = true }: SidebarContentProps) {
   const prefersReduced = useReducedMotion();
   const listItemTransition = useMemo(() => (
     prefersReduced ? { duration: 0 } : { duration: 0.18, ease: [0.22, 1, 0.36, 1] as any }
@@ -99,7 +100,7 @@ function SidebarContent({ devices, onAddDevice, onClose, showHeader = true }: Si
   );
 }
 
-export function Sidebar({ devices, onAddDevice, isOpen = false, onClose, onToggleMode }: SidebarProps) {
+export function Sidebar({ devices, onAddDevice, isOpen = false, onClose, onToggleMode, mobileFullWidth = false }: SidebarProps) {
   const prefersReduced = useReducedMotion();
   const collapseWidth = 56;
   const expandedWidth = 280;
@@ -149,14 +150,14 @@ export function Sidebar({ devices, onAddDevice, isOpen = false, onClose, onToggl
           )}
         </AnimatePresence>
 
-        {/* 移动端抽屉 */}
+        {/* 移动端抽屉（支持全宽模式） */}
         <AnimatePresence initial={false}>
           {isOpen && (
               <motion.aside
-                  className="fixed inset-y-0 left-0 w-[280px] z-50 xl:hidden bg-white dark:bg-surface-soft border-r border-black/10 dark:border-white/10 glass will-change-transform transform-gpu"
-                  initial={prefersReduced ? false : { x: -288, opacity: 0 }}
+                  className={`fixed inset-y-0 left-0 ${mobileFullWidth ? 'w-screen' : 'w-[280px]'} z-50 xl:hidden bg-white dark:bg-surface-soft border-r border-black/10 dark:border-white/10 glass will-change-transform transform-gpu`}
+                  initial={prefersReduced ? false : { x: mobileFullWidth ? -window.innerWidth : -288, opacity: 0 }}
                   animate={{ x: 0, opacity: 1 }}
-                  exit={{ x: -288, opacity: 0 }}
+                  exit={{ x: mobileFullWidth ? -window.innerWidth : -288, opacity: 0 }}
                   transition={drawerTransition}
                   drag={prefersReduced ? false : 'x'}
                   dragDirectionLock
