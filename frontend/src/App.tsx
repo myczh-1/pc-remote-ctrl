@@ -222,13 +222,17 @@ export default function App() {
                     />
 
                     {/* 主工作区：命令集 与 控制台 上下/左右切换（≥1920 且本地模式为左右） */}
-                    <div className={`p-4 md:p-6 flex-1 ${isWideLocal ? 'overflow-hidden' : 'overflow-auto'} bg-white dark:bg-surface`}>
+                    <div className={`p-4 md:p-6 flex-1 overflow-hidden bg-white dark:bg-surface`}>
                         <motion.section
                             layout
                             transition={layoutTransition}
                             className={`flex gap-6 h-full min-h-0 ${isWideLocal ? 'flex-row items-stretch' : 'flex-col'} `}
                         >
-                            <motion.div layout transition={layoutTransition} className={`${isWideLocal ? 'flex-[2] min-w-0' : ''}`}>
+                            <motion.div
+                                layout
+                                transition={layoutTransition}
+                                className={`flex-1 min-h-0 overflow-auto ${isWideLocal ? 'flex-[2] min-w-0' : ''}`}
+                            >
                                 <CommandPanel
                                     commandSets={commandSets}
                                     loading={loading}
