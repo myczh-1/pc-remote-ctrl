@@ -56,8 +56,8 @@ export function CommandPanel({
           </button>
         </div>
       </div>
-
-      {mode === 'cloud' && (
+      {/* 永不打开 */}
+      {mode === 'cloud' &&false && (
         <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
           <div className="flex items-center justify-between mb-2">
             <div>

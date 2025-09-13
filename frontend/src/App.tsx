@@ -1,4 +1,4 @@
-import {useMemo, useState} from 'react'
+import React, {useMemo, useState} from 'react'
 import {useCommandSets} from './hooks/useCommandSets'
 import {useCommandSetExecution} from './hooks/useCommandSetExecution'
 import {useLogger} from './hooks/useLogger'
@@ -6,6 +6,7 @@ import {CommandPanel} from './components/CommandPanel'
 import {EditorModal} from './components/EditorModal'
 import type {CommandSet} from './types'
 import {useCloudApi} from './hooks/useCloudApi'
+import {useLocalConnection} from './hooks/useLocalConnection'
 import {Sidebar, SidebarContent} from './components/Sidebar'
 import { motion, useReducedMotion } from 'motion/react'
 import {Topbar} from './components/Topbar'
@@ -40,11 +41,19 @@ export default function App() {
     const {logInfo, logError, logSuccess, clearLog, entries} = useLogger()
     const {execution, executeCommandSet, clearExecution, stopExecution, isRunning} = useCommandSetExecution()
     const cloud = useCloudApi()
+    const localConnection = useLocalConnection()
+
     const cloudStatus = {
         connectionStatus: cloud.connectionStatus,
         lastError: cloud.lastError,
         lastRefreshTime: cloud.lastRefreshTime,
         loading: cloud.loadingDevices
+    }
+
+    const localStatus = {
+        connectionStatus: localConnection.connectionStatus,
+        lastError: localConnection.lastError,
+        lastCheckTime: localConnection.lastCheckTime
     }
     const prefersReduced = useReducedMotion()
     const isUltraWide = useMediaQuery('(min-width: 1920px)')
@@ -60,6 +69,19 @@ export default function App() {
     const [showCommandSetEditor, setShowCommandSetEditor] = useState(false)
     const [editingCommandSet, setEditingCommandSet] = useState<CommandSet | undefined>()
     const [showCloudConfig, setShowCloudConfig] = useState(false)
+
+    // 初始化时根据模式启动相应的监控
+    React.useEffect(() => {
+        if (mode === 'local') {
+            localConnection.startMonitoring()
+        } else {
+            localConnection.stopMonitoring()
+        }
+
+        return () => {
+            localConnection.stopMonitoring()
+        }
+    }, [mode]) // 移除 localConnection 依赖，避免无限循环
 
     // removed sample creation button and related logic
 
@@ -322,9 +344,10 @@ export default function App() {
                     devices={sidebarDevices}
                     selectedDeviceId={selectedDeviceId}
                     cloudStatus={mode === 'cloud' ? cloudStatus : undefined}
+                    localStatus={mode === 'local' ? localStatus : undefined}
                     onSelectDevice={handleSelectDevice}
                     onConfigCloud={handleConfigCloud}
-                    onRefreshDevices={cloud.refreshDevices}
+                    onRefreshDevices={mode === 'cloud' ? cloud.refreshDevices : localConnection.refreshConnection}
                     onClose={() => { setMobileDrawerOpen(false); setMobileSidebarFull(false) }}
                     mobileFullWidth={false}
                     onToggleMode={() => {
@@ -338,9 +361,11 @@ export default function App() {
                             setSelectedDeviceId('')
                             
                             if (next === 'cloud') {
+                                localConnection.stopMonitoring()
                                 cloud.refreshDevices()
                             } else {
-                                // 切换到本地模式时重新加载命令集
+                                // 切换到本地模式时重新加载命令集并开始监控连接
+                                localConnection.startMonitoring()
                                 setTimeout(() => loadFromServer(), 100)
                             }
                             
@@ -366,9 +391,11 @@ export default function App() {
                                 setSelectedDeviceId('')
                                 
                                 if (next === 'cloud') {
+                                    localConnection.stopMonitoring()
                                     cloud.refreshDevices()
                                 } else {
-                                    // 切换到本地模式时重新加载命令集
+                                    // 切换到本地模式时重新加载命令集并开始监控连接
+                                    localConnection.startMonitoring()
                                     setTimeout(() => loadFromServer(), 100)
                                 }
                                 
@@ -461,7 +488,7 @@ export default function App() {
                                                 cloudStatus={cloudStatus}
                                                 onSelectDevice={handleSelectDevice}
                                                 onConfigCloud={handleConfigCloud}
-                                                onRefreshDevices={cloud.refreshDevices}
+                                                onRefreshDevices={mode === 'cloud' ? cloud.refreshDevices : localConnection.refreshConnection}
                                                 onClose={() => setMobileInlineExpanded(false)}
                                                 showHeader={false}
                                             />
@@ -511,6 +538,7 @@ export default function App() {
                                     selectedDeviceId={selectedDeviceId}
                                     availableDevices={sidebarDevices}
                                     cloudStatus={mode === 'cloud' ? cloudStatus : undefined}
+                    localStatus={mode === 'local' ? localStatus : undefined}
                                     onRefresh={handleListAllCommandSets}
                                     onExecute={handleExecuteCommandSet2}
                                     onEdit={handleEditCommandSet}

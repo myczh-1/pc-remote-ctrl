@@ -136,18 +136,18 @@ export function Console({ logs, execution, onClear, onCopy, onStopExecution, onC
                         {stepStatus} 步骤 {(stepData?.stepIndex || 0) + 1} (退出码: {stepData?.exitCode})
                       </div>
                       <div className="text-slate-600 dark:text-slate-400 text-xs mb-1">
-                        脚本: {stepData?.stepScript}
+                        脚本: <code className="font-mono bg-slate-200 dark:bg-slate-700 px-1.5 py-0.5 rounded text-slate-800 dark:text-slate-200">{stepData?.stepScript}</code>
                       </div>
                       {stepData?.output && (
-                        <div className="bg-slate-100 dark:bg-slate-800 p-2 rounded text-xs mt-1">
-                          <div className="text-slate-500 dark:text-slate-400 mb-1">输出:</div>
-                          <div>{stepData.output}</div>
+                        <div className="bg-slate-100 dark:bg-slate-800 p-2 rounded text-xs mt-1 border border-slate-200 dark:border-slate-700">
+                          <div className="text-slate-500 dark:text-slate-400 mb-1 font-medium">输出:</div>
+                          <div className="font-mono text-slate-900 dark:text-slate-100 whitespace-pre-wrap">{stepData.output}</div>
                         </div>
                       )}
                       {stepData?.error && (
-                        <div className="bg-red-50 dark:bg-red-900/20 p-2 rounded text-xs mt-1">
-                          <div className="text-red-500 dark:text-red-400 mb-1">错误:</div>
-                          <div className="text-red-700 dark:text-red-300">{stepData.error}</div>
+                        <div className="bg-red-50 dark:bg-red-900/20 p-2 rounded text-xs mt-1 border border-red-200 dark:border-red-800">
+                          <div className="text-red-500 dark:text-red-400 mb-1 font-medium">错误:</div>
+                          <div className="font-mono text-red-700 dark:text-red-300 whitespace-pre-wrap">{stepData.error}</div>
                         </div>
                       )}
                     </div>

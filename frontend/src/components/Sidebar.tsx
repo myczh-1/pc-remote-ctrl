@@ -11,6 +11,11 @@ interface SidebarProps {
     lastRefreshTime?: Date | null;
     loading?: boolean;
   };
+  localStatus?: {
+    connectionStatus: 'idle' | 'connecting' | 'connected' | 'failed';
+    lastError?: string;
+    lastCheckTime?: Date | null;
+  };
   onSelectDevice?: (deviceId: string) => void;
   onConfigCloud?: () => void;
   onRefreshDevices?: () => void;
@@ -29,6 +34,11 @@ interface SidebarContentProps {
     lastRefreshTime?: Date | null;
     loading?: boolean;
   };
+  localStatus?: {
+    connectionStatus: 'idle' | 'connecting' | 'connected' | 'failed';
+    lastError?: string;
+    lastCheckTime?: Date | null;
+  };
   onSelectDevice?: (deviceId: string) => void;
   onConfigCloud?: () => void;
   onRefreshDevices?: () => void;
@@ -37,7 +47,7 @@ interface SidebarContentProps {
 }
 
 /** 侧边栏内容（桌面与移动端复用，避免重复 JSX） */
-export function SidebarContent({ devices, selectedDeviceId, cloudStatus, onSelectDevice, onConfigCloud, onRefreshDevices, onClose, showHeader = true }: SidebarContentProps) {
+export function SidebarContent({ devices, selectedDeviceId, cloudStatus, localStatus, onSelectDevice, onConfigCloud, onRefreshDevices, onClose, showHeader = true }: SidebarContentProps) {
   const prefersReduced = useReducedMotion();
   const listItemTransition = useMemo(() => (
     prefersReduced ? { duration: 0 } : { duration: 0.18, ease: [0.22, 1, 0.36, 1] as any }
@@ -78,16 +88,24 @@ export function SidebarContent({ devices, selectedDeviceId, cloudStatus, onSelec
                 <div className="text-xs dark:text-slate-400">云端状态</div>
                 <div className="flex items-center gap-1">
                   {onRefreshDevices && (
-                    <button
+                    <motion.button
                       onClick={onRefreshDevices}
                       disabled={cloudStatus.loading}
-                      className="text-xs text-slate-400 hover:text-slate-200 p-1 rounded hover:bg-white/5 disabled:opacity-50"
+                      className="text-xs text-slate-400 hover:text-slate-200 p-1 rounded hover:bg-white/5 disabled:opacity-50 transition-colors"
                       title="刷新设备列表"
+                      whileTap={{ scale: 0.95 }}
+                      whileHover={{ scale: 1.05 }}
+                      animate={cloudStatus.loading ? { rotate: 360 } : { rotate: 0 }}
+                      transition={{
+                        rotate: cloudStatus.loading
+                          ? { duration: 1, repeat: Infinity, ease: "linear" }
+                          : { duration: 0.2 }
+                      }}
                     >
-                      <svg className={`w-3 h-3 ${cloudStatus.loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                       </svg>
-                    </button>
+                    </motion.button>
                   )}
                   {onConfigCloud && (
                     <button
@@ -128,12 +146,83 @@ export function SidebarContent({ devices, selectedDeviceId, cloudStatus, onSelec
             </div>
           )}
 
+          {/* 本地连接状态 */}
+          {localStatus && (
+            <div className="mb-3 p-2 rounded-lg dark:bg-slate-800/40">
+              <div className="flex items-center justify-between mb-1">
+                <div className="text-xs dark:text-slate-400">本地状态</div>
+                <div className="flex items-center gap-1">
+                  <motion.button
+                    onClick={() => {
+                      // 本地模式下，onRefreshDevices 实际上是 localConnection.refreshConnection
+                      if (onRefreshDevices) onRefreshDevices()
+                    }}
+                    className="text-xs text-slate-400 hover:text-slate-200 p-1 rounded hover:bg-white/5 transition-colors"
+                    title="检查本地连接"
+                    whileTap={{ scale: 0.95 }}
+                    whileHover={{ scale: 1.05 }}
+                    animate={localStatus.connectionStatus === 'connecting' ? { rotate: 360 } : { rotate: 0 }}
+                    transition={{
+                      rotate: localStatus.connectionStatus === 'connecting'
+                        ? { duration: 1, repeat: Infinity, ease: "linear" }
+                        : { duration: 0.2 }
+                    }}
+                  >
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                  </motion.button>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className={`w-2 h-2 rounded-full ${
+                  localStatus.connectionStatus === 'connected' ? 'bg-green-500' :
+                  localStatus.connectionStatus === 'connecting' ? 'bg-yellow-500 animate-pulse' :
+                  localStatus.connectionStatus === 'failed' ? 'bg-red-500' : 'bg-gray-500'
+                }`}></span>
+                <span className="text-xs dark:text-slate-300">
+                  {localStatus.connectionStatus === 'connected' ? '本地服务已连接' :
+                   localStatus.connectionStatus === 'connecting' ? '检查连接中...' :
+                   localStatus.connectionStatus === 'failed' ? '本地服务离线' : '未检查'}
+                </span>
+              </div>
+              {localStatus.lastError && (
+                <div className="mt-1 text-xs text-red-400 break-words">
+                  {localStatus.lastError}
+                </div>
+              )}
+              {localStatus.lastCheckTime && (
+                <div className="mt-1 text-xs text-slate-500">
+                  检查: {localStatus.lastCheckTime.toLocaleTimeString()}
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="flex items-center justify-between px-2 mb-2">
             <div className="text-xs uppercase tracking-wider text-slate-400">设备</div>
           </div>
           <ul className="flex flex-col gap-2">
-            <AnimatePresence initial={false}>
-              {devices.map(d => (
+            {cloudStatus?.loading && devices.length === 0 ? (
+              // 设备加载中的骨架屏
+              <div className="space-y-2">
+                {[1, 2, 3].map((i) => (
+                  <motion.div
+                    key={`skeleton-${i}`}
+                    className="flex items-center gap-2 p-2 rounded-lg bg-slate-100 dark:bg-slate-800/40"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.1 }}
+                  >
+                    <div className="w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-600 animate-pulse"></div>
+                    <div className="h-3 bg-slate-300 dark:bg-slate-600 rounded animate-pulse flex-1"></div>
+                    <div className="w-12 h-3 bg-slate-300 dark:bg-slate-600 rounded animate-pulse"></div>
+                  </motion.div>
+                ))}
+              </div>
+            ) : (
+              <AnimatePresence initial={false}>
+                {devices.map(d => (
                   <motion.li
                       key={d.id}
                       layout
@@ -152,15 +241,21 @@ export function SidebarContent({ devices, selectedDeviceId, cloudStatus, onSelec
                       disabled={!d.online}
                     >
                       <span className={`status-dot ${d.online ? 'status-on' : 'status-off'}`} />
-                      <span className="font-medium">{d.name}</span>
-                      <span className="ml-auto text-xs text-slate-400">{d.online ? '在线' : '离线'}</span>
+                      <span
+                        className="font-medium truncate flex-1 text-left"
+                        title={d.name.length > 16 ? d.name : undefined}
+                      >
+                        {d.name}
+                      </span>
+                      <span className="ml-2 text-xs text-slate-400 flex-shrink-0">{d.online ? '在线' : '离线'}</span>
                       {selectedDeviceId === d.id && (
                         <span className="w-2 h-2 bg-prime-500 rounded-full"></span>
                       )}
                     </button>
                   </motion.li>
               ))}
-            </AnimatePresence>
+              </AnimatePresence>
+            )}
           </ul>
         </div>
 
@@ -178,7 +273,7 @@ export function SidebarContent({ devices, selectedDeviceId, cloudStatus, onSelec
   );
 }
 
-export function Sidebar({ devices, selectedDeviceId, cloudStatus, onSelectDevice, onConfigCloud, onRefreshDevices, isOpen = false, onClose, onToggleMode, mobileFullWidth = false }: SidebarProps) {
+export function Sidebar({ devices, selectedDeviceId, cloudStatus, localStatus, onSelectDevice, onConfigCloud, onRefreshDevices, isOpen = false, onClose, onToggleMode, mobileFullWidth = false }: SidebarProps) {
   const prefersReduced = useReducedMotion();
   const collapseWidth = 56;
   const expandedWidth = 280;
@@ -250,6 +345,7 @@ export function Sidebar({ devices, selectedDeviceId, cloudStatus, onSelectDevice
               devices={devices}
               selectedDeviceId={selectedDeviceId}
               cloudStatus={cloudStatus}
+              localStatus={localStatus}
               onSelectDevice={onSelectDevice}
               onConfigCloud={onConfigCloud}
               onRefreshDevices={onRefreshDevices}
@@ -327,6 +423,7 @@ export function Sidebar({ devices, selectedDeviceId, cloudStatus, onSelectDevice
               devices={devices}
               selectedDeviceId={selectedDeviceId}
               cloudStatus={cloudStatus}
+              localStatus={localStatus}
               onSelectDevice={onSelectDevice}
               onConfigCloud={onConfigCloud}
               onRefreshDevices={onRefreshDevices}

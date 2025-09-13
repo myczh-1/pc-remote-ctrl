@@ -33,12 +33,16 @@ export function WorkflowList({
         const isExecuting = executingWorkflowId === commandSet.commandId
         
         return (
-          <motion.div 
-            key={commandSet.commandId} 
+          <motion.div
+            key={commandSet.commandId}
             className={`card rounded-2xl p-4 card-hover ${isExecuting ? 'ring-2 ring-yellow-400/50' : ''}`}
             initial={{ opacity: 0, y: 20, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-      
+            transition={{
+              duration: 0.3,
+              delay: _index * 0.05,
+              ease: [0.22, 1, 0.36, 1]
+            }}
           >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
@@ -98,8 +102,8 @@ export function WorkflowList({
               <div className="space-y-1">
                 {(commandSet.commandScripts || []).slice(0, 3).map((script, _index) => (
                   <div key={_index} className="flex items-start gap-2">
-                    <span className="text-xs text-slate-500 mt-0.5 w-4">{_index + 1}</span>
-                    <code className="text-sm break-words bg-black/5 dark:bg-slate-800/30 text-slate-900 dark:text-slate-200 px-1 rounded">{script}</code>
+                    <span className="text-xs text-slate-500 mt-0.5 w-4 font-mono">{_index + 1}</span>
+                    <code className="text-sm font-mono break-words bg-black/5 dark:bg-slate-800/30 text-slate-900 dark:text-slate-200 px-2 py-0.5 rounded border border-black/5 dark:border-slate-700/50">{script}</code>
                   </div>
                 ))}
                 {(commandSet.commandScripts?.length || 0) > 3 && (
