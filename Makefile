@@ -67,14 +67,11 @@ proto-clean:
 
 # ---------- Build / Dev ----------
 build-backend: proto-gen
-	@echo "Building backend..."
-	cd $(BACKEND_DIR) && go build -o ../bin/pc-remote-ctrl .
+	@echo "Building unified backend..."
+	@mkdir -p bin
+	go build -o bin/pc-remote-ctrl $(BACKEND_DIR)/real_grpc_server.go
 
-# Build agent binary (backend/cmd/agent)
-build-agent: proto-gen
-	@echo "Building agent..."
-	@mkdir -p $(BACKEND_DIR)/.gocache
-	cd $(BACKEND_DIR)/cmd/agent && GOCACHE=$(CURDIR)/$(BACKEND_DIR)/.gocache go build -o ../../../bin/pc-remote-agent .
+# Removed build-agent - now using unified backend
 
 build-frontend: proto-gen
 	@echo "Building frontend..."
@@ -83,8 +80,8 @@ build-frontend: proto-gen
 build: build-backend build-frontend
 
 dev-backend: proto-gen
-	@echo "Starting backend in development mode..."
-	cd $(BACKEND_DIR) && go run .
+	@echo "Starting backend in development mode (local only)..."
+	go run $(BACKEND_DIR)/real_grpc_server.go
 
 dev-frontend:
 	@echo "Starting frontend in development mode..."
@@ -95,10 +92,15 @@ dev-cloud: proto-gen
 	@echo "Starting cloud middleware in development mode..."
 	cd $(CLOUD_DIR) && go run ./cmd/server
 
-# Run agent that connects to cloud middleware
+# Run unified backend with cloud connection enabled (cloud only)
 dev-agent: proto-gen
-	@echo "Starting agent in development mode..."
-	cd $(BACKEND_DIR)/cmd/agent && go run .
+	@echo "Starting unified backend with cloud connection..."
+	CLOUD_ADDR=localhost:7073 go run $(BACKEND_DIR)/real_grpc_server.go
+
+# Run unified backend with both local and cloud enabled
+dev-unified: proto-gen
+	@echo "Starting unified backend (local + cloud)..."
+	CLOUD_ADDR=localhost:7073 go run $(BACKEND_DIR)/real_grpc_server.go
 
 install:
 	@echo "Installing dependencies..."
@@ -120,10 +122,11 @@ help:
 	@echo "  build-backend   - Build Go backend"
 	@echo "  build-frontend  - Build React frontend"
 	@echo "  build           - Build both backend and frontend"
-	@echo "  dev-backend     - Run backend in development mode"
+	@echo "  dev-backend     - Run unified backend (local mode only)"
 	@echo "  dev-frontend    - Run frontend in development mode"
 	@echo "  dev-cloud       - Run cloud middleware in development mode"
-	@echo "  dev-agent       - Run agent in development mode (connects to cloud)"
+	@echo "  dev-agent       - Run unified backend with cloud connection"
+	@echo "  dev-unified     - Run unified backend (local + cloud modes)"
 	@echo "  install         - Install all dependencies"
 	@echo "  clean           - Clean all build artifacts"
 	@echo "  help            - Show this help message"

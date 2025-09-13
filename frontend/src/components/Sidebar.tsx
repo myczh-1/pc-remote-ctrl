@@ -11,7 +11,6 @@ interface SidebarProps {
     lastRefreshTime?: Date | null;
     loading?: boolean;
   };
-  onAddDevice?: () => void;
   onSelectDevice?: (deviceId: string) => void;
   onConfigCloud?: () => void;
   onRefreshDevices?: () => void;
@@ -30,7 +29,6 @@ interface SidebarContentProps {
     lastRefreshTime?: Date | null;
     loading?: boolean;
   };
-  onAddDevice?: () => void;
   onSelectDevice?: (deviceId: string) => void;
   onConfigCloud?: () => void;
   onRefreshDevices?: () => void;
@@ -39,7 +37,7 @@ interface SidebarContentProps {
 }
 
 /** 侧边栏内容（桌面与移动端复用，避免重复 JSX） */
-export function SidebarContent({ devices, selectedDeviceId, cloudStatus, onAddDevice, onSelectDevice, onConfigCloud, onRefreshDevices, onClose, showHeader = true }: SidebarContentProps) {
+export function SidebarContent({ devices, selectedDeviceId, cloudStatus, onSelectDevice, onConfigCloud, onRefreshDevices, onClose, showHeader = true }: SidebarContentProps) {
   const prefersReduced = useReducedMotion();
   const listItemTransition = useMemo(() => (
     prefersReduced ? { duration: 0 } : { duration: 0.18, ease: [0.22, 1, 0.36, 1] as any }
@@ -180,7 +178,7 @@ export function SidebarContent({ devices, selectedDeviceId, cloudStatus, onAddDe
   );
 }
 
-export function Sidebar({ devices, selectedDeviceId, cloudStatus, onAddDevice, onSelectDevice, onConfigCloud, onRefreshDevices, isOpen = false, onClose, onToggleMode, mobileFullWidth = false }: SidebarProps) {
+export function Sidebar({ devices, selectedDeviceId, cloudStatus, onSelectDevice, onConfigCloud, onRefreshDevices, isOpen = false, onClose, onToggleMode, mobileFullWidth = false }: SidebarProps) {
   const prefersReduced = useReducedMotion();
   const collapseWidth = 56;
   const expandedWidth = 280;
@@ -252,7 +250,6 @@ export function Sidebar({ devices, selectedDeviceId, cloudStatus, onAddDevice, o
               devices={devices}
               selectedDeviceId={selectedDeviceId}
               cloudStatus={cloudStatus}
-              onAddDevice={onAddDevice}
               onSelectDevice={onSelectDevice}
               onConfigCloud={onConfigCloud}
               onRefreshDevices={onRefreshDevices}
@@ -330,7 +327,6 @@ export function Sidebar({ devices, selectedDeviceId, cloudStatus, onAddDevice, o
               devices={devices}
               selectedDeviceId={selectedDeviceId}
               cloudStatus={cloudStatus}
-              onAddDevice={onAddDevice}
               onSelectDevice={onSelectDevice}
               onConfigCloud={onConfigCloud}
               onRefreshDevices={onRefreshDevices}

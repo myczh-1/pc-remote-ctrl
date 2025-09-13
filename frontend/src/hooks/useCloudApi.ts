@@ -3,7 +3,7 @@ import { GrpcWebFetchTransport } from '@protobuf-ts/grpcweb-transport'
 import { DeviceRegistryServiceClient } from '../proto/cloud/device.client'
 import type { DeviceInfo } from '../proto/cloud/device'
 import { GatewayServiceClient } from '../proto/cloud/gateway.client'
-import type { ExecuteCommandSetResponse } from '../proto/remote_control'
+import type { ExecuteCommandSetResponse, GetAllCommandSetsResponse } from '../proto/remote_control'
 
 export interface CloudConfig {
   baseUrl: string
@@ -84,6 +84,16 @@ export function useCloudApi(config?: Partial<CloudConfig>) {
     }
   }, [])
 
+  const getCommandSetsFromDevice = useCallback(async (deviceId: string) => {
+    try {
+      const res = await gatewayClientRef.current.listDeviceCommandSets({ deviceId, request: {} }).response
+      return { success: true, response: res as GetAllCommandSetsResponse }
+    } catch (err: any) {
+      console.error('GetCommandSetsFromDevice error:', err)
+      return { success: false, error: String(err?.message ?? err) }
+    }
+  }, [])
+
   const updateConfig = useCallback((newConfig: Partial<CloudConfig>) => {
     if (newConfig.baseUrl) {
       setBaseUrl(newConfig.baseUrl)
@@ -97,6 +107,7 @@ export function useCloudApi(config?: Partial<CloudConfig>) {
     refreshDevices,
     executing,
     executeOnDevice,
+    getCommandSetsFromDevice,
     updateConfig,
     connectionStatus,
     lastError,

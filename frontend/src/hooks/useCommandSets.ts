@@ -12,7 +12,7 @@ import type {
 const transport = new GrpcWebFetchTransport({ baseUrl: '/api' })
 const client = new ControllerServiceClient(transport)
 
-const STORAGE_KEY = 'lazy-ctrl-command-sets'
+// Removed localStorage dependency - only use backend data
 
 export function useCommandSets(options?: { autoSync?: boolean }) {
   const [commandSets, setCommandSets] = useState<CommandSet[]>([])
@@ -42,30 +42,21 @@ export function useCommandSets(options?: { autoSync?: boolean }) {
     }
   }, [])
 
-  // 初始化时从本地存储加载；可选地再从服务器同步
+  // 初始化时清理旧的localStorage数据并只从服务器加载
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY)
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored)
-        const setsWithDates = parsed.map((cs: any) => ({
-          ...cs,
-          created: new Date(cs.created)
-        })).filter((cs: any) => cs.commandScripts) // 只保留有commandScripts的数据
-        setCommandSets(setsWithDates)
-      } catch (error) {
-        console.error('Failed to parse stored command sets:', error)
-      }
+    // 清理旧的localStorage缓存
+    try {
+      localStorage.removeItem('lazy-ctrl-command-sets')
+    } catch (error) {
+      console.warn('Failed to clear old localStorage:', error)
     }
-    // 根据配置选择是否从服务器加载
+
     if (options?.autoSync !== false) {
       loadFromServer()
     }
-  }, [options?.autoSync])
+  }, [options?.autoSync, loadFromServer])
 
-  const saveToStorage = useCallback((commandSets: CommandSet[]) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(commandSets))
-  }, [])
+  // Removed localStorage saving - backend is source of truth
 
   const createCommandSet = useCallback(async (commandSet: Omit<CommandSet, 'commandId' | 'created'>) => {
     const newCommandSet: CommandSet = {
@@ -90,7 +81,6 @@ export function useCommandSets(options?: { autoSync?: boolean }) {
         // 服务器保存成功，更新本地状态
         setCommandSets(prev => {
           const updated = [...prev, newCommandSet]
-          saveToStorage(updated)
           return updated
         })
         return { success: true, commandSet: newCommandSet, message: response.message }
@@ -102,7 +92,7 @@ export function useCommandSets(options?: { autoSync?: boolean }) {
     } finally {
       setLoading(false)
     }
-  }, [saveToStorage])
+  }, [])
 
   const updateCommandSet = useCallback(async (id: string, updates: Partial<Omit<CommandSet, 'commandId' | 'created'>>) => {
     const existing = commandSets.find(cs => cs.commandId === id)
@@ -130,7 +120,6 @@ export function useCommandSets(options?: { autoSync?: boolean }) {
           const updated = prev.map(commandSet =>
             commandSet.commandId === id ? updatedCommandSet : commandSet
           )
-          saveToStorage(updated)
           return updated
         })
         return { success: true, message: response.message }
@@ -142,7 +131,7 @@ export function useCommandSets(options?: { autoSync?: boolean }) {
     } finally {
       setLoading(false)
     }
-  }, [commandSets, saveToStorage])
+  }, [commandSets])
 
   const deleteCommandSet = useCallback(async (id: string) => {
     setLoading(true)
@@ -158,7 +147,6 @@ export function useCommandSets(options?: { autoSync?: boolean }) {
         // 后端删除成功，更新本地状态
         setCommandSets(prev => {
           const updated = prev.filter(commandSet => commandSet.commandId !== id)
-          saveToStorage(updated)
           return updated
         })
         return { success: true, message: response.message }
@@ -170,7 +158,7 @@ export function useCommandSets(options?: { autoSync?: boolean }) {
     } finally {
       setLoading(false)
     }
-  }, [saveToStorage])
+  }, [])
 
   const getCommandSet = useCallback((id: string) => {
     return commandSets.find(commandSet => commandSet.commandId === id)
@@ -216,6 +204,11 @@ export function useCommandSets(options?: { autoSync?: boolean }) {
     setCommandSets([])
   }, [])
 
+  // 直接设置命令集状态（用于云端模式）
+  const setCommandSetsDirectly = useCallback((newCommandSets: CommandSet[]) => {
+    setCommandSets(newCommandSets)
+  }, [])
+
   return {
     commandSets,
     loading,
@@ -226,6 +219,7 @@ export function useCommandSets(options?: { autoSync?: boolean }) {
     createCompositeCommandSet,
     duplicateCommandSet,
     loadFromServer,
-    clearCommandSets
+    clearCommandSets,
+    setCommandSetsDirectly
   }
 }

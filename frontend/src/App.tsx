@@ -34,7 +34,8 @@ export default function App() {
         deleteCommandSet,
         duplicateCommandSet,
         loadFromServer,
-        clearCommandSets
+        clearCommandSets,
+        setCommandSetsDirectly
     } = useCommandSets({autoSync: mode === 'local'})
     const {logInfo, logError, logSuccess, clearLog, entries} = useLogger()
     const {execution, executeCommandSet, clearExecution, stopExecution, isRunning} = useCommandSetExecution()
@@ -63,11 +64,18 @@ export default function App() {
     // removed sample creation button and related logic
 
     const handleListAllCommandSets = async () => {
-        // 在云端模式下，刷新设备列表；本地模式刷新命令集
+        // 在云端模式下，刷新设备列表并获取选中设备的命令集；本地模式刷新命令集
         if (mode === 'cloud') {
             const r = await cloud.refreshDevices()
             if (r.success) {
                 logInfo(`云端设备: ${r.count} 台`)
+
+                // 如果有选中的设备，获取其命令集
+                if (selectedDeviceId) {
+                    await loadCommandSetsForDevice(selectedDeviceId)
+                } else {
+                    logInfo('请先选择一个设备查看其命令集')
+                }
             } else {
                 logError(`刷新设备失败: ${r.error}`)
             }
@@ -149,6 +157,38 @@ export default function App() {
         setTimeout(() => cloud.refreshDevices(), 100)
     }
 
+    const handleSelectDevice = async (deviceId: string) => {
+        const prevDeviceId = selectedDeviceId
+        setSelectedDeviceId(deviceId)
+
+        // 只有在设备真正改变时才加载命令集
+        if (mode === 'cloud' && deviceId && deviceId !== prevDeviceId) {
+            await loadCommandSetsForDevice(deviceId)
+        }
+    }
+
+    // 提取命令集加载逻辑，避免重复代码
+    const loadCommandSetsForDevice = async (deviceId: string) => {
+        const cmdResult = await cloud.getCommandSetsFromDevice(deviceId)
+        if (cmdResult.success && cmdResult.response?.commandSets) {
+            // 直接设置从云端获取的命令集，避免重复的服务器调用和渲染
+            const cloudCommandSets: CommandSet[] = cmdResult.response.commandSets.map(cs => ({
+                commandId: cs.commandSetId || crypto.randomUUID(),
+                commandName: cs.commandSetName || '',
+                commandScripts: cs.commandScripts || [],
+                description: cs.description || '',
+                isComposite: false,
+                created: new Date()
+            }))
+
+            // 直接设置状态，一次性完成
+            setCommandSetsDirectly(cloudCommandSets)
+            logInfo(`已加载设备 ${deviceId} 的命令集: ${cloudCommandSets.length} 个`)
+        } else {
+            clearCommandSets()
+            logError(`获取设备 ${deviceId} 的命令集失败: ${cmdResult.error || '未知错误'}`)
+        }
+    }
 
     const handleExecuteCommandSet2 = async (commandSet: CommandSet) => {
         if (mode === 'local') {
@@ -282,8 +322,7 @@ export default function App() {
                     devices={sidebarDevices}
                     selectedDeviceId={selectedDeviceId}
                     cloudStatus={mode === 'cloud' ? cloudStatus : undefined}
-                    onAddDevice={() => { /* optional hook */ }}
-                    onSelectDevice={setSelectedDeviceId}
+                    onSelectDevice={handleSelectDevice}
                     onConfigCloud={handleConfigCloud}
                     onRefreshDevices={cloud.refreshDevices}
                     onClose={() => { setMobileDrawerOpen(false); setMobileSidebarFull(false) }}
@@ -420,8 +459,7 @@ export default function App() {
                                                 devices={sidebarDevices}
                                                 selectedDeviceId={selectedDeviceId}
                                                 cloudStatus={cloudStatus}
-                                                onAddDevice={() => {}}
-                                                onSelectDevice={setSelectedDeviceId}
+                                                onSelectDevice={handleSelectDevice}
                                                 onConfigCloud={handleConfigCloud}
                                                 onRefreshDevices={cloud.refreshDevices}
                                                 onClose={() => setMobileInlineExpanded(false)}
@@ -478,7 +516,7 @@ export default function App() {
                                     onEdit={handleEditCommandSet}
                                     onDelete={handleDeleteCommandSet}
                                     onDuplicate={handleDuplicateCommandSet}
-                                    onSelectDevice={setSelectedDeviceId}
+                                    onSelectDevice={handleSelectDevice}
                                 />
                             </motion.div>
 

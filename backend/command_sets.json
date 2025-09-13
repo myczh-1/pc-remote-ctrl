@@ -1,1 +1,11 @@
-{"665ff141-485d-470f-89bd-8383759fdd57":{},"9f6e2aad-c4db-40f0-a49d-85db02cfabc3":{"command_set_id":"9f6e2aad-c4db-40f0-a49d-85db02cfabc3","command_set_name":"测试","command_scripts":["echo \"aaa\"","echo \"bbb\""],"description":"测试"}}
+{
+    "04ce3a03-4b44-4ab1-b3bf-cdf166699090": {
+        "command_set_id": "04ce3a03-4b44-4ab1-b3bf-cdf166699090",
+        "command_set_name": "测试",
+        "command_scripts": [
+            "echo \"aaa\"",
+            "echo \"bbb\""
+        ],
+        "description": "测试"
+    }
+}

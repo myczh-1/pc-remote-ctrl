@@ -29,7 +29,7 @@ export function WorkflowList({
 
   return (
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-      {workflows.map((commandSet, index) => {
+      {workflows.map((commandSet, _index) => {
         const isExecuting = executingWorkflowId === commandSet.commandId
         
         return (
@@ -96,9 +96,9 @@ export function WorkflowList({
                 <span>{commandSet.commandScripts?.length || 0} 步</span>
               </div>
               <div className="space-y-1">
-                {(commandSet.commandScripts || []).slice(0, 3).map((script, index) => (
-                  <div key={index} className="flex items-start gap-2">
-                    <span className="text-xs text-slate-500 mt-0.5 w-4">{index + 1}</span>
+                {(commandSet.commandScripts || []).slice(0, 3).map((script, _index) => (
+                  <div key={_index} className="flex items-start gap-2">
+                    <span className="text-xs text-slate-500 mt-0.5 w-4">{_index + 1}</span>
                     <code className="text-sm break-words bg-black/5 dark:bg-slate-800/30 text-slate-900 dark:text-slate-200 px-1 rounded">{script}</code>
                   </div>
                 ))}
