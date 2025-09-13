@@ -7,7 +7,6 @@ interface CommandPanelProps {
   isRunning: boolean
   execution: CommandSetExecution | null
   onRefresh: () => Promise<void>
-  onCreate: () => void
   onExecute: (commandSet: CommandSet) => Promise<void>
   onEdit: (commandSet: CommandSet) => void
   onDelete: (id: string) => void
@@ -20,7 +19,6 @@ export function CommandPanel({
   isRunning,
   execution,
   onRefresh,
-  onCreate,
   onExecute,
   onEdit,
   onDelete,

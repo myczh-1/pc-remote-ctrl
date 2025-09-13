@@ -3,7 +3,6 @@ import {useCommandSets} from './hooks/useCommandSets'
 import {useCommandSetExecution} from './hooks/useCommandSetExecution'
 import {useLogger} from './hooks/useLogger'
 import {CommandPanel} from './components/CommandPanel'
-import {ExecutionStatusPanel} from './components/ExecutionStatusPanel'
 import {EditorModal} from './components/EditorModal'
 import type {CommandSet} from './types'
 import {useCloudApi} from './hooks/useCloudApi'
@@ -36,7 +35,7 @@ export default function App() {
         loadFromServer
     } = useCommandSets({autoSync: mode === 'local'})
     const {logInfo, logError, logSuccess, clearLog, entries} = useLogger()
-    const {execution, executeCommandSet, clearExecution, isRunning} = useCommandSetExecution()
+    const {execution, executeCommandSet, clearExecution, stopExecution, isRunning} = useCommandSetExecution()
     const cloud = useCloudApi()
     const prefersReduced = useReducedMotion()
     const isUltraWide = useMediaQuery('(min-width: 1920px)')
@@ -45,8 +44,8 @@ export default function App() {
     const layoutTransition = useMemo(() => (
         prefersReduced ? { duration: 0 } : { duration: 0.32, ease: [0.22, 1, 0.36, 1] as any }
     ), [prefersReduced])
-    const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false)
-    const [mobileSidebarFull, setMobileSidebarFull] = useState(false)
+    const [_mobileDrawerOpen, setMobileDrawerOpen] = useState(false)
+    const [_mobileSidebarFull, setMobileSidebarFull] = useState(false)
     const [mobileInlineExpanded, setMobileInlineExpanded] = useState(false)
 
     const [showCommandSetEditor, setShowCommandSetEditor] = useState(false)
@@ -129,10 +128,43 @@ export default function App() {
 
     const handleExecuteCommandSet2 = async (commandSet: CommandSet) => {
         if (mode === 'local') {
-            logInfo(`开始(本地)执行: ${commandSet.commandName}`)
-            await executeCommandSet(commandSet)
+            // 记录执行开始
+            logInfo(`开始(本地)执行: ${commandSet.commandName}`, 'execution_start', {
+                commandSetName: commandSet.commandName
+            })
+            
+            const result = await executeCommandSet(commandSet)
+            
+            // 记录每个步骤的执行结果
+            if (result && execution?.stepResults) {
+                execution.stepResults.forEach((step) => {
+                    logInfo('', 'execution_step', {
+                        stepIndex: step.stepIndex,
+                        stepScript: step.stepScript,
+                        output: step.output,
+                        error: step.error,
+                        exitCode: step.exitCode,
+                        success: step.success
+                    })
+                })
+            }
+            
+            // 记录执行完成或失败
+            if (result?.success) {
+                const duration = execution?.startTime ? 
+                    Math.floor((new Date().getTime() - execution.startTime.getTime()) / 1000) + 's' : ''
+                logSuccess('', 'execution_complete', {
+                    commandSetName: commandSet.commandName,
+                    duration
+                })
+            } else {
+                logError(result?.error || '执行失败', 'execution_error', {
+                    commandSetName: commandSet.commandName
+                })
+            }
             return
         }
+        
         let targetId = selectedDeviceId
         if (!targetId) {
             // 自动选择第一个可用设备
@@ -144,32 +176,48 @@ export default function App() {
             targetId = first.deviceId
             setSelectedDeviceId(targetId)
         }
-        logInfo(`开始(云端)执行: ${commandSet.commandName} @ ${targetId}`)
+        
+        logInfo(`开始(云端)执行: ${commandSet.commandName} @ ${targetId}`, 'execution_start', {
+            commandSetName: commandSet.commandName
+        })
+        
         const r = await cloud.executeOnDevice(targetId, commandSet.commandId)
         if (!r.success) {
-            logError(`云端执行失败: ${r.error}`)
+            logError(`云端执行失败: ${r.error}`, 'execution_error', {
+                commandSetName: commandSet.commandName
+            })
             return
         }
+        
         const resp = r.response!
         if (resp.stepResults?.length) {
             for (const s of resp.stepResults) {
-                const tag = s.success ? '[OK]' : '[ERR]'
-                logInfo(`${tag} [${s.stepIndex}] ${s.stepScript}\n${s.output || s.error || ''}`)
+                logInfo('', 'execution_step', {
+                    stepIndex: s.stepIndex,
+                    stepScript: s.stepScript,
+                    output: s.output || '',
+                    error: s.error || '',
+                    exitCode: s.exitCode,
+                    success: s.success
+                })
             }
         }
-        if (resp.success) logSuccess('云端执行成功')
-        else logError(`云端执行出错: ${resp.error}`)
+        
+        if (resp.success) {
+            logSuccess('', 'execution_complete', {
+                commandSetName: commandSet.commandName
+            })
+        } else {
+            logError(`云端执行出错: ${resp.error}`, 'execution_error', {
+                commandSetName: commandSet.commandName
+            })
+        }
     }
 
     const sidebarDevices = mode === 'cloud'
         ? cloud.devices.map(d => ({id: d.deviceId, name: d.name || d.deviceId, online: d.status === 'online'}))
         : []
 
-    const consoleLogs = entries.map(e => ({
-        text: e.message,
-        type: e.level === 'success' ? 'ok' : e.level === 'error' ? 'err' : 'info' as const,
-        timestamp: e.timestamp,
-    }))
 
     type AnyEvt = MouseEvent | PointerEvent | TouchEvent | (React.SyntheticEvent & { nativeEvent?: any });
 
@@ -296,12 +344,6 @@ export default function App() {
                         onCreate={handleCreateCommandSet}
                     />
 
-                    <ExecutionStatusPanel
-                        execution={execution}
-                        onStop={() => {
-                        }}
-                        onClear={clearExecution}
-                    />
 
                     {/* 主工作区：命令集 与 控制台 上下/左右切换（≥1920 且本地模式为左右） */}
                     <div className={`p-4 md:p-6 flex-1 overflow-hidden bg-white dark:bg-surface`}>
@@ -372,7 +414,6 @@ export default function App() {
                                     isRunning={isRunning}
                                     execution={execution}
                                     onRefresh={handleListAllCommandSets}
-                                    onCreate={handleCreateCommandSet}
                                     onExecute={handleExecuteCommandSet2}
                                     onEdit={handleEditCommandSet}
                                     onDelete={handleDeleteCommandSet}
@@ -382,9 +423,12 @@ export default function App() {
 
                             <motion.div layout transition={layoutTransition} className={`${isWideLocal ? 'flex-[1] min-w-[360px] min-h-0 flex flex-col' : ''}`}>
                                 <Console
-                                    logs={consoleLogs}
+                                    logs={entries}
+                                    execution={execution}
                                     fullHeight={isWideLocal}
                                     onClear={clearLog}
+                                    onStopExecution={stopExecution}
+                                    onClearExecution={clearExecution}
                                     onCopy={() => {
                                         try {
                                             navigator.clipboard.writeText(entries.map(e => e.message).join('\n'))

@@ -39,10 +39,23 @@ export interface AppState {
   loading: boolean
 }
 
-export type LogLevel = 'info' | 'error' | 'success'
+export type LogLevel = 'info' | 'error' | 'success' | 'execution_start' | 'execution_step' | 'execution_complete' | 'execution_error'
 
 export interface LogEntry {
   level: LogLevel
   message: string
   timestamp: Date
+  // 执行相关的扩展数据
+  executionData?: {
+    commandSetName?: string
+    stepIndex?: number
+    stepScript?: string
+    output?: string
+    error?: string
+    exitCode?: number
+    success?: boolean
+    duration?: string
+    currentStep?: number
+    totalSteps?: number
+  }
 }

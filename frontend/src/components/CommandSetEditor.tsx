@@ -41,33 +41,14 @@ export function CommandSetEditor({ commandSet, onSave, onCancel }: CommandSetEdi
   const canSave = name.trim() && scripts.some(script => script.trim())
 
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 1000
-    }}>
-      <div style={{
-        backgroundColor: 'white',
-        borderRadius: '8px',
-        padding: '24px',
-        minWidth: '500px',
-        maxWidth: '80vw',
-        maxHeight: '80vh',
-        overflowY: 'auto'
-      }}>
-        <h2 style={{ margin: '0 0 20px 0' }}>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000]">
+      <div className="bg-white dark:bg-surface border border-black/10 dark:border-white/10 rounded-lg p-6 min-w-[500px] max-w-[80vw] max-h-[80vh] overflow-y-auto shadow-xl">
+        <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-5">
           {commandSet ? '编辑命令集' : '创建命令集'}
         </h2>
 
-        <div style={{ marginBottom: '16px' }}>
-          <label style={{ display: 'block', marginBottom: '4px', fontWeight: 'bold' }}>
+        <div className="mb-4">
+          <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">
             命令集名称 *
           </label>
           <input
@@ -75,18 +56,12 @@ export function CommandSetEditor({ commandSet, onSave, onCancel }: CommandSetEdi
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="输入命令集名称"
-            style={{
-              width: '100%',
-              padding: '8px',
-              border: '1px solid #ddd',
-              borderRadius: '4px',
-              fontSize: '14px'
-            }}
+            className="w-full px-3 py-2 border border-slate-300 dark:border-white/10 rounded-md bg-white dark:bg-surface-soft text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:ring-2 focus:ring-prime-500 focus:border-prime-500 dark:focus:ring-prime-400 dark:focus:border-prime-400"
           />
         </div>
 
-        <div style={{ marginBottom: '16px' }}>
-          <label style={{ display: 'block', marginBottom: '4px', fontWeight: 'bold' }}>
+        <div className="mb-4">
+          <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">
             描述
           </label>
           <textarea
@@ -94,14 +69,7 @@ export function CommandSetEditor({ commandSet, onSave, onCancel }: CommandSetEdi
             onChange={(e) => setDescription(e.target.value)}
             placeholder="输入命令集描述"
             rows={3}
-            style={{
-              width: '100%',
-              padding: '8px',
-              border: '1px solid #ddd',
-              borderRadius: '4px',
-              fontSize: '14px',
-              resize: 'vertical'
-            }}
+            className="w-full px-3 py-2 border border-slate-300 dark:border-white/10 rounded-md bg-white dark:bg-surface-soft text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 text-sm resize-y focus:ring-2 focus:ring-prime-500 focus:border-prime-500 dark:focus:ring-prime-400 dark:focus:border-prime-400"
           />
         </div>
 
@@ -110,34 +78,21 @@ export function CommandSetEditor({ commandSet, onSave, onCancel }: CommandSetEdi
           onScriptsChange={setScripts}
         />
 
-        <div style={{
-          display: 'flex',
-          gap: '8px',
-          justifyContent: 'flex-end'
-        }}>
+        <div className="flex gap-2 justify-end mt-6">
           <button
             onClick={onCancel}
-            style={{
-              padding: '8px 16px',
-              border: '1px solid #ccc',
-              backgroundColor: 'white',
-              borderRadius: '4px',
-              cursor: 'pointer'
-            }}
+            className="px-4 py-2 border border-slate-300 dark:border-white/20 bg-white dark:bg-surface-soft text-slate-700 dark:text-slate-300 rounded-md text-sm hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
           >
             取消
           </button>
           <button
             onClick={handleSave}
             disabled={!canSave}
-            style={{
-              padding: '8px 16px',
-              border: 'none',
-              backgroundColor: canSave ? '#007bff' : '#ccc',
-              color: 'white',
-              borderRadius: '4px',
-              cursor: canSave ? 'pointer' : 'not-allowed'
-            }}
+            className={`px-4 py-2 rounded-md text-sm text-white transition-colors ${
+              canSave 
+                ? 'bg-prime-500 hover:bg-prime-600 dark:bg-prime-600 dark:hover:bg-prime-700' 
+                : 'bg-slate-400 dark:bg-slate-600 cursor-not-allowed'
+            }`}
           >
             保存
           </button>

@@ -5,11 +5,12 @@ export function useLogger() {
   const [log, setLog] = useState('')
   const [entries, setEntries] = useState<LogEntry[]>([])
 
-  const addLog = useCallback((message: string, level: LogLevel = 'info') => {
+  const addLog = useCallback((message: string, level: LogLevel = 'info', executionData?: LogEntry['executionData']) => {
     const entry: LogEntry = {
       level,
       message,
-      timestamp: new Date()
+      timestamp: new Date(),
+      executionData
     }
     
     setEntries(prev => [...prev, entry])
@@ -21,9 +22,12 @@ export function useLogger() {
     setEntries([])
   }, [])
 
-  const logSuccess = useCallback((message: string) => addLog(message, 'success'), [addLog])
-  const logError = useCallback((message: string) => addLog(message, 'error'), [addLog])
-  const logInfo = useCallback((message: string) => addLog(message, 'info'), [addLog])
+  const logSuccess = useCallback((message: string, level: LogLevel = 'success', executionData?: LogEntry['executionData']) => 
+    addLog(message, level, executionData), [addLog])
+  const logError = useCallback((message: string, level: LogLevel = 'error', executionData?: LogEntry['executionData']) => 
+    addLog(message, level, executionData), [addLog])
+  const logInfo = useCallback((message: string, level: LogLevel = 'info', executionData?: LogEntry['executionData']) => 
+    addLog(message, level, executionData), [addLog])
 
   return {
     log,

@@ -1,3 +1,4 @@
+import { motion } from 'motion/react'
 import type { CommandSet } from '../types'
 
 interface WorkflowListProps {
@@ -28,11 +29,21 @@ export function WorkflowList({
 
   return (
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-      {workflows.map((commandSet) => {
+      {workflows.map((commandSet, index) => {
         const isExecuting = executingWorkflowId === commandSet.commandId
         
         return (
-          <div key={commandSet.commandId} className={`card rounded-2xl p-4 card-hover ${isExecuting ? 'ring-2 ring-yellow-400/50' : ''}`}>
+          <motion.div 
+            key={commandSet.commandId} 
+            className={`card rounded-2xl p-4 card-hover ${isExecuting ? 'ring-2 ring-yellow-400/50' : ''}`}
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ 
+              duration: 0.4,
+              delay: index * 0.1,
+              ease: [0.25, 0.46, 0.45, 0.94]
+            }}
+          >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
@@ -73,7 +84,7 @@ export function WorkflowList({
                   复制
                 </button>
                 <button
-                  className="px-3 py-1.5 text-sm rounded-lg border border-red-400/30 text-red-300 bg-red-900/20 hover:bg-red-900/30"
+                  className="px-3 py-1.5 text-sm rounded-lg border border-red-400/30 text-white bg-red-500 hover:bg-red-500"
                   onClick={() => onDeleteWorkflow(commandSet.commandId)}
                   disabled={isExecuting}
                   title="删除命令集"
@@ -100,7 +111,7 @@ export function WorkflowList({
                 )}
               </div>
             </div>
-          </div>
+          </motion.div>
         )
       })}
     </div>
