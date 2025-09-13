@@ -212,6 +212,10 @@ export function useCommandSets(options?: { autoSync?: boolean }) {
     })
   }, [getCommandSet, createCommandSet])
 
+  const clearCommandSets = useCallback(() => {
+    setCommandSets([])
+  }, [])
+
   return {
     commandSets,
     loading,
@@ -221,6 +225,7 @@ export function useCommandSets(options?: { autoSync?: boolean }) {
     getCommandSet,
     createCompositeCommandSet,
     duplicateCommandSet,
-    loadFromServer
+    loadFromServer,
+    clearCommandSets
   }
 }

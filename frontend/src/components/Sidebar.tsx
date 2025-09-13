@@ -4,7 +4,9 @@ import { motion, AnimatePresence, useReducedMotion } from "motion/react";
 interface Device { id: string; name: string; online: boolean }
 interface SidebarProps {
   devices: Device[];
-  onAddDevice?: () => void;
+  selectedDeviceId?: string;
+  onSelectDevice?: (deviceId: string) => void;
+  onConfigCloud?: () => void;
   isOpen?: boolean;          // 云端模式开关：桌面展开/移动端抽屉
   onClose?: () => void;      // 点击蒙层/ESC 关闭（移动端）
   onToggleMode?: () => void; // 折叠态图标点击，切换本地/云端
@@ -13,13 +15,15 @@ interface SidebarProps {
 
 interface SidebarContentProps {
   devices: Device[];
-  onAddDevice?: () => void;
+  selectedDeviceId?: string;
+  onSelectDevice?: (deviceId: string) => void;
+  onConfigCloud?: () => void;
   onClose?: () => void;
   showHeader?: boolean;
 }
 
 /** 侧边栏内容（桌面与移动端复用，避免重复 JSX） */
-export function SidebarContent({ devices, onAddDevice, onClose, showHeader = true }: SidebarContentProps) {
+export function SidebarContent({ devices, selectedDeviceId, onSelectDevice, onConfigCloud, onClose, showHeader = true }: SidebarContentProps) {
   const prefersReduced = useReducedMotion();
   const listItemTransition = useMemo(() => (
     prefersReduced ? { duration: 0 } : { duration: 0.18, ease: [0.22, 1, 0.36, 1] as any }
@@ -53,7 +57,21 @@ export function SidebarContent({ devices, onAddDevice, onClose, showHeader = tru
         )}
 
         <div className="mt-2 w-full">
-          <div className="text-xs uppercase tracking-wider text-slate-400 px-2 mb-2">设备</div>
+          <div className="flex items-center justify-between px-2 mb-2">
+            <div className="text-xs uppercase tracking-wider text-slate-400">设备</div>
+            {onConfigCloud && (
+              <button
+                onClick={onConfigCloud}
+                className="text-xs text-slate-400 hover:text-slate-200 p-1 rounded hover:bg-white/5"
+                title="配置云端服务器"
+              >
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </button>
+            )}
+          </div>
           <ul className="flex flex-col gap-2">
             <AnimatePresence initial={false}>
               {devices.map(d => (
@@ -65,25 +83,26 @@ export function SidebarContent({ devices, onAddDevice, onClose, showHeader = tru
                       exit={{ opacity: 0, y: 8 }}
                       transition={listItemTransition}
                   >
-                    <button className="card card-hover w-full text-left rounded-xl px-3 py-2.5 border flex items-center gap-3">
+                    <button 
+                      className={`card card-hover w-full text-left rounded-xl px-3 py-2.5 border flex items-center gap-3 transition-colors ${
+                        selectedDeviceId === d.id 
+                          ? 'bg-prime-50 dark:bg-prime-900/20 border-prime-200 dark:border-prime-700' 
+                          : ''
+                      }`}
+                      onClick={() => onSelectDevice?.(d.id)}
+                      disabled={!d.online}
+                    >
                       <span className={`status-dot ${d.online ? 'status-on' : 'status-off'}`} />
                       <span className="font-medium">{d.name}</span>
                       <span className="ml-auto text-xs text-slate-400">{d.online ? '在线' : '离线'}</span>
+                      {selectedDeviceId === d.id && (
+                        <span className="w-2 h-2 bg-prime-500 rounded-full"></span>
+                      )}
                     </button>
                   </motion.li>
               ))}
             </AnimatePresence>
           </ul>
-
-          <button
-              onClick={onAddDevice}
-              className="mt-3 w-full inline-flex items-center justify-center gap-2 rounded-xl bg-slate-800/60 hover:bg-slate-700/60 border border-white/5 py-2 text-sm"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            添加设备
-          </button>
         </div>
 
         <div className="mt-auto grid grid-cols-2 gap-2 w-full">
@@ -100,7 +119,7 @@ export function SidebarContent({ devices, onAddDevice, onClose, showHeader = tru
   );
 }
 
-export function Sidebar({ devices, onAddDevice, isOpen = false, onClose, onToggleMode, mobileFullWidth = false }: SidebarProps) {
+export function Sidebar({ devices, selectedDeviceId, onAddDevice, onSelectDevice, onConfigCloud, isOpen = false, onClose, onToggleMode, mobileFullWidth = false }: SidebarProps) {
   const prefersReduced = useReducedMotion();
   const collapseWidth = 56;
   const expandedWidth = 280;
@@ -168,7 +187,14 @@ export function Sidebar({ devices, onAddDevice, isOpen = false, onClose, onToggl
                   }}
                   role="dialog" aria-modal
               >
-            <SidebarContent devices={devices} onAddDevice={onAddDevice} onClose={onClose} />
+            <SidebarContent 
+              devices={devices} 
+              selectedDeviceId={selectedDeviceId}
+              onAddDevice={onAddDevice} 
+              onSelectDevice={onSelectDevice}
+              onConfigCloud={onConfigCloud}
+              onClose={onClose} 
+            />
               </motion.aside>
           )}
         </AnimatePresence>
@@ -237,7 +263,15 @@ export function Sidebar({ devices, onAddDevice, isOpen = false, onClose, onToggl
             transition={drawerTransition}
             style={{ pointerEvents: isOpen ? 'auto' : 'none' }}
           >
-            <SidebarContent devices={devices} onAddDevice={onAddDevice} onClose={onToggleMode} showHeader={false} />
+            <SidebarContent 
+              devices={devices} 
+              selectedDeviceId={selectedDeviceId}
+              onAddDevice={onAddDevice} 
+              onSelectDevice={onSelectDevice}
+              onConfigCloud={onConfigCloud}
+              onClose={onToggleMode} 
+              showHeader={false} 
+            />
           </motion.div>
         </motion.aside>
       </>

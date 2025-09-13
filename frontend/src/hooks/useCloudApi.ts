@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { GrpcWebFetchTransport } from '@protobuf-ts/grpcweb-transport'
 import { DeviceRegistryServiceClient } from '../proto/cloud/device.client'
 import type { DeviceInfo } from '../proto/cloud/device'
@@ -10,11 +10,35 @@ export interface CloudConfig {
 }
 
 export function useCloudApi(config?: Partial<CloudConfig>) {
-  const baseUrl = config?.baseUrl ?? (import.meta.env.VITE_CLOUD_GRPCWEB_URL as string) ?? 'http://localhost:7073'
+  // 优先级：传入的config > localStorage > 环境变量 > 默认值
+  const getBaseUrl = useCallback(() => {
+    if (config?.baseUrl) return config.baseUrl
+    
+    try {
+      const stored = localStorage.getItem('cloud-config')
+      if (stored) {
+        const parsed = JSON.parse(stored)
+        if (parsed.baseUrl) return parsed.baseUrl
+      }
+    } catch (error) {
+      console.warn('Failed to parse stored cloud config:', error)
+    }
+    
+    return (import.meta.env.VITE_CLOUD_GRPCWEB_URL as string) ?? 'http://localhost:7073'
+  }, [config?.baseUrl])
+
+  const [baseUrl, setBaseUrl] = useState(getBaseUrl)
 
   const transport = useMemo(() => new GrpcWebFetchTransport({ baseUrl }), [baseUrl])
   const deviceClientRef = useRef(new DeviceRegistryServiceClient(transport))
   const gatewayClientRef = useRef(new GatewayServiceClient(transport))
+
+  // 当配置变化时更新clients
+  useEffect(() => {
+    const newTransport = new GrpcWebFetchTransport({ baseUrl })
+    deviceClientRef.current = new DeviceRegistryServiceClient(newTransport)
+    gatewayClientRef.current = new GatewayServiceClient(newTransport)
+  }, [baseUrl])
 
   const [devices, setDevices] = useState<DeviceInfo[]>([])
   const [loadingDevices, setLoadingDevices] = useState(false)
@@ -47,6 +71,12 @@ export function useCloudApi(config?: Partial<CloudConfig>) {
     }
   }, [])
 
+  const updateConfig = useCallback((newConfig: Partial<CloudConfig>) => {
+    if (newConfig.baseUrl) {
+      setBaseUrl(newConfig.baseUrl)
+    }
+  }, [])
+
   return {
     baseUrl,
     devices,
@@ -54,5 +84,6 @@ export function useCloudApi(config?: Partial<CloudConfig>) {
     refreshDevices,
     executing,
     executeOnDevice,
+    updateConfig,
   }
 }

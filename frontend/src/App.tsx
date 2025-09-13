@@ -11,6 +11,7 @@ import { motion, useReducedMotion } from 'motion/react'
 import {Topbar} from './components/Topbar'
 import {Console} from './components/Console'
 import { useMediaQuery } from './hooks/useMediaQuery'
+import {CloudConfigModal} from './components/CloudConfigModal'
 
 export default function App() {
     const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -32,7 +33,8 @@ export default function App() {
         updateCommandSet,
         deleteCommandSet,
         duplicateCommandSet,
-        loadFromServer
+        loadFromServer,
+        clearCommandSets
     } = useCommandSets({autoSync: mode === 'local'})
     const {logInfo, logError, logSuccess, clearLog, entries} = useLogger()
     const {execution, executeCommandSet, clearExecution, stopExecution, isRunning} = useCommandSetExecution()
@@ -50,6 +52,7 @@ export default function App() {
 
     const [showCommandSetEditor, setShowCommandSetEditor] = useState(false)
     const [editingCommandSet, setEditingCommandSet] = useState<CommandSet | undefined>()
+    const [showCloudConfig, setShowCloudConfig] = useState(false)
 
     // removed sample creation button and related logic
 
@@ -123,6 +126,21 @@ export default function App() {
         if (duplicated?.success && duplicated.commandSet) {
             logInfo(`命令集 "${duplicated.commandSet.commandName}" 已创建`)
         }
+    }
+
+    const handleConfigCloud = () => {
+        setShowCloudConfig(true)
+    }
+
+    const handleSaveCloudConfig = (config: { baseUrl: string }) => {
+        // 保存到localStorage
+        localStorage.setItem('cloud-config', JSON.stringify(config))
+        // 更新useCloudApi的配置
+        cloud.updateConfig(config)
+        setShowCloudConfig(false)
+        logInfo(`云端服务器地址已更新: ${config.baseUrl}`)
+        // 刷新设备列表
+        setTimeout(() => cloud.refreshDevices(), 100)
     }
 
 
@@ -256,15 +274,29 @@ export default function App() {
                 <Sidebar
                     isOpen={isDesktopXL ? (mode === 'cloud') : false}
                     devices={sidebarDevices}
+                    selectedDeviceId={selectedDeviceId}
                     onAddDevice={() => { /* optional hook */ }}
+                    onSelectDevice={setSelectedDeviceId}
+                    onConfigCloud={handleConfigCloud}
                     onClose={() => { setMobileDrawerOpen(false); setMobileSidebarFull(false) }}
                     mobileFullWidth={false}
                     onToggleMode={() => {
                         setMode(m => {
                             const next = m === 'local' ? 'cloud' : 'local'
+                            
+                            // 清空相关状态
+                            clearCommandSets()
+                            clearExecution()
+                            clearLog()
+                            setSelectedDeviceId('')
+                            
                             if (next === 'cloud') {
                                 cloud.refreshDevices()
+                            } else {
+                                // 切换到本地模式时重新加载命令集
+                                setTimeout(() => loadFromServer(), 100)
                             }
+                            
                             if (!isDesktopXL) { setMobileDrawerOpen(false); setMobileSidebarFull(false); setMobileInlineExpanded(false) }
                             return next
                         })
@@ -279,9 +311,20 @@ export default function App() {
                         onToggleMode={() => {
                             setMode(m => {
                                 const next = m === 'local' ? 'cloud' : 'local'
+                                
+                                // 清空相关状态
+                                clearCommandSets()
+                                clearExecution()
+                                clearLog()
+                                setSelectedDeviceId('')
+                                
                                 if (next === 'cloud') {
                                     cloud.refreshDevices()
+                                } else {
+                                    // 切换到本地模式时重新加载命令集
+                                    setTimeout(() => loadFromServer(), 100)
                                 }
+                                
                                 // 切换模式时关闭移动端内联侧栏
                                 setMobileDrawerOpen(false)
                                 setMobileSidebarFull(false)
@@ -367,7 +410,9 @@ export default function App() {
                                             >✕</button>
                                             <SidebarContent
                                                 devices={sidebarDevices}
-                                                onAddDevice={() => {}}
+                                                selectedDeviceId={selectedDeviceId}
+                                                onSelectDevice={setSelectedDeviceId}
+                                                onConfigCloud={handleConfigCloud}
                                                 onClose={() => setMobileInlineExpanded(false)}
                                                 showHeader={false}
                                             />
@@ -413,11 +458,15 @@ export default function App() {
                                     loading={loading}
                                     isRunning={isRunning}
                                     execution={execution}
+                                    mode={mode}
+                                    selectedDeviceId={selectedDeviceId}
+                                    availableDevices={sidebarDevices}
                                     onRefresh={handleListAllCommandSets}
                                     onExecute={handleExecuteCommandSet2}
                                     onEdit={handleEditCommandSet}
                                     onDelete={handleDeleteCommandSet}
                                     onDuplicate={handleDuplicateCommandSet}
+                                    onSelectDevice={setSelectedDeviceId}
                                 />
                             </motion.div>
 
@@ -453,6 +502,13 @@ export default function App() {
                     setShowCommandSetEditor(false)
                     setEditingCommandSet(undefined)
                 }}
+            />
+
+            <CloudConfigModal
+                isVisible={showCloudConfig}
+                currentConfig={{ baseUrl: cloud.baseUrl }}
+                onSave={handleSaveCloudConfig}
+                onCancel={() => setShowCloudConfig(false)}
             />
         </div>
     )
