@@ -9,6 +9,12 @@ interface CommandPanelProps {
   mode: 'local' | 'cloud'
   selectedDeviceId?: string
   availableDevices?: Array<{id: string; name: string; online: boolean}>
+  cloudStatus?: {
+    connectionStatus: 'idle' | 'connecting' | 'connected' | 'failed';
+    lastError?: string;
+    lastRefreshTime?: Date | null;
+    loading?: boolean;
+  }
   onRefresh: () => Promise<void>
   onExecute: (commandSet: CommandSet) => Promise<void>
   onEdit: (commandSet: CommandSet) => void
@@ -25,6 +31,7 @@ export function CommandPanel({
   mode,
   selectedDeviceId,
   availableDevices = [],
+  cloudStatus,
   onRefresh,
   onExecute,
   onEdit,
@@ -52,7 +59,7 @@ export function CommandPanel({
 
       {mode === 'cloud' && (
         <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-2">
             <div>
               <div className="text-sm font-medium text-blue-900 dark:text-blue-100">
                 当前模式：云端控制
@@ -76,6 +83,32 @@ export function CommandPanel({
               </div>
             )}
           </div>
+
+          {/* 云端连接状态 */}
+          <div className="flex items-center gap-2 text-xs">
+            <span className="text-blue-700 dark:text-blue-300">云端连接:</span>
+            <span className={`w-2 h-2 rounded-full ${
+              cloudStatus?.connectionStatus === 'connected' ? 'bg-green-500' :
+              cloudStatus?.connectionStatus === 'connecting' ? 'bg-yellow-500 animate-pulse' :
+              cloudStatus?.connectionStatus === 'failed' ? 'bg-red-500' : 'bg-gray-500'
+            }`}></span>
+            <span className="text-blue-700 dark:text-blue-300">
+              {cloudStatus?.connectionStatus === 'connected' ? '已连接' :
+               cloudStatus?.connectionStatus === 'connecting' ? '连接中...' :
+               cloudStatus?.connectionStatus === 'failed' ? '连接失败' : '未连接'}
+            </span>
+            {cloudStatus?.lastRefreshTime && (
+              <span className="text-blue-600 dark:text-blue-400 ml-2">
+                (更新: {cloudStatus.lastRefreshTime.toLocaleTimeString()})
+              </span>
+            )}
+          </div>
+
+          {cloudStatus?.lastError && (
+            <div className="mt-2 text-xs text-red-600 dark:text-red-400">
+              连接错误: {cloudStatus.lastError}
+            </div>
+          )}
         </div>
       )}
 

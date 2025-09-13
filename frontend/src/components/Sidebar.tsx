@@ -5,8 +5,16 @@ interface Device { id: string; name: string; online: boolean }
 interface SidebarProps {
   devices: Device[];
   selectedDeviceId?: string;
+  cloudStatus?: {
+    connectionStatus: 'idle' | 'connecting' | 'connected' | 'failed';
+    lastError?: string;
+    lastRefreshTime?: Date | null;
+    loading?: boolean;
+  };
+  onAddDevice?: () => void;
   onSelectDevice?: (deviceId: string) => void;
   onConfigCloud?: () => void;
+  onRefreshDevices?: () => void;
   isOpen?: boolean;          // 云端模式开关：桌面展开/移动端抽屉
   onClose?: () => void;      // 点击蒙层/ESC 关闭（移动端）
   onToggleMode?: () => void; // 折叠态图标点击，切换本地/云端
@@ -16,14 +24,22 @@ interface SidebarProps {
 interface SidebarContentProps {
   devices: Device[];
   selectedDeviceId?: string;
+  cloudStatus?: {
+    connectionStatus: 'idle' | 'connecting' | 'connected' | 'failed';
+    lastError?: string;
+    lastRefreshTime?: Date | null;
+    loading?: boolean;
+  };
+  onAddDevice?: () => void;
   onSelectDevice?: (deviceId: string) => void;
   onConfigCloud?: () => void;
+  onRefreshDevices?: () => void;
   onClose?: () => void;
   showHeader?: boolean;
 }
 
 /** 侧边栏内容（桌面与移动端复用，避免重复 JSX） */
-export function SidebarContent({ devices, selectedDeviceId, onSelectDevice, onConfigCloud, onClose, showHeader = true }: SidebarContentProps) {
+export function SidebarContent({ devices, selectedDeviceId, cloudStatus, onAddDevice, onSelectDevice, onConfigCloud, onRefreshDevices, onClose, showHeader = true }: SidebarContentProps) {
   const prefersReduced = useReducedMotion();
   const listItemTransition = useMemo(() => (
     prefersReduced ? { duration: 0 } : { duration: 0.18, ease: [0.22, 1, 0.36, 1] as any }
@@ -57,20 +73,65 @@ export function SidebarContent({ devices, selectedDeviceId, onSelectDevice, onCo
         )}
 
         <div className="mt-2 w-full">
+          {/* 云端连接状态 */}
+          {cloudStatus && (
+            <div className="mb-3 p-2 rounded-lg dark:bg-slate-800/40">
+              <div className="flex items-center justify-between mb-1">
+                <div className="text-xs dark:text-slate-400">云端状态</div>
+                <div className="flex items-center gap-1">
+                  {onRefreshDevices && (
+                    <button
+                      onClick={onRefreshDevices}
+                      disabled={cloudStatus.loading}
+                      className="text-xs text-slate-400 hover:text-slate-200 p-1 rounded hover:bg-white/5 disabled:opacity-50"
+                      title="刷新设备列表"
+                    >
+                      <svg className={`w-3 h-3 ${cloudStatus.loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                    </button>
+                  )}
+                  {onConfigCloud && (
+                    <button
+                      onClick={onConfigCloud}
+                      className="text-xs text-slate-400 hover:text-slate-200 p-1 rounded hover:bg-white/5"
+                      title="配置云端服务器"
+                    >
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className={`w-2 h-2 rounded-full ${
+                  cloudStatus.connectionStatus === 'connected' ? 'bg-green-500' :
+                  cloudStatus.connectionStatus === 'connecting' ? 'bg-yellow-500 animate-pulse' :
+                  cloudStatus.connectionStatus === 'failed' ? 'bg-red-500' : 'bg-gray-500'
+                }`}></span>
+                <span className="text-xs dark:text-slate-300">
+                  {cloudStatus.connectionStatus === 'connected' ? '已连接' :
+                   cloudStatus.connectionStatus === 'connecting' ? '连接中...' :
+                   cloudStatus.connectionStatus === 'failed' ? '连接失败' : '未连接'}
+                </span>
+              </div>
+              {cloudStatus.lastError && (
+                <div className="mt-1 text-xs text-red-400 break-words">
+                  {cloudStatus.lastError}
+                </div>
+              )}
+              {cloudStatus.lastRefreshTime && (
+                <div className="mt-1 text-xs text-slate-500">
+                  更新: {cloudStatus.lastRefreshTime.toLocaleTimeString()}
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="flex items-center justify-between px-2 mb-2">
             <div className="text-xs uppercase tracking-wider text-slate-400">设备</div>
-            {onConfigCloud && (
-              <button
-                onClick={onConfigCloud}
-                className="text-xs text-slate-400 hover:text-slate-200 p-1 rounded hover:bg-white/5"
-                title="配置云端服务器"
-              >
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-              </button>
-            )}
           </div>
           <ul className="flex flex-col gap-2">
             <AnimatePresence initial={false}>
@@ -119,7 +180,7 @@ export function SidebarContent({ devices, selectedDeviceId, onSelectDevice, onCo
   );
 }
 
-export function Sidebar({ devices, selectedDeviceId, onAddDevice, onSelectDevice, onConfigCloud, isOpen = false, onClose, onToggleMode, mobileFullWidth = false }: SidebarProps) {
+export function Sidebar({ devices, selectedDeviceId, cloudStatus, onAddDevice, onSelectDevice, onConfigCloud, onRefreshDevices, isOpen = false, onClose, onToggleMode, mobileFullWidth = false }: SidebarProps) {
   const prefersReduced = useReducedMotion();
   const collapseWidth = 56;
   const expandedWidth = 280;
@@ -187,13 +248,15 @@ export function Sidebar({ devices, selectedDeviceId, onAddDevice, onSelectDevice
                   }}
                   role="dialog" aria-modal
               >
-            <SidebarContent 
-              devices={devices} 
+            <SidebarContent
+              devices={devices}
               selectedDeviceId={selectedDeviceId}
-              onAddDevice={onAddDevice} 
+              cloudStatus={cloudStatus}
+              onAddDevice={onAddDevice}
               onSelectDevice={onSelectDevice}
               onConfigCloud={onConfigCloud}
-              onClose={onClose} 
+              onRefreshDevices={onRefreshDevices}
+              onClose={onClose}
             />
               </motion.aside>
           )}
@@ -263,14 +326,16 @@ export function Sidebar({ devices, selectedDeviceId, onAddDevice, onSelectDevice
             transition={drawerTransition}
             style={{ pointerEvents: isOpen ? 'auto' : 'none' }}
           >
-            <SidebarContent 
-              devices={devices} 
+            <SidebarContent
+              devices={devices}
               selectedDeviceId={selectedDeviceId}
-              onAddDevice={onAddDevice} 
+              cloudStatus={cloudStatus}
+              onAddDevice={onAddDevice}
               onSelectDevice={onSelectDevice}
               onConfigCloud={onConfigCloud}
-              onClose={onToggleMode} 
-              showHeader={false} 
+              onRefreshDevices={onRefreshDevices}
+              onClose={onToggleMode}
+              showHeader={false}
             />
           </motion.div>
         </motion.aside>

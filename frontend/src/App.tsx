@@ -39,6 +39,12 @@ export default function App() {
     const {logInfo, logError, logSuccess, clearLog, entries} = useLogger()
     const {execution, executeCommandSet, clearExecution, stopExecution, isRunning} = useCommandSetExecution()
     const cloud = useCloudApi()
+    const cloudStatus = {
+        connectionStatus: cloud.connectionStatus,
+        lastError: cloud.lastError,
+        lastRefreshTime: cloud.lastRefreshTime,
+        loading: cloud.loadingDevices
+    }
     const prefersReduced = useReducedMotion()
     const isUltraWide = useMediaQuery('(min-width: 1920px)')
     const isDesktopXL = useMediaQuery('(min-width: 1280px)')
@@ -275,9 +281,11 @@ export default function App() {
                     isOpen={isDesktopXL ? (mode === 'cloud') : false}
                     devices={sidebarDevices}
                     selectedDeviceId={selectedDeviceId}
+                    cloudStatus={mode === 'cloud' ? cloudStatus : undefined}
                     onAddDevice={() => { /* optional hook */ }}
                     onSelectDevice={setSelectedDeviceId}
                     onConfigCloud={handleConfigCloud}
+                    onRefreshDevices={cloud.refreshDevices}
                     onClose={() => { setMobileDrawerOpen(false); setMobileSidebarFull(false) }}
                     mobileFullWidth={false}
                     onToggleMode={() => {
@@ -411,8 +419,11 @@ export default function App() {
                                             <SidebarContent
                                                 devices={sidebarDevices}
                                                 selectedDeviceId={selectedDeviceId}
+                                                cloudStatus={cloudStatus}
+                                                onAddDevice={() => {}}
                                                 onSelectDevice={setSelectedDeviceId}
                                                 onConfigCloud={handleConfigCloud}
+                                                onRefreshDevices={cloud.refreshDevices}
                                                 onClose={() => setMobileInlineExpanded(false)}
                                                 showHeader={false}
                                             />
@@ -461,6 +472,7 @@ export default function App() {
                                     mode={mode}
                                     selectedDeviceId={selectedDeviceId}
                                     availableDevices={sidebarDevices}
+                                    cloudStatus={mode === 'cloud' ? cloudStatus : undefined}
                                     onRefresh={handleListAllCommandSets}
                                     onExecute={handleExecuteCommandSet2}
                                     onEdit={handleEditCommandSet}

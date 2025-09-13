@@ -43,16 +43,29 @@ export function useCloudApi(config?: Partial<CloudConfig>) {
   const [devices, setDevices] = useState<DeviceInfo[]>([])
   const [loadingDevices, setLoadingDevices] = useState(false)
   const [executing, setExecuting] = useState(false)
+  const [connectionStatus, setConnectionStatus] = useState<'idle' | 'connecting' | 'connected' | 'failed'>('idle')
+  const [lastError, setLastError] = useState<string>('')
+  const [lastRefreshTime, setLastRefreshTime] = useState<Date | null>(null)
 
   const refreshDevices = useCallback(async () => {
     setLoadingDevices(true)
+    setConnectionStatus('connecting')
+    setLastError('')
+    
     try {
       const res = await deviceClientRef.current.listDevices({}).response
       setDevices(res.devices)
+      setConnectionStatus('connected')
+      setLastRefreshTime(new Date())
       return { success: true, count: res.devices.length }
     } catch (err: any) {
       console.error('ListDevices error:', err)
-      return { success: false, error: String(err?.message ?? err) }
+      setConnectionStatus('failed')
+      const errorMessage = String(err?.message ?? err)
+      setLastError(errorMessage)
+      // 连接失败时清空设备列表
+      setDevices([])
+      return { success: false, error: errorMessage }
     } finally {
       setLoadingDevices(false)
     }
@@ -85,5 +98,8 @@ export function useCloudApi(config?: Partial<CloudConfig>) {
     executing,
     executeOnDevice,
     updateConfig,
+    connectionStatus,
+    lastError,
+    lastRefreshTime,
   }
 }
