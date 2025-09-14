@@ -1,3 +1,6 @@
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
+import { oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism'
+import Convert from 'ansi-to-html'
 import type { LogEntry, CommandSetExecution } from '../types'
 
 interface ConsoleProps {
@@ -8,9 +11,11 @@ interface ConsoleProps {
   onStopExecution?: () => void;
   onClearExecution?: () => void;
   fullHeight?: boolean; // 横向布局时填满父容器高度
+  isDarkMode?: boolean;
 }
 
-export function Console({ logs, execution, onClear, onCopy, onStopExecution, onClearExecution, fullHeight = false }: ConsoleProps) {
+export function Console({ logs, execution, onClear, onCopy, onStopExecution, onClearExecution, fullHeight = false, isDarkMode = false }: ConsoleProps) {
+  const convert = new Convert({ fg: '#fff', bg: '#000' })
   const outerBorder = fullHeight ? 'border-l' : 'border-t'
   
   const formatDuration = (startTime?: Date, endTime?: Date) => {
@@ -136,18 +141,44 @@ export function Console({ logs, execution, onClear, onCopy, onStopExecution, onC
                         {stepStatus} 步骤 {(stepData?.stepIndex || 0) + 1} (退出码: {stepData?.exitCode})
                       </div>
                       <div className="text-slate-600 dark:text-slate-400 text-xs mb-1">
-                        脚本: <code className="font-mono bg-slate-200 dark:bg-slate-700 px-1.5 py-0.5 rounded text-slate-800 dark:text-slate-200">{stepData?.stepScript}</code>
+                        脚本:
+                      </div>
+                      <div className="mb-2">
+                        <SyntaxHighlighter
+                          language="bash"
+                          style={isDarkMode ? oneDark : oneLight}
+                          customStyle={{
+                            margin: 0,
+                            padding: '6px 8px',
+                            fontSize: '11px',
+                            borderRadius: '4px',
+                            backgroundColor: isDarkMode ? '#1e293b' : '#f1f5f9'
+                          }}
+                          PreTag="div"
+                        >
+                          {stepData?.stepScript || ''}
+                        </SyntaxHighlighter>
                       </div>
                       {stepData?.output && (
                         <div className="bg-slate-100 dark:bg-slate-800 p-2 rounded text-xs mt-1 border border-slate-200 dark:border-slate-700">
                           <div className="text-slate-500 dark:text-slate-400 mb-1 font-medium">输出:</div>
-                          <div className="font-mono text-slate-900 dark:text-slate-100 whitespace-pre-wrap">{stepData.output}</div>
+                          <div
+                            className="font-mono text-xs leading-relaxed"
+                            dangerouslySetInnerHTML={{
+                              __html: convert.toHtml(stepData.output || '')
+                            }}
+                          />
                         </div>
                       )}
                       {stepData?.error && (
                         <div className="bg-red-50 dark:bg-red-900/20 p-2 rounded text-xs mt-1 border border-red-200 dark:border-red-800">
                           <div className="text-red-500 dark:text-red-400 mb-1 font-medium">错误:</div>
-                          <div className="font-mono text-red-700 dark:text-red-300 whitespace-pre-wrap">{stepData.error}</div>
+                          <div
+                            className="font-mono text-red-700 dark:text-red-300 text-xs leading-relaxed"
+                            dangerouslySetInnerHTML={{
+                              __html: convert.toHtml(stepData.error || '')
+                            }}
+                          />
                         </div>
                       )}
                     </div>

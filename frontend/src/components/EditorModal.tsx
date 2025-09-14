@@ -7,6 +7,7 @@ interface EditorModalProps {
   availableCommands: CommandSet[]
   onSave: (commandSetData: Omit<CommandSet, 'commandId' | 'created'>) => Promise<void>
   onCancel: () => void
+  isDarkMode?: boolean
 }
 
 export function EditorModal({
@@ -14,18 +15,20 @@ export function EditorModal({
   editingCommandSet,
   availableCommands,
   onSave,
-  onCancel
+  onCancel,
+  isDarkMode = false
 }: EditorModalProps) {
   if (!isVisible) {
     return null
   }
 
   return (
-    <CommandSetEditor 
+    <CommandSetEditor
       commandSet={editingCommandSet}
       availableCommands={availableCommands}
       onSave={onSave}
       onCancel={onCancel}
+      isDarkMode={isDarkMode}
     />
   )
 }

@@ -7,9 +7,10 @@ interface CommandSetEditorProps {
   availableCommands: CommandSet[]
   onSave: (commandSet: Omit<CommandSet, 'commandId' | 'created'>) => void
   onCancel: () => void
+  isDarkMode?: boolean
 }
 
-export function CommandSetEditor({ commandSet, onSave, onCancel }: CommandSetEditorProps) {
+export function CommandSetEditor({ commandSet, onSave, onCancel, isDarkMode = false }: CommandSetEditorProps) {
   const [name, setName] = useState(commandSet?.commandName || '')
   const [description, setDescription] = useState(commandSet?.description || '')
   const [scripts, setScripts] = useState<string[]>(commandSet?.commandScripts || [''])
@@ -73,9 +74,10 @@ export function CommandSetEditor({ commandSet, onSave, onCancel }: CommandSetEdi
           />
         </div>
 
-        <ScriptEditor 
+        <ScriptEditor
           scripts={scripts}
           onScriptsChange={setScripts}
+          isDarkMode={isDarkMode}
         />
 
         <div className="flex gap-2 justify-end mt-6">

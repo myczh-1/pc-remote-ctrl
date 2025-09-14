@@ -1,9 +1,12 @@
+import { Editor } from '@monaco-editor/react'
+
 interface ScriptEditorProps {
   scripts: string[]
   onScriptsChange: (scripts: string[]) => void
+  isDarkMode?: boolean
 }
 
-export function ScriptEditor({ scripts, onScriptsChange }: ScriptEditorProps) {
+export function ScriptEditor({ scripts, onScriptsChange, isDarkMode = false }: ScriptEditorProps) {
   const addScript = () => {
     onScriptsChange([...scripts, ''])
   }
@@ -30,19 +33,32 @@ export function ScriptEditor({ scripts, onScriptsChange }: ScriptEditorProps) {
             <div className="text-xs text-slate-500 dark:text-slate-400 mb-1 font-mono">
               步骤 {index + 1}
             </div>
-            <textarea
-              value={script}
-              onChange={(e) => updateScript(index, e.target.value)}
-              placeholder={`输入第 ${index + 1} 个命令脚本（如：npm install）`}
-              rows={3}
-              className="w-full px-3 py-2 border border-slate-300 dark:border-white/10 rounded-md
-                         bg-white dark:bg-surface-soft text-slate-900 dark:text-slate-100
-                         placeholder-slate-400 dark:placeholder-slate-500
-                         font-mono text-sm leading-relaxed resize-y
-                         focus:ring-2 focus:ring-prime-500 focus:border-prime-500
-                         dark:focus:ring-prime-400 dark:focus:border-prime-400
-                         transition-colors"
-            />
+            <div className="border border-slate-300 dark:border-white/10 rounded-md overflow-hidden
+                           focus-within:ring-2 focus-within:ring-prime-500 focus-within:border-prime-500
+                           dark:focus-within:ring-prime-400 dark:focus-within:border-prime-400">
+              <Editor
+                height="80px"
+                language="shell"
+                value={script}
+                onChange={(value) => updateScript(index, value || '')}
+                theme={isDarkMode ? 'vs-dark' : 'vs'}
+                options={{
+                  minimap: { enabled: false },
+                  scrollBeyondLastLine: false,
+                  wordWrap: 'on',
+                  lineNumbers: 'off',
+                  glyphMargin: false,
+                  folding: false,
+                  lineDecorationsWidth: 0,
+                  lineNumbersMinChars: 0,
+                  renderLineHighlight: 'none',
+                  scrollbar: { vertical: 'hidden', horizontal: 'hidden' },
+                  fontSize: 13,
+                  fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace',
+                  placeholder: `输入第 ${index + 1} 个命令脚本（如：npm install）`
+                }}
+              />
+            </div>
           </div>
           <button
             type="button"

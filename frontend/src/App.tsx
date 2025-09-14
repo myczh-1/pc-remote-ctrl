@@ -556,6 +556,7 @@ export default function App() {
                                     onClear={clearLog}
                                     onStopExecution={stopExecution}
                                     onClearExecution={clearExecution}
+                                    isDarkMode={theme === 'dark'}
                                     onCopy={() => {
                                         try {
                                             navigator.clipboard.writeText(entries.map(e => e.message).join('\n'))
@@ -580,6 +581,7 @@ export default function App() {
                     setShowCommandSetEditor(false)
                     setEditingCommandSet(undefined)
                 }}
+                isDarkMode={theme === 'dark'}
             />
 
             <CloudConfigModal
