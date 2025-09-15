@@ -1,0 +1,225 @@
+package home
+
+import (
+    "context"
+    "fmt"
+    "strings"
+    "time"
+
+    homepb "pc-remote-ctrl/backend/proto/home"
+    "pc-remote-ctrl/backend/internal/ops"
+    "pc-remote-ctrl/backend/internal/storage"
+    "pc-remote-ctrl/backend/internal/mqtt"
+
+    "google.golang.org/protobuf/types/known/structpb"
+    crand "crypto/rand"
+)
+
+type Service struct {
+    homepb.UnimplementedHomeServiceServer
+    devices *storage.Devices
+    scenes  *storage.Scenes
+    ops     ops.DeviceOps
+    hub     *eventHub
+    submgr  *subscriptionManager
+}
+
+func New(devs *storage.Devices, scenes *storage.Scenes, ops ops.DeviceOps) *Service {
+    // hub/submgr will be set by InitSubscriptions from main after mqtt client is ready
+    return &Service{devices: devs, scenes: scenes, ops: ops, hub: newEventHub()}
+}
+
+// InitSubscriptions wires MQTT subscriptions and starts listening for device topics.
+func (s *Service) InitSubscriptions(c mqtt.Client) {
+    s.submgr = newSubscriptionManager(c, s.devices, s.hub)
+    go s.submgr.initAll(context.Background())
+}
+
+func (s *Service) ListDevices(ctx context.Context, req *homepb.ListDevicesRequest) (*homepb.ListDevicesResponse, error) {
+    idsSet := make(map[string]struct{}, len(req.GetIds()))
+    for _, id := range req.GetIds() { idsSet[id] = struct{}{} }
+    tagsSet := make(map[string]struct{}, len(req.GetTags()))
+    for _, t := range req.GetTags() { tagsSet[t] = struct{}{} }
+
+    var out []*homepb.Device
+    for _, d := range s.devices.List() {
+        if len(idsSet) > 0 { if _, ok := idsSet[d.ID]; !ok { continue } }
+        if req.GetType() != "" && d.Type != req.GetType() { continue }
+        if req.GetRoom() != "" && d.Room != req.GetRoom() { continue }
+        if len(tagsSet) > 0 {
+            ok := false
+            for _, tg := range d.Tags { if _, has := tagsSet[tg]; has { ok = true; break } }
+            if !ok { continue }
+        }
+        out = append(out, toPBDevice(&d, req.GetIncludeState()))
+    }
+    return &homepb.ListDevicesResponse{Devices: out}, nil
+}
+
+func (s *Service) WatchDevices(req *homepb.WatchDevicesRequest, stream homepb.HomeService_WatchDevicesServer) error {
+    var ids []string
+    if req != nil { ids = req.GetIds() }
+    sub, cancel := s.hub.subscribe(ids)
+    defer cancel()
+    ctx := stream.Context()
+    for {
+        select {
+        case <-ctx.Done():
+            return nil
+        case ev := <-sub.ch:
+            if ev == nil { return nil }
+            if err := stream.Send(ev); err != nil { return err }
+        }
+    }
+}
+
+func (s *Service) UpsertDevice(ctx context.Context, req *homepb.UpsertDeviceRequest) (*homepb.UpsertDeviceResponse, error) {
+    if req.GetDevice() == nil {
+        return &homepb.UpsertDeviceResponse{Ok: false, Message: "device required"}, nil
+    }
+    incoming := req.GetDevice()
+    id := strings.TrimSpace(incoming.GetId())
+    // Create: empty id → generate a new one; Update: non-empty id must exist
+    if id == "" {
+        // generate unique id
+        nid, err := generateID()
+        if err != nil { return &homepb.UpsertDeviceResponse{Ok: false, Message: "id generate failed"}, nil }
+        incoming.Id = nid
+    } else {
+        if s.devices.Get(id) == nil {
+            return &homepb.UpsertDeviceResponse{Ok: false, Message: "device not found (update requires existing id)"}, nil
+        }
+    }
+
+    dev, err := fromPBDevice(incoming)
+    if err != nil { return &homepb.UpsertDeviceResponse{Ok: false, Message: err.Error()}, nil }
+    if err := s.devices.Upsert(*dev); err != nil {
+        return &homepb.UpsertDeviceResponse{Ok: false, Message: err.Error()}, nil
+    }
+    // subscribe newly created device's topics
+    msg := "ok"
+    if id == "" {
+        msg = "created:" + dev.ID
+        if s.submgr != nil { s.submgr.subscribeDevice(ctx, dev) }
+    } else {
+        msg = "updated:" + dev.ID
+    }
+    return &homepb.UpsertDeviceResponse{Ok: true, Message: msg}, nil
+}
+
+func (s *Service) DeleteDevice(ctx context.Context, req *homepb.DeleteDeviceRequest) (*homepb.DeleteDeviceResponse, error) {
+    if strings.TrimSpace(req.GetDeviceId()) == "" {
+        return &homepb.DeleteDeviceResponse{Ok: false, Message: "device_id required"}, nil
+    }
+    if err := s.devices.Remove(req.GetDeviceId()); err != nil {
+        return &homepb.DeleteDeviceResponse{Ok: false, Message: err.Error()}, nil
+    }
+    return &homepb.DeleteDeviceResponse{Ok: true, Message: "ok"}, nil
+}
+
+func (s *Service) InvokeAction(ctx context.Context, req *homepb.InvokeActionRequest) (*homepb.InvokeActionResponse, error) {
+    args := mapFromStruct(req.GetArgs())
+    data, err := s.ops.InvokeAction(ctx, req.GetDeviceId(), req.GetAction(), args)
+    if err != nil { return &homepb.InvokeActionResponse{Ok: false, Message: err.Error()}, nil }
+    st, _ := structpb.NewStruct(mapStringAny(data))
+    return &homepb.InvokeActionResponse{Ok: true, Message: "published", CorrId: "", Data: st}, nil
+}
+
+func toPBDevice(d *storage.Device, includeState bool) *homepb.Device {
+    st := (*structpb.Struct)(nil)
+    if includeState && d.Shadow.Reported != nil {
+        st, _ = structpb.NewStruct(mapStringAny(d.Shadow.Reported))
+    }
+    acts := make([]*homepb.ActionSpec, 0, len(d.Actions))
+    for _, a := range d.Actions {
+        acts = append(acts, &homepb.ActionSpec{ Name: a.Name, ArgsSchema: mapStringString(a.ArgsSchema), TimeoutMs: int32(a.TimeoutMS) })
+    }
+    cfg := mapStringString(d.Adapter.Config)
+    ad := &homepb.Adapter{Kind: toPBAdapterKind(d.Adapter.Kind), Config: cfg}
+    topics := map[string]string{}
+    for k, v := range d.Topics { topics[k] = v }
+    return &homepb.Device{
+        Id: d.ID, Name: d.Name, Type: d.Type, Room: d.Room, Tags: d.Tags,
+        Online: d.Online, LastSeen: d.LastSeen, Topics: topics, Adapter: ad, Actions: acts, State: st,
+    }
+}
+
+func fromPBDevice(p *homepb.Device) (*storage.Device, error) {
+    d := &storage.Device{
+        ID:   strings.TrimSpace(p.GetId()),
+        Name: p.GetName(), Type: p.GetType(), Room: p.GetRoom(), Tags: p.GetTags(),
+        Online: p.GetOnline(), LastSeen: p.GetLastSeen(),
+        Topics: map[string]string{},
+    }
+    for k, v := range p.GetTopics() { d.Topics[k] = v }
+    // adapter
+    d.Adapter.Kind = fromPBAdapterKind(p.GetAdapter().GetKind())
+    d.Adapter.Config = mapStringAnyFromString(p.GetAdapter().GetConfig())
+    // actions
+    for _, a := range p.GetActions() {
+        d.Actions = append(d.Actions, storage.ActionSpec{ Name: a.GetName(), ArgsSchema: mapStringAnyFromString(a.GetArgsSchema()), TimeoutMS: int(a.GetTimeoutMs()) })
+    }
+    // state maps to Shadow.Reported for now
+    if p.GetState() != nil {
+        d.Shadow.Reported = mapStringAny(p.GetState().AsMap())
+        d.Shadow.TSReported = time.Now().UnixMilli()
+    }
+    return d, nil
+}
+
+// generateID creates a random UUIDv4-like string without extra deps.
+func generateID() (string, error) {
+    // 16 random bytes, set version and variant bits
+    var b [16]byte
+    if _, err := randRead(b[:]); err != nil { return "", err }
+    b[6] = (b[6] & 0x0f) | 0x40 // version 4
+    b[8] = (b[8] & 0x3f) | 0x80 // variant RFC4122
+    return fmt.Sprintf("%08x-%04x-%04x-%04x-%012x",
+        uint32(b[0])<<24|uint32(b[1])<<16|uint32(b[2])<<8|uint32(b[3]),
+        uint16(b[4])<<8|uint16(b[5]),
+        uint16(b[6])<<8|uint16(b[7]),
+        uint16(b[8])<<8|uint16(b[9]),
+        uint64(b[10])<<40|uint64(b[11])<<32|uint64(b[12])<<24|uint64(b[13])<<16|uint64(b[14])<<8|uint64(b[15]),
+    ), nil
+}
+
+// randRead wraps crypto/rand.Read, split for testability
+var randRead = func(p []byte) (int, error) { return crand.Read(p) }
+
+
+func toPBAdapterKind(k storage.AdapterKind) homepb.AdapterKind {
+    switch strings.ToLower(string(k)) {
+    case "mqtt": return homepb.AdapterKind_MQTT
+    case "serial": return homepb.AdapterKind_SERIAL
+    case "http": return homepb.AdapterKind_HTTP
+    default: return homepb.AdapterKind_ADAPTER_KIND_UNSPECIFIED
+    }
+}
+
+func fromPBAdapterKind(k homepb.AdapterKind) storage.AdapterKind {
+    switch k {
+    case homepb.AdapterKind_MQTT: return storage.AdapterMQTT
+    case homepb.AdapterKind_SERIAL: return storage.AdapterSerial
+    case homepb.AdapterKind_HTTP: return storage.AdapterHTTP
+    default: return storage.AdapterKind("")
+    }
+}
+
+func mapStringString(m map[string]any) map[string]string {
+    out := map[string]string{}
+    for k, v := range m { out[k] = fmt.Sprint(v) }
+    return out
+}
+
+func mapStringAnyFromString(m map[string]string) map[string]any {
+    out := map[string]any{}
+    for k, v := range m { out[k] = v }
+    return out
+}
+
+func mapStringAny(m map[string]any) map[string]any { return m }
+
+func mapFromStruct(s *structpb.Struct) map[string]any {
+    if s == nil { return map[string]any{} }
+    return s.AsMap()
+}

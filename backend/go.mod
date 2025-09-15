@@ -5,8 +5,10 @@ go 1.23.0
 toolchain go1.24.7
 
 require (
-	google.golang.org/grpc v1.75.0
-	google.golang.org/protobuf v1.36.8
+    github.com/eclipse/paho.mqtt.golang v1.4.3
+    github.com/mochi-co/mqtt v2.4.0+incompatible
+    google.golang.org/grpc v1.75.0
+    google.golang.org/protobuf v1.36.8
 )
 
 require (
@@ -27,5 +29,4 @@ require (
 replace google.golang.org/genproto/googleapis/rpc => google.golang.org/genproto v0.0.0-20210126160654-44e461bb6506
 
 // link local cloud-middleware module so agent can import its generated protos
-require pc-remote-ctrl/cloud-middleware v0.0.0-00010101000000-000000000000 // indirect
-replace pc-remote-ctrl/cloud-middleware => ../cloud-middleware
+// cloud-middleware removed in this branch
