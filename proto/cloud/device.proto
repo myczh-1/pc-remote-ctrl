@@ -1,4 +1,4 @@
-syntax = "proto3";
+wo jsyntax = "proto3";
 
 package remote_control.cloud.v1;
 

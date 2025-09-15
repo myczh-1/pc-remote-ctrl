@@ -36,29 +36,22 @@ setup-tools:
 
 # ---------- Generate ----------
 proto-gen: setup-tools
-	@echo "Generating protobuf code..."
-	# Go (agent protos into backend)
-	$(PROTOC) -I $(PROTO_DIR) \
-	  --plugin=protoc-gen-go=$(PROTOC_GEN_GO) \
-	  --plugin=protoc-gen-go-grpc=$(PROTOC_GEN_GO_GRPC) \
-	  --go_out=$(BACKEND_DIR)/proto --go_opt=paths=source_relative \
-	  --go-grpc_out=$(BACKEND_DIR)/proto --go-grpc_opt=paths=source_relative \
-	  $(AGENT_PROTO_FILES)
-	# Go (cloud protos into cloud-middleware)
-	$(PROTOC) -I $(PROTO_DIR) \
-	  --plugin=protoc-gen-go=$(PROTOC_GEN_GO) \
-	  --plugin=protoc-gen-go-grpc=$(PROTOC_GEN_GO_GRPC) \
-	  --go_out=$(CLOUD_DIR)/proto --go_opt=paths=source_relative \
-	  --go-grpc_out=$(CLOUD_DIR)/proto --go-grpc_opt=paths=source_relative \
-	  $(CLOUD_PROTO_FILES)
-	# Frontend (protobuf-ts) using the same system protoc
-	cd $(FRONTEND_DIR) && \
-	  test -x "$(PROTOC_GEN_TS)" || (echo "❌ Missing protoc-gen-ts. Run: cd $(FRONTEND_DIR) && npm install"; exit 1); \
-	  $(PROTOC) -I ../$(PROTO_DIR) \
-	    ../$(PROTO_DIR)/*.proto ../$(PROTO_DIR)/cloud/*.proto \
-	    --plugin=protoc-gen-ts=$(PROTOC_GEN_TS) \
-	    --ts_out=./src/proto --ts_opt=long_type_string
-	@echo "✅ proto generated for Go & TS."
+    @echo "Generating protobuf code (Go + TS for home service)..."
+    # Go (home protos into backend)
+    $(PROTOC) -I $(PROTO_DIR) \
+      --plugin=protoc-gen-go=$(PROTOC_GEN_GO) \
+      --plugin=protoc-gen-go-grpc=$(PROTOC_GEN_GO_GRPC) \
+      --go_out=$(BACKEND_DIR)/proto --go_opt=paths=source_relative \
+      --go-grpc_out=$(BACKEND_DIR)/proto --go-grpc_opt=paths=source_relative \
+      $(PROTO_DIR)/home/*.proto
+    # Frontend (protobuf-ts)
+    cd $(FRONTEND_DIR) && \
+      test -x "$(PROTOC_GEN_TS)" || (echo "❌ Missing protoc-gen-ts. Run: cd $(FRONTEND_DIR) && npm install"; exit 1); \
+      $(PROTOC) -I ../$(PROTO_DIR) \
+        ../$(PROTO_DIR)/home/*.proto \
+        --plugin=protoc-gen-ts=$(PROTOC_GEN_TS) \
+        --ts_out=./src/proto --ts_opt=long_type_string
+    @echo "✅ proto generated for Go & TS (home)."
 
 proto-clean:
 	@echo "Cleaning generated protobuf code..."
@@ -67,9 +60,9 @@ proto-clean:
 
 # ---------- Build / Dev ----------
 build-backend: proto-gen
-	@echo "Building unified backend..."
-	@mkdir -p bin
-	go build -o bin/pc-remote-ctrl $(BACKEND_DIR)/real_grpc_server.go
+    @echo "Building backend (home-gateway)..."
+    @mkdir -p bin
+    go build -o bin/pc-remote-ctrl $(BACKEND_DIR)/cmd/home-gateway/main.go
 
 # Removed build-agent - now using unified backend
 
@@ -80,27 +73,24 @@ build-frontend: proto-gen
 build: build-backend build-frontend
 
 dev-backend: proto-gen
-	@echo "Starting backend in development mode (local only)..."
-	go run $(BACKEND_DIR)/real_grpc_server.go
+    @echo "Starting backend (home-gateway) in development mode..."
+    go run $(BACKEND_DIR)/cmd/home-gateway/main.go
 
 dev-frontend:
 	@echo "Starting frontend in development mode..."
 	cd $(FRONTEND_DIR) && npm run dev
 
 # Run cloud middleware (gRPC + gRPC-Web on 7073)
-dev-cloud: proto-gen
-	@echo "Starting cloud middleware in development mode..."
-	cd $(CLOUD_DIR) && go run ./cmd/server
+dev-cloud:
+    @echo "cloud-middleware removed in this branch (no-op)"
 
 # Run unified backend with cloud connection enabled (cloud only)
-dev-agent: proto-gen
-	@echo "Starting unified backend with cloud connection..."
-	CLOUD_ADDR=localhost:7073 go run $(BACKEND_DIR)/real_grpc_server.go
+dev-agent:
+    @echo "unified agent mode removed in this branch (use dev-backend)"
 
 # Run unified backend with both local and cloud enabled
-dev-unified: proto-gen
-	@echo "Starting unified backend (local + cloud)..."
-	CLOUD_ADDR=localhost:7073 go run $(BACKEND_DIR)/real_grpc_server.go
+dev-unified:
+    @echo "unified mode removed in this branch (use dev-backend)"
 
 install:
 	@echo "Installing dependencies..."

@@ -16,6 +16,7 @@ dist-ssr
 bin/
 backend/.gocache/
 vendor/
+backend/data/*.json
 
 # Go binaries and build artifacts
 controller
