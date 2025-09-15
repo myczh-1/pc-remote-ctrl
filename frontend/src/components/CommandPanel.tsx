@@ -99,14 +99,14 @@ export function CommandPanel({
             </span>
             {cloudStatus?.lastRefreshTime && (
               <span className="text-blue-600 dark:text-blue-400 ml-2">
-                (更新: {cloudStatus.lastRefreshTime.toLocaleTimeString()})
+                (更新: {cloudStatus?.lastRefreshTime?.toLocaleTimeString()})
               </span>
             )}
           </div>
 
           {cloudStatus?.lastError && (
             <div className="mt-2 text-xs text-red-600 dark:text-red-400">
-              连接错误: {cloudStatus.lastError}
+              连接错误: {cloudStatus?.lastError}
             </div>
           )}
         </div>

@@ -9,6 +9,7 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:7071', // 你的 grpc-web 网关
         changeOrigin: true,
+        ws: true, // 允许 websocket 代理，便于 grpc-web 流式
         rewrite: (p) => p.replace(/^\/api/, ''), // ⬅️ 去掉前缀
       },
     },

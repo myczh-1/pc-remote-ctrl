@@ -3,7 +3,8 @@ import { GrpcWebFetchTransport } from '@protobuf-ts/grpcweb-transport'
 import { DeviceRegistryServiceClient } from '../proto/cloud/device.client'
 import type { DeviceInfo } from '../proto/cloud/device'
 import { GatewayServiceClient } from '../proto/cloud/gateway.client'
-import type { ExecuteCommandSetResponse, GetAllCommandSetsResponse } from '../proto/remote_control'
+import type { ExecuteCommandSetResponse, GetAllCommandSetsResponse, StoreCommandSetResponse, UpdateCommandSetResponse, DeleteCommandSetResponse } from '../proto/remote_control'
+import type { StoreOnDeviceRequest, UpdateOnDeviceRequest, DeleteOnDeviceRequest } from '../proto/cloud/gateway'
 
 export interface CloudConfig {
   baseUrl: string
@@ -94,6 +95,61 @@ export function useCloudApi(config?: Partial<CloudConfig>) {
     }
   }, [])
 
+  // 在设备上创建命令集
+  const storeCommandSetOnDevice = useCallback(async (deviceId: string, command: { id: string, name: string, scripts: string[], description?: string }) => {
+    try {
+      const req: StoreOnDeviceRequest = {
+        deviceId,
+        request: {
+          commandSetId: command.id,
+          commandSetName: command.name,
+          commandScripts: command.scripts,
+          description: command.description ?? ''
+        }
+      }
+      const res = await gatewayClientRef.current.storeOnDevice(req).response
+      return { success: res.success, response: res as StoreCommandSetResponse, message: res.message }
+    } catch (err: any) {
+      console.error('StoreOnDevice error:', err)
+      return { success: false, error: String(err?.message ?? err) }
+    }
+  }, [])
+
+  // 在设备上更新命令集
+  const updateCommandSetOnDevice = useCallback(async (deviceId: string, command: { id: string, name: string, scripts: string[], description?: string }) => {
+    try {
+      const req: UpdateOnDeviceRequest = {
+        deviceId,
+        request: {
+          commandSetId: command.id,
+          commandSetName: command.name,
+          commandScripts: command.scripts,
+          description: command.description ?? ''
+        }
+      }
+      const res = await gatewayClientRef.current.updateOnDevice(req).response
+      return { success: res.success, response: res as UpdateCommandSetResponse, message: res.message }
+    } catch (err: any) {
+      console.error('UpdateOnDevice error:', err)
+      return { success: false, error: String(err?.message ?? err) }
+    }
+  }, [])
+
+  // 在设备上删除命令集
+  const deleteCommandSetOnDevice = useCallback(async (deviceId: string, commandSetId: string) => {
+    try {
+      const req: DeleteOnDeviceRequest = {
+        deviceId,
+        request: { commandSetId }
+      }
+      const res = await gatewayClientRef.current.deleteOnDevice(req).response
+      return { success: res.success, response: res as DeleteCommandSetResponse, message: res.message }
+    } catch (err: any) {
+      console.error('DeleteOnDevice error:', err)
+      return { success: false, error: String(err?.message ?? err) }
+    }
+  }, [])
+
   const updateConfig = useCallback((newConfig: Partial<CloudConfig>) => {
     if (newConfig.baseUrl) {
       setBaseUrl(newConfig.baseUrl)
@@ -108,6 +164,9 @@ export function useCloudApi(config?: Partial<CloudConfig>) {
     executing,
     executeOnDevice,
     getCommandSetsFromDevice,
+    storeCommandSetOnDevice,
+    updateCommandSetOnDevice,
+    deleteCommandSetOnDevice,
     updateConfig,
     connectionStatus,
     lastError,
