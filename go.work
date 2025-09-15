@@ -4,3 +4,5 @@ use (
     ./backend
     ./cloud-middleware
 )
+// unify split import path to root module across workspace
+replace google.golang.org/genproto/googleapis/rpc => google.golang.org/genproto v0.0.0-20210126160654-44e461bb6506

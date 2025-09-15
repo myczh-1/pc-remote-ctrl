@@ -1,12 +1,14 @@
 package broker
 
 import (
+    "bytes"
     "context"
     "log"
     "time"
 
-    mqttserver "github.com/mochi-co/mqtt/server"
-    "github.com/mochi-co/mqtt/server/listeners"
+    mqttserver "github.com/mochi-mqtt/server/v2"
+    "github.com/mochi-mqtt/server/v2/listeners"
+    "github.com/mochi-mqtt/server/v2/packets"
 )
 
 // Embedded is a lightweight in-process MQTT broker for local development.
@@ -17,6 +19,8 @@ type Embedded struct {
 // StartEmbedded starts a TCP MQTT broker listening on addr (e.g. ":1883").
 func StartEmbedded(addr string) (*Embedded, error) {
     s := mqttserver.New(nil)
+    // Allow all auth + ACL (development only)
+    _ = s.AddHook(new(allowAllHook), nil)
     l := listeners.NewTCP("tcp", addr, nil)
     if err := s.AddListener(l); err != nil { return nil, err }
     go func() {
@@ -42,3 +46,12 @@ func (e *Embedded) Stop(ctx context.Context) error {
     }
 }
 
+// allowAllHook permits all connections and ACL checks (dev only)
+type allowAllHook struct{ mqttserver.HookBase }
+
+func (h *allowAllHook) ID() string { return "allow-all-auth" }
+func (h *allowAllHook) Provides(b byte) bool {
+    return bytes.Contains([]byte{mqttserver.OnConnectAuthenticate, mqttserver.OnACLCheck}, []byte{b})
+}
+func (h *allowAllHook) OnConnectAuthenticate(cl *mqttserver.Client, pk packets.Packet) bool { return true }
+func (h *allowAllHook) OnACLCheck(cl *mqttserver.Client, topic string, write bool) bool     { return true }

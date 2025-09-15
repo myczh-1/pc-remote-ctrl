@@ -22,6 +22,10 @@ require (
 )
 
 // Resolve ambiguous import of genproto by forcing split paths to monorepo
+// unify genproto path to avoid dual module path
+require google.golang.org/genproto v0.0.0-20210126160654-44e461bb6506 // indirect
+
+// unify split import path to root module to avoid dual module paths
 replace google.golang.org/genproto/googleapis/rpc => google.golang.org/genproto v0.0.0-20210126160654-44e461bb6506
 
 // Link local backend module for shared proto imports

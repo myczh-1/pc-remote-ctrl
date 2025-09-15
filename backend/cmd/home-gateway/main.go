@@ -95,7 +95,10 @@ func main() {
     // init mqtt client: prefer paho when MQTT_URL provided, else noop
     var mqttClient mqtt.Client
     if cfg.MqttURL != "" {
-        pc := mqtt.NewPaho(mqtt.PahoOptions{URL: cfg.MqttURL, Username: cfg.MqttUser, Password: cfg.MqttPass, ClientID: cfg.MqttClientID})
+        clientID := cfg.MqttClientID
+        if clientID == "" { clientID = "home-gateway-" + time.Now().Format("150405.000") }
+        log.Printf("[mqtt] connecting url=%s client_id=%s", cfg.MqttURL, clientID)
+        pc := mqtt.NewPaho(mqtt.PahoOptions{URL: cfg.MqttURL, Username: cfg.MqttUser, Password: cfg.MqttPass, ClientID: clientID})
         if err := pc.Connect(context.Background()); err != nil {
             log.Printf("warn: mqtt connect failed, fallback to noop: %v", err)
             mqttClient = mqtt.NewNoop()
@@ -118,7 +121,12 @@ func main() {
     homesvc.InitSubscriptions(mqttClient)
     homepb.RegisterHomeServiceServer(grpcServer, homesvc)
 
-    wrapped := grpcweb.WrapServer(grpcServer, grpcweb.WithOriginFunc(func(origin string) bool { return true }))
+    wrapped := grpcweb.WrapServer(
+        grpcServer,
+        grpcweb.WithOriginFunc(func(origin string) bool { return true }),
+        grpcweb.WithWebsockets(true),
+        grpcweb.WithWebsocketOriginFunc(func(r *http.Request) bool { return true }),
+    )
     handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
         // healthz
         if r.Method == http.MethodGet && r.URL.Path == "/healthz" {
