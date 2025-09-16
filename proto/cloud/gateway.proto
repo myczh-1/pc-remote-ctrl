@@ -4,48 +4,48 @@ package remote_control.cloud.v1;
 
 option go_package = "pc-remote-ctrl/cloud-middleware/proto;cloudpb";
 
-// 复用 Agent 的请求/响应类型
-import "remote_control.proto";
+// 导入智能家居服务定义
+import "home/service.proto";
 
-// 云端网关服务：前端调用此服务，由云端转发到具体设备上的 Agent
+// 云端网关服务：前端调用此服务，由云端转发到具体设备上的 HomeService
 service GatewayService {
-  // 执行命令集（转发到 Agent 的 ExecuteCommandSet）
-  rpc ExecuteOnDevice(ExecuteOnDeviceRequest) returns (remote_control.ExecuteCommandSetResponse);
+  // 列出设备（转发到 HomeService）
+  rpc ListDevices(ListDevicesRequest) returns (remote_control.home.ListDevicesResponse);
 
-  // 列出设备上的命令集（转发到 Agent 的 GetAllCommandSets）
-  rpc ListDeviceCommandSets(ListDeviceCommandSetsRequest) returns (remote_control.GetAllCommandSetsResponse);
+  // 监听设备事件（转发到 HomeService）
+  rpc WatchDevices(WatchDevicesRequest) returns (stream remote_control.home.DeviceEvent);
 
-  // 在设备上存储（创建）命令集（转发到 Agent 的 StoreCommandSet）
-  rpc StoreOnDevice(StoreOnDeviceRequest) returns (remote_control.StoreCommandSetResponse);
+  // 注册/更新设备（转发到 HomeService）
+  rpc UpsertDevice(UpsertDeviceRequest) returns (remote_control.home.UpsertDeviceResponse);
 
-  // 在设备上更新命令集（转发到 Agent 的 UpdateCommandSet）
-  rpc UpdateOnDevice(UpdateOnDeviceRequest) returns (remote_control.UpdateCommandSetResponse);
+  // 删除设备（转发到 HomeService）
+  rpc DeleteDevice(DeleteDeviceRequest) returns (remote_control.home.DeleteDeviceResponse);
 
-  // 在设备上删除命令集（转发到 Agent 的 DeleteCommandSet）
-  rpc DeleteOnDevice(DeleteOnDeviceRequest) returns (remote_control.DeleteCommandSetResponse);
+  // 调用设备动作（转发到 HomeService）
+  rpc InvokeAction(InvokeActionRequest) returns (remote_control.home.InvokeActionResponse);
 }
 
-message ExecuteOnDeviceRequest {
-  string device_id = 1; // 目标设备ID
-  remote_control.ExecuteCommandSetRequest request = 2; // 透传到 Agent 的请求
+message ListDevicesRequest {
+  string device_id = 1; // 目标设备/网关ID
+  remote_control.home.ListDevicesRequest request = 2;
 }
 
-message ListDeviceCommandSetsRequest {
-  string device_id = 1;
-  remote_control.GetAllCommandSetsRequest request = 2; // 空请求
+message WatchDevicesRequest {
+  string device_id = 1; // 目标设备/网关ID
+  remote_control.home.WatchDevicesRequest request = 2;
 }
 
-message StoreOnDeviceRequest {
-  string device_id = 1;
-  remote_control.StoreCommandSetRequest request = 2;
+message UpsertDeviceRequest {
+  string device_id = 1; // 目标设备/网关ID
+  remote_control.home.UpsertDeviceRequest request = 2;
 }
 
-message UpdateOnDeviceRequest {
-  string device_id = 1;
-  remote_control.UpdateCommandSetRequest request = 2;
+message DeleteDeviceRequest {
+  string device_id = 1; // 目标设备/网关ID
+  remote_control.home.DeleteDeviceRequest request = 2;
 }
 
-message DeleteOnDeviceRequest {
-  string device_id = 1;
-  remote_control.DeleteCommandSetRequest request = 2;
+message InvokeActionRequest {
+  string device_id = 1; // 目标设备/网关ID
+  remote_control.home.InvokeActionRequest request = 2;
 }

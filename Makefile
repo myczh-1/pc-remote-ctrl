@@ -37,13 +37,13 @@ setup-tools:
 # ---------- Generate ----------
 proto-gen: setup-tools
 	@echo "Generating protobuf code (Go + TS for home service)..."
-	# Go (home + remote_control protos into backend)
+	# Go (home protos into backend)
 	$(PROTOC) -I $(PROTO_DIR) \
 	  --plugin=protoc-gen-go=$(PROTOC_GEN_GO) \
 	  --plugin=protoc-gen-go-grpc=$(PROTOC_GEN_GO_GRPC) \
 	  --go_out=$(BACKEND_DIR)/proto --go_opt=paths=source_relative \
 	  --go-grpc_out=$(BACKEND_DIR)/proto --go-grpc_opt=paths=source_relative \
-	  $(PROTO_DIR)/home/*.proto $(PROTO_DIR)/remote_control.proto
+	  $(PROTO_DIR)/home/*.proto
 	# Frontend (protobuf-ts)
 	cd $(FRONTEND_DIR) && \
 	  test -x "$(PROTOC_GEN_TS)" || (echo "❌ Missing protoc-gen-ts. Run: cd $(FRONTEND_DIR) && npm install"; exit 1); \

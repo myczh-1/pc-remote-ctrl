@@ -25,11 +25,10 @@ import (
 
 type Config struct {
     Port        string
-    Commands    string // legacy command sets file (will be removed)
     DevicesFile string
     ScenesFile  string
     AutomationsFile string
-    // MQTT broker settings (placeholder; real client to be added later)
+    // MQTT broker settings
     MqttURL     string
     MqttUser    string
     MqttPass    string
@@ -44,9 +43,6 @@ func getenv(k, def string) string {
 func loadConfig() *Config {
     return &Config{
         Port:     getenv("LOCAL_PORT", "7071"),
-        // Legacy command sets path retained temporarily (will be removed)
-        Commands: getenv("COMMANDS_FILE", "backend/data/command_sets.json"),
-        // New storages
         DevicesFile: getenv("HOME_DEVICES_FILE", "backend/data/devices.json"),
         ScenesFile:  getenv("HOME_SCENES_FILE", "backend/data/scenes.json"),
         AutomationsFile: getenv("HOME_AUTOMATIONS_FILE", "backend/data/automations.json"),

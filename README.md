@@ -7,18 +7,20 @@ A gRPC-based remote PC control system with web interface.
 ```
 pc-remote-ctrl/
 ├── proto/                        # Shared protobuf sources
-│   ├── remote_control.proto
+│   ├── home/
+│   │   └── service.proto         # HomeService for smart home management
 │   └── cloud/
-│       ├── device.proto
-│       └── gateway.proto
-├── backend/                      # Go backend (agent/server)
-│   ├── real_grpc_server.go       # Unified gRPC + gRPC-Web entry
+│       └── gateway.proto         # Cloud gateway for request forwarding
+├── backend/                      # Go backend (home gateway)
+│   ├── cmd/home-gateway/main.go  # Home gateway gRPC + gRPC-Web server
 │   ├── internal/
-│   │   ├── executor/             # Command execution
-│   │   ├── server/               # gRPC handlers (ControllerService)
-│   │   └── storage/              # Command set persistence (JSON)
+│   │   ├── home/                 # HomeService implementation
+│   │   ├── storage/              # Device/scene/automation storage
+│   │   ├── mqtt/                 # MQTT client & broker integration
+│   │   ├── ops/                  # Device operation handlers
+│   │   └── broker/               # Embedded MQTT broker
 │   ├── proto/                    # Generated Go stubs (do not edit)
-│   └── command_sets.json         # Stored command sets (data file)
+│   └── data/                     # Storage files (devices.json, scenes.json, etc.)
 ├── cloud-middleware/             # Cloud registry & proxy
 │   ├── cmd/server/main.go        # Unified gRPC + gRPC-Web entry (7073)
 │   ├── internal/{device,proxy,grpcserver}
@@ -87,7 +89,7 @@ make build
 ## Architecture
 
 - Backend: unified listener (7071) that handles both gRPC and gRPC-Web; executes command sets as shell scripts (platform-specific: `sh -c` / `cmd /C`).
-- Cloud middleware (7073): device registry + proxy via bi-di streaming; provides `DeviceRegistryService` and `GatewayService` that forwards `ExecuteCommandSet` to agents.
+- Cloud middleware (7073): device registry + proxy via bi-di streaming; provides `GatewayService` that forwards HomeService requests to local gateways.
 - Frontend: gRPC-Web clients (protobuf-ts) to call backend locally or cloud middleware remotely.
 
 ## Proto & Codegen

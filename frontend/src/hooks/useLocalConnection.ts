@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { ControllerServiceClient } from '../proto/remote_control.client'
+import { HomeServiceClient } from '../proto/home/service.client'
 import { GrpcWebFetchTransport } from '@protobuf-ts/grpcweb-transport'
 
 export type LocalConnectionStatus = 'idle' | 'connecting' | 'connected' | 'failed'
@@ -10,13 +10,13 @@ export function useLocalConnection() {
   const [lastCheckTime, setLastCheckTime] = useState<Date | null>(null)
   const checkIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const transportRef = useRef<GrpcWebFetchTransport | null>(null)
-  const clientRef = useRef<ControllerServiceClient | null>(null)
+  const clientRef = useRef<HomeServiceClient | null>(null)
 
   // 初始化客户端
   const initClient = useCallback(() => {
     if (!transportRef.current) {
       transportRef.current = new GrpcWebFetchTransport({ baseUrl: '/api' })
-      clientRef.current = new ControllerServiceClient(transportRef.current)
+      clientRef.current = new HomeServiceClient(transportRef.current)
     }
   }, [])
 
@@ -30,9 +30,9 @@ export function useLocalConnection() {
     setLastError('')
 
     try {
-      // 使用一个简单的请求测试连接
-      const req = {}
-      await clientRef.current!.getAllCommandSets(req).response
+      // 使用ListDevices测试连接
+      const req = { ids: [], type: '', room: '', tags: [], includeState: false }
+      await clientRef.current!.listDevices(req).response
 
       setConnectionStatus('connected')
       setLastCheckTime(new Date())
