@@ -1,5 +1,7 @@
 import type { Device, ActionSpec } from '../proto/home/service'
 import { useMemo, useState } from 'react'
+import { DeviceStatus } from './StatusIndicator'
+import { StateRenderer } from './StateItem'
 
 interface DeviceDetailDrawerProps {
   open: boolean
@@ -32,10 +34,19 @@ export function DeviceDetailDrawer({ open, device, onClose, onInvoke, onEdit }: 
       </div>
 
       <div className="mb-3">
-        <div className="text-xs text-slate-500 dark:text-slate-400">影子状态</div>
-        <pre className="mt-1 bg-black/5 dark:bg-white/5 rounded-lg p-2 text-xs overflow-auto max-h-48">
-          {JSON.stringify(device.state ?? {}, null, 2)}
-        </pre>
+        <DeviceStatus
+          online={device.online}
+          lastSeen={device.lastSeen}
+          className="mb-3"
+        />
+      </div>
+
+      <div className="mb-3">
+        <StateRenderer
+          state={device.state}
+          className="bg-black/5 dark:bg-white/5 rounded-lg p-3"
+          showRawToggle
+        />
       </div>
 
       <div>

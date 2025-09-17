@@ -1,4 +1,6 @@
 import type { Device } from '../proto/home/service'
+import { StatusIndicator } from './StatusIndicator'
+import { StateRenderer } from './StateItem'
 
 interface DeviceCardProps {
   device: Device
@@ -15,7 +17,7 @@ export function DeviceCard({ device, onOpenDetail, onQuickAction, onEdit }: Devi
     <div className="card rounded-2xl p-4 flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className={`w-2.5 h-2.5 rounded-full ${online ? 'bg-green-500' : 'bg-gray-400'}`}></span>
+          <StatusIndicator online={online} />
           <div className="font-semibold text-slate-900 dark:text-slate-100 truncate max-w-[14rem]" title={device.name || device.id}>
             {device.name || device.id}
           </div>
@@ -38,9 +40,13 @@ export function DeviceCard({ device, onOpenDetail, onQuickAction, onEdit }: Devi
       </div>
 
       {!!device.state && (
-        <pre className="bg-black/5 dark:bg-white/5 rounded-lg p-2 text-xs overflow-auto max-h-24">
-          {JSON.stringify(device.state, null, 2)}
-        </pre>
+        <div className="bg-black/5 dark:bg-white/5 rounded-lg p-2">
+          <StateRenderer
+            state={device.state}
+            compact
+            maxItems={3}
+          />
+        </div>
       )}
 
       <div className="mt-auto flex items-center gap-2">

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { Device } from '../proto/home/service'
 import { AdapterKind } from '../proto/home/service'
 
@@ -37,6 +37,36 @@ export function DeviceCreateModal({ open, onCancel, onCreate, initialDevice }: D
       : [{ name: '', args: '', timeout: 2000 }]
   )
   const [submitting, setSubmitting] = useState(false)
+
+  // 当 initialDevice 变化时同步状态
+  useEffect(() => {
+    if (initialDevice) {
+      setId(initialDevice.id ?? '')
+      setName(initialDevice.name ?? '')
+      setType(initialDevice.type ?? '')
+      setRoom(initialDevice.room ?? '')
+      setTags((initialDevice.tags ?? []).join(','))
+      setAdapterKind(initialDevice.adapter?.kind ?? AdapterKind.MQTT)
+      setActions(
+        (initialDevice.actions ?? []).length > 0
+          ? (initialDevice.actions as any).map((a: any) => ({
+              name: a.name,
+              args: Object.entries(a.argsSchema ?? {}).map(([k, v]) => `${k}=${v as string}`).join(';'),
+              timeout: Number(a.timeoutMs ?? 2000)
+            }))
+          : [{ name: '', args: '', timeout: 2000 }]
+      )
+    } else {
+      // 重置为空状态
+      setId('')
+      setName('')
+      setType('')
+      setRoom('')
+      setTags('')
+      setAdapterKind(AdapterKind.MQTT)
+      setActions([{ name: '', args: '', timeout: 2000 }])
+    }
+  }, [initialDevice])
 
   if (!open) return null
 
@@ -97,24 +127,25 @@ export function DeviceCreateModal({ open, onCancel, onCreate, initialDevice }: D
           </div>
           <div className="col-span-2">
             <label className="text-xs text-slate-500">适配器</label>
-            <select className="w-full rounded-lg border border-black/10 dark:border-white/10 bg-transparent px-2 py-1" value={adapterKind} onChange={e => setAdapterKind(Number(e.target.value) as AdapterKind)}>
-              <option value={AdapterKind.MQTT}>MQTT</option>
-              <option value={AdapterKind.SERIAL}>SERIAL</option>
-              <option value={AdapterKind.HTTP}>HTTP</option>
-            </select>
+            <div className="w-full rounded-lg border border-black/10 dark:border-white/10 bg-gray-50 dark:bg-gray-800/50 px-2 py-1 text-slate-600 dark:text-slate-400">
+              MQTT (固定)
+            </div>
           </div>
         </div>
 
         <div className="mt-3">
           <div className="flex items-center justify-between">
-            <label className="text-xs text-slate-500">动作列表</label>
+            <div>
+              <label className="text-xs text-slate-500">动作列表</label>
+              <div className="text-xs text-slate-400 mt-1">定义设备支持的操作，如开关、调节等</div>
+            </div>
             <button className="text-xs px-2 py-1 rounded-lg border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5" onClick={addAction}>+ 添加动作</button>
           </div>
           <div className="mt-2 flex flex-col gap-2">
             {actions.map((a, i) => (
               <div key={i} className="grid grid-cols-6 gap-2 items-center">
                 <input className="col-span-2 rounded-lg border border-black/10 dark:border-white/10 bg-transparent px-2 py-1" placeholder="动作名，如 power" value={a.name} onChange={e => setActions(prev => prev.map((x, idx) => idx===i? {...x, name: e.target.value}: x))} />
-                <input className="col-span-3 rounded-lg border border-black/10 dark:border-white/10 bg-transparent px-2 py-1" placeholder="参数：k=v;mode=auto" value={a.args} onChange={e => setActions(prev => prev.map((x, idx) => idx===i? {...x, args: e.target.value}: x))} />
+                <input className="col-span-3 rounded-lg border border-black/10 dark:border-white/10 bg-transparent px-2 py-1" placeholder="参数：brightness=80;color=red" value={a.args} onChange={e => setActions(prev => prev.map((x, idx) => idx===i? {...x, args: e.target.value}: x))} />
                 <div className="col-span-1 flex items-center gap-2">
                   <input type="number" className="w-24 rounded-lg border border-black/10 dark:border-white/10 bg-transparent px-2 py-1" value={a.timeout} onChange={e => setActions(prev => prev.map((x, idx) => idx===i? {...x, timeout: Number(e.target.value)}: x))} />
                   <button className="text-xs px-2 py-1 rounded-lg border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5" onClick={() => removeAction(i)}>删</button>
