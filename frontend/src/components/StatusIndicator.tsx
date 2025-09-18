@@ -40,16 +40,17 @@ export function StatusIndicator({
 }
 
 interface LastSeenProps {
-  lastSeen: number
+  lastSeen: string | number
   className?: string
 }
 
 export function LastSeen({ lastSeen, className = '' }: LastSeenProps) {
-  const getTimeAgo = (timestamp: number): string => {
-    if (!timestamp) return '从未'
+  const getTimeAgo = (timestamp: string | number): string => {
+    const ts = typeof timestamp === 'string' ? parseInt(timestamp, 10) : timestamp
+    if (!ts) return '从未'
 
     const now = Date.now()
-    const diff = now - timestamp
+    const diff = now - ts
     const seconds = Math.floor(diff / 1000)
     const minutes = Math.floor(seconds / 60)
     const hours = Math.floor(minutes / 60)
@@ -71,7 +72,7 @@ export function LastSeen({ lastSeen, className = '' }: LastSeenProps) {
 
 interface DeviceStatusProps {
   online: boolean
-  lastSeen: number
+  lastSeen: string | number  // int64 from protobuf can be string
   showLastSeen?: boolean
   className?: string
 }

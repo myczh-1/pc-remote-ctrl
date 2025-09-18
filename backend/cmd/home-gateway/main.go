@@ -6,10 +6,10 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
-	"pc-remote-ctrl/backend/internal/broker"
 	home "pc-remote-ctrl/backend/internal/home"
 	"pc-remote-ctrl/backend/internal/mqtt"
 	"pc-remote-ctrl/backend/internal/ops"
@@ -42,6 +42,26 @@ func getenv(k, def string) string {
 	return def
 }
 
+// loadDotEnv loads .env file if present (optional)
+func loadDotEnv() {
+	if data, err := os.ReadFile(".env"); err == nil {
+		lines := strings.Split(string(data), "\n")
+		for _, line := range lines {
+			line = strings.TrimSpace(line)
+			if line == "" || strings.HasPrefix(line, "#") {
+				continue
+			}
+			if idx := strings.Index(line, "="); idx > 0 {
+				key := strings.TrimSpace(line[:idx])
+				value := strings.TrimSpace(line[idx+1:])
+				if os.Getenv(key) == "" { // 不覆盖已存在的环境变量
+					os.Setenv(key, value)
+				}
+			}
+		}
+	}
+}
+
 func loadConfig() *Config {
 	return &Config{
 		Port:            getenv("LOCAL_PORT", "7071"),
@@ -56,22 +76,31 @@ func loadConfig() *Config {
 }
 
 func main() {
+	// Load .env file if exists (optional)
+	loadDotEnv()
 	cfg := loadConfig()
 	log.Printf("home-gateway starting on :%s", cfg.Port)
 
-	// ensure data dir exists
+	// ensure data dir exists - fail fast if we can't create it
 	if err := os.MkdirAll("backend/data", 0o755); err != nil {
-		log.Printf("warn: create data dir failed: %v", err)
+		log.Fatalf("FATAL: cannot create data directory: %v", err)
 	}
 
 	// initialize new storages (devices/scenes/automations)
 	devices := devstore.NewDevices(cfg.DevicesFile)
 	if err := devices.Load(); err != nil {
-		log.Printf("warn: load devices failed: %v", err)
+		// It's OK if file doesn't exist on first run
+		if !os.IsNotExist(err) {
+			log.Fatalf("FATAL: corrupted devices storage: %v", err)
+		}
+		log.Printf("info: starting with empty devices (first run?)")
 	}
 	scenes := devstore.NewScenes(cfg.ScenesFile)
 	if err := scenes.Load(); err != nil {
-		log.Printf("warn: load scenes failed: %v", err)
+		if !os.IsNotExist(err) {
+			log.Fatalf("FATAL: corrupted scenes storage: %v", err)
+		}
+		log.Printf("info: starting with empty scenes")
 	}
 	// TODO: automation rules will be added later
 	// automations := devstore.NewAutomations(cfg.AutomationsFile)
@@ -79,20 +108,9 @@ func main() {
 	_ = devices
 	_ = scenes
 
-	// Optionally start embedded MQTT broker when MQTT_URL is empty
-	var embedded *broker.Embedded
-	if cfg.MqttURL == "" {
-		emb, err := broker.StartEmbedded(":1883")
-		if err != nil {
-			log.Printf("warn: failed to start embedded mqtt broker: %v", err)
-		} else {
-			embedded = emb
-			// point client to embedded broker
-			os.Setenv("MQTT_URL", "tcp://127.0.0.1:1883")
-			cfg.MqttURL = "tcp://127.0.0.1:1883"
-			log.Printf("embedded mqtt broker listening on :1883")
-		}
-	}
+	// MQTT is optional - system can work without it
+	// For development: use docker-compose with mosquitto
+	// For production: point to your MQTT broker
 
 	// init mqtt client: prefer paho when MQTT_URL provided, else noop
 	var mqttClient mqtt.Client
@@ -174,7 +192,4 @@ func main() {
 	defer sdCancel()
 	_ = httpSrv.Shutdown(sdCtx)
 	grpcServer.GracefulStop()
-	if embedded != nil {
-		_ = embedded.Stop(sdCtx)
-	}
 }

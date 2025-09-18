@@ -251,7 +251,7 @@ export function parseDeviceState(state: any): StateItem[] {
 
   return items.sort((a, b) => {
     // 重要状态项排在前面
-    const priority = { power: 1, temperature: 2, humidity: 3, brightness: 4, battery: 5, signal: 6 }
+    const priority: Record<string, number> = { power: 1, temperature: 2, humidity: 3, brightness: 4, battery: 5, signal: 6 }
     const aPriority = priority[a.type] || 99
     const bPriority = priority[b.type] || 99
     return aPriority - bPriority

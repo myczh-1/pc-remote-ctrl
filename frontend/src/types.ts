@@ -1,61 +1,20 @@
-// Type definitions for the application
+// Type definitions for the smart home application
 
-export interface CommandSet {
-  commandId: string
-  commandName: string
-  commandScripts: string[]
-  description?: string
-  isComposite?: boolean
-  sourceCommandIds?: string[]
-  created: Date
-}
-
-export interface ExecutionResult {
-  output: string
-  error: string
-  exitCode: number
-  success: boolean
-}
-
-export interface StepExecutionResult extends ExecutionResult {
-  stepIndex: number
-  stepScript: string
-}
-
-export interface CommandSetExecution {
-  commandSetId: string
-  commandSetName: string
-  currentStep: number
-  status: 'idle' | 'running' | 'completed' | 'failed' | 'stopped'
-  stepResults: StepExecutionResult[]
-  startTime?: Date
-  endTime?: Date
-  error?: string
-}
-
-export interface AppState {
-  commandSets: CommandSet[]
-  log: string
-  loading: boolean
-}
-
-export type LogLevel = 'info' | 'error' | 'success' | 'execution_start' | 'execution_step' | 'execution_complete' | 'execution_error'
+export type LogLevel = 'info' | 'error' | 'success' | 'execution_start' | 'execution_complete' | 'execution_error'
 
 export interface LogEntry {
   level: LogLevel
   message: string
   timestamp: Date
-  // 执行相关的扩展数据
+  // Execution metadata for device actions
   executionData?: {
-    commandSetName?: string
-    stepIndex?: number
-    stepScript?: string
-    output?: string
-    error?: string
-    exitCode?: number
+    commandSetName?: string  // action name
+    deviceId?: string
     success?: boolean
     duration?: string
-    currentStep?: number
-    totalSteps?: number
+    error?: string
   }
 }
+
+// Re-export protobuf types for convenience
+export type { Device, DeviceEvent } from './proto/home/service'

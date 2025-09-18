@@ -36,24 +36,39 @@ func (s *Service) InitSubscriptions(c mqtt.Client) {
 }
 
 func (s *Service) ListDevices(ctx context.Context, req *homepb.ListDevicesRequest) (*homepb.ListDevicesResponse, error) {
-    idsSet := make(map[string]struct{}, len(req.GetIds()))
-    for _, id := range req.GetIds() { idsSet[id] = struct{}{} }
-    tagsSet := make(map[string]struct{}, len(req.GetTags()))
-    for _, t := range req.GetTags() { tagsSet[t] = struct{}{} }
+    // Build composite filter from request - no special cases
+    filter := NewCompositeFilter(
+        NewIDFilter(req.GetIds()),
+        buildTypeFilter(req.GetType()),
+        buildRoomFilter(req.GetRoom()),
+        NewTagFilter(req.GetTags()),
+    )
 
-    var out []*homepb.Device
-    for _, d := range s.devices.List() {
-        if len(idsSet) > 0 { if _, ok := idsSet[d.ID]; !ok { continue } }
-        if req.GetType() != "" && d.Type != req.GetType() { continue }
-        if req.GetRoom() != "" && d.Room != req.GetRoom() { continue }
-        if len(tagsSet) > 0 {
-            ok := false
-            for _, tg := range d.Tags { if _, has := tagsSet[tg]; has { ok = true; break } }
-            if !ok { continue }
-        }
+    // Get all devices and apply filter
+    devices := FilterDevices(s.devices.List(), filter)
+
+    // Convert to protobuf
+    out := make([]*homepb.Device, 0, len(devices))
+    for _, d := range devices {
         out = append(out, toPBDevice(&d, req.GetIncludeState()))
     }
+
     return &homepb.ListDevicesResponse{Devices: out}, nil
+}
+
+// Helper functions to build filters from strings
+func buildTypeFilter(t string) DeviceFilter {
+    if t == "" {
+        return nil
+    }
+    return TypeFilter(t)
+}
+
+func buildRoomFilter(r string) DeviceFilter {
+    if r == "" {
+        return nil
+    }
+    return RoomFilter(r)
 }
 
 func (s *Service) WatchDevices(req *homepb.WatchDevicesRequest, stream homepb.HomeService_WatchDevicesServer) error {
