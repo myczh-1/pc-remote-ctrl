@@ -41,20 +41,26 @@ export function Topbar({ mode, theme, onToggleTheme, onCreate, onAddDevice, onTo
             <svg className="moon" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
           </span>
         </button>
-        {onAddDevice && (
-          <button 
-            onClick={onAddDevice}
-            className="ml-2 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 text-white hover:from-emerald-600 hover:to-emerald-700 px-3 py-2 shadow-soft border border-emerald-400/20"
+        {onCreate && (
+          <button
+            onClick={onCreate}
+            className="rounded-lg p-2 hover:bg-white/5 border border-white/10 text-blue-500 hover:text-blue-400 transition-colors"
+            title="刷新设备"
           >
-            添加设备
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
           </button>
         )}
-        {onCreate && (
-          <button 
-            onClick={onCreate}
-            className="ml-2 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-prime-500 to-prime-600 text-white hover:from-prime-600 hover:to-prime-700 px-3 py-2 shadow-soft border border-prime-400/20"
+        {onAddDevice && (
+          <button
+            onClick={onAddDevice}
+            className="rounded-lg p-2 hover:bg-white/5 border border-white/10 text-emerald-500 hover:text-emerald-400 transition-colors"
+            title="添加设备"
           >
-            刷新设备
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
           </button>
         )}
       </div>
