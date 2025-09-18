@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  # Mosquitto MQTT Broker - 学习真正的 MQTT
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    container_name: home-mqtt
+    ports:
+      - "1883:1883"  # MQTT
+      - "9001:9001"  # WebSocket (如果需要)
+    volumes:
+      - ./backend/config/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - mosquitto-data:/mosquitto/data
+      - mosquitto-log:/mosquitto/log
+    restart: unless-stopped
+
+  # 可选：MQTT Explorer 用于调试
+  mqtt-explorer:
+    image: smeagolworms4/mqtt-explorer
+    container_name: mqtt-explorer
+    ports:
+      - "4000:4000"
+    environment:
+      - HTTP_PORT=4000
+    restart: unless-stopped
+
+  # 你的网关服务
+  home-gateway:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: home-gateway
+    ports:
+      - "7071:7071"
+    environment:
+      - LOCAL_PORT=7071
+      - MQTT_URL=tcp://mosquitto:1883
+      - MQTT_USER=
+      - MQTT_PASS=
+      - HOME_DEVICES_FILE=/data/devices.json
+      - HOME_SCENES_FILE=/data/scenes.json
+    volumes:
+      - ./backend/data:/data
+    depends_on:
+      - mosquitto
+    restart: unless-stopped
+
+  # 前端开发服务器
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: home-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - VITE_API_URL=http://localhost:7071
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules  # 防止本地 node_modules 覆盖容器的
+    command: npm run dev
+    restart: unless-stopped
+
+volumes:
+  mosquitto-data:
+  mosquitto-log:
