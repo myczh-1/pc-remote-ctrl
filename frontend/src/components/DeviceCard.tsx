@@ -14,7 +14,7 @@ export function DeviceCard({ device, onOpenDetail, onQuickAction, onEdit }: Devi
   const quick = device.actions?.[0]?.name
 
   return (
-    <div className="card rounded-2xl p-4 flex flex-col gap-3">
+    <div className="flex flex-col gap-3 rounded-2xl border border-black/10 bg-white/70 p-4 shadow-[0_8px_24px_rgba(15,21,32,0.12)] backdrop-blur-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-prime-400/60 hover:shadow-[0_12px_36px_rgba(15,21,32,0.18)] dark:border-white/10 dark:bg-white/[0.06] dark:shadow-[0_8px_24px_rgba(2,8,23,0.45)] dark:hover:shadow-[0_12px_40px_rgba(2,8,23,0.55)]">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <StatusIndicator online={online} />

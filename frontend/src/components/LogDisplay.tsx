@@ -15,7 +15,7 @@ export function LogDisplay({ log, onClear }: LogDisplayProps) {
           {hasLogs && <span className="text-xs text-slate-600 dark:text-slate-400">{logLines.length} 条记录</span>}
         </div>
         {onClear && hasLogs && (
-          <button className="px-3 py-1.5 text-sm rounded-lg border border-black/10 dark:border-white/10 bg-white/50 dark:bg-card hover:bg-black/5 dark:hover:bg-white/5 text-slate-900 dark:text-slate-100" onClick={onClear}>
+          <button className="px-3 py-1.5 text-sm rounded-lg border border-black/10 bg-white/50 text-slate-900 transition-colors hover:bg-black/5 dark:border-white/10 dark:bg-white/[0.08] dark:text-slate-100 dark:hover:bg-white/10" onClick={onClear}>
             清空日志
           </button>
         )}

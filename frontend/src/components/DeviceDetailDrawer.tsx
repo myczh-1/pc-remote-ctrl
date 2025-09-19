@@ -1,5 +1,6 @@
 import type { Device, ActionSpec } from '../proto/home/service'
 import { useMemo, useState } from 'react'
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react'
 import { DeviceStatus } from './StatusIndicator'
 import { StateRenderer } from './StateItem'
 
@@ -15,13 +16,24 @@ export function DeviceDetailDrawer({ open, device, onClose, onInvoke, onEdit }: 
   const [form, setForm] = useState<Record<string, any>>({})
   const actions = device?.actions ?? []
   const [selected, setSelected] = useState<ActionSpec | null>(actions[0] ?? null)
+  const prefersReduced = useReducedMotion()
+  const drawerTransition = useMemo(() => (
+    prefersReduced ? { duration: 0 } : { duration: 0.28, ease: [0.22, 1, 0.36, 1] as any }
+  ), [prefersReduced])
 
   const fields = useMemo(() => Object.entries(selected?.argsSchema ?? {}), [selected?.argsSchema])
 
-  if (!open || !device) return null
-
   return (
-    <aside className="fixed right-0 top-0 bottom-0 w-[380px] bg-white dark:bg-surface-soft border-l border-black/10 dark:border-white/10 p-4 overflow-auto z-40">
+    <AnimatePresence initial={false}>
+      {open && device && (
+        <motion.aside
+          key={device.id}
+          initial={prefersReduced ? false : { x: 32, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          exit={{ x: 32, opacity: 0 }}
+          transition={drawerTransition}
+          className="fixed right-0 top-0 bottom-0 z-40 w-[380px] transform-gpu overflow-auto border-l border-black/10 bg-white p-4 will-change-transform dark:border-white/10 dark:bg-surface-soft"
+        >
       <div className="flex items-center justify-between mb-3">
         <div>
           <div className="text-sm text-slate-500 dark:text-slate-400">设备详情</div>
@@ -89,6 +101,8 @@ export function DeviceDetailDrawer({ open, device, onClose, onInvoke, onEdit }: 
           disabled={!selected}
         >执行 {selected?.name}</button>
       </div>
-    </aside>
+        </motion.aside>
+      )}
+    </AnimatePresence>
   )
 }

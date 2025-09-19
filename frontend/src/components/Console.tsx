@@ -30,7 +30,7 @@ export function Console({ logs, onClear, onCopy, fullHeight = false, isDarkMode 
   }
 
   return (
-    <section className={`glass ${outerBorder} border-black/10 dark:border-white/5 px-4 py-3 h-full ${fullHeight ? 'flex flex-col min-h-0' : ''}`}>
+    <section className={`h-full ${outerBorder} border border-black/10 bg-white/60 px-4 py-3 backdrop-blur-md backdrop-saturate-[1.4] transition-colors dark:border-white/10 dark:bg-white/[0.08] ${fullHeight ? 'flex flex-col min-h-0' : ''}`}>
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2 text-sm">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

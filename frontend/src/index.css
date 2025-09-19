@@ -2,16 +2,9 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-@keyframes fade-in { from { opacity: 0 } to { opacity: 1 } }
-@utility animate-fade-in { animation: fade-in 180ms var(--tw-ease-out, ease-out) }
-
-@keyframes fade-out { from { opacity: 1 } to { opacity: 0 } }
-@utility animate-fade-out { animation: fade-out 180ms var(--tw-ease-in, ease-in) }
 @theme {
-  /* 如果你想用 .dark 作为暗色选择器（默认就是 .dark），可显式声明 */
   --tw-dark-selector: ".dark";
 
-  /* 你的颜色表：会自动生成 bg-surface / text-prime-500 等 */
   --color-surface: #0B0F14;
   --color-surface-soft: #0F141A;
   --color-surface-softer: #0C1117;
@@ -28,11 +21,13 @@
   --color-prime-600: #0891B2;
   --color-prime-700: #0E7490;
 
-  /* 阴影（v4 也支持 token 命名，随后用 shadow-soft 等）*/
   --shadow-soft: 0 8px 30px rgba(0,0,0,0.35);
   --shadow-ring: inset 0 1px 0 rgba(255,255,255,0.04), 0 8px 24px rgba(2,8,23,0.6);
 }
-:root { view-transition-name: root; }
+
+:root {
+  view-transition-name: root;
+}
 
 /* Ensure base background matches theme to avoid flash-through */
 html { background-color: #ffffff; }
@@ -41,148 +36,44 @@ html.dark { background-color: #0B0F14; }
 body { background-color: inherit; }
 
 /* Smooth theme switch transition */
-/* Applies brief transitions to common color-related properties when toggling themes */
-html.theme-transition, html.theme-transition * {
+html.theme-transition,
+html.theme-transition * {
   transition-property: background-color, color, border-color, fill, stroke, box-shadow;
   transition-duration: 220ms;
   transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
 }
+
 @media (prefers-reduced-motion: reduce) {
-  html.theme-transition, html.theme-transition * { transition-duration: 0ms; }
+  html.theme-transition,
+  html.theme-transition * {
+    transition-duration: 0ms;
+  }
 }
 
 /* View Transitions API: radial wipe for theme switch */
 @media (prefers-reduced-motion: no-preference) {
-  /* disable default cross-fade */
   ::view-transition-old(root),
   ::view-transition-new(root) {
     animation: none;
     mix-blend-mode: normal;
   }
-  /* Enable radial clip on demand when toggling */
+
   html[theme-transition='radial']::view-transition-old(root) {
     clip-path: circle(var(--vt-r, 0px) at var(--vt-x, 0px) var(--vt-y, 0px));
   }
+
   html[theme-transition='radial']::view-transition-new(root) {
     clip-path: circle(0px at var(--vt-x, 0px) var(--vt-y, 0px));
   }
+
   html[theme-transition='radial'].dark::view-transition-new(root),
   html[theme-transition='radial']:not(.dark)::view-transition-new(root) {
     animation: vt-reveal 520ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
   }
+
   @keyframes vt-reveal {
-    to { clip-path: circle(var(--vt-r, 1600px) at var(--vt-x, 0px) var(--vt-y, 0px)); }
+    to {
+      clip-path: circle(var(--vt-r, 1600px) at var(--vt-x, 0px) var(--vt-y, 0px));
+    }
   }
 }
-
-/* Theme icon spin-once animation */
-@keyframes spin-once {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-.spin-once { animation: spin-once 520ms cubic-bezier(0.22, 1, 0.36, 1); will-change: transform; }
-@media (prefers-reduced-motion: reduce) {
-  .spin-once { animation-duration: 0ms; }
-}
-
-/* Exclude large blurred background from view transitions to reduce flicker */
-.bg-glow { view-transition-name: none; }
-
-/* Theme toggle icon cross-fade + half-rotate */
-.theme-icon { position: relative; width: 1rem; height: 1rem; display: inline-block; }
-.theme-icon svg { position: absolute; inset: 0; transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1), opacity 260ms cubic-bezier(0.22, 1, 0.36, 1); will-change: transform, opacity; }
-html:not(.dark) .theme-icon .sun { opacity: 1; transform: rotate(0deg) scale(1); }
-html:not(.dark) .theme-icon .moon { opacity: 0; transform: rotate(-180deg) scale(0.8); }
-html.dark .theme-icon .sun { opacity: 0; transform: rotate(180deg) scale(0.8); }
-html.dark .theme-icon .moon { opacity: 1; transform: rotate(0deg) scale(1); }
-@media (prefers-reduced-motion: reduce) {
-  .theme-icon svg { transition-duration: 0ms; }
-}
-/* Custom UI styles from prototype with light/dark variants */
-.bg-glow::before, .bg-glow::after { 
-  content: ""; 
-  position: absolute; 
-  inset: auto; 
-  z-index: 0; 
-  filter: blur(80px); 
-  opacity: .35; 
-}
-html.dark .bg-glow::before, html.dark .bg-glow::after {
-  opacity: .22;
-  filter: blur(110px);
-}
-.bg-glow::before{ 
-  width: 420px; 
-  height: 420px; 
-  left: -120px; 
-  top: -80px; 
-  background: radial-gradient( circle at center, #22D3EE 0%, transparent 60% ); 
-}
-.bg-glow::after{ 
-  width: 520px; 
-  height: 520px; 
-  right: -160px; 
-  bottom: -120px; 
-  background: radial-gradient( circle at center, #A78BFA 0%, transparent 60% ); 
-}
-
-.status-dot{ 
-  width:10px; 
-  height:10px; 
-  border-radius:9999px; 
-  display:inline-block; 
-}
-.status-on{ 
-  background: #22C55E; 
-  box-shadow:0 0 0 3px rgba(34,197,94,.15); 
-}
-.status-off{ 
-  background: #EF4444; 
-  box-shadow:0 0 0 3px rgba(239,68,68,.12); 
-}
-.status-idle{ 
-  background: #9CA3AF; 
-  box-shadow:0 0 0 3px rgba(156,163,175,.12); 
-}
-
-.glass { 
-  backdrop-filter: saturate(140%) blur(8px); 
-}
-html.dark .glass {
-  background: rgba(13,18,26,.7);
-  border:1px solid rgba(255,255,255,0.06);
-}
-html:not(.dark) .glass {
-  background: rgba(255,255,255,.7);
-  border:1px solid rgba(0,0,0,0.06);
-}
-.card { }
-html.dark .card { 
-  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); 
-  border:1px solid rgba(255,255,255,0.06); 
-}
-html:not(.dark) .card {
-  background: linear-gradient(180deg, rgba(0,0,0,0.02), rgba(0,0,0,0.01));
-  border:1px solid rgba(0,0,0,0.06);
-}
-.card-hover { 
-  transition: all .18s ease; 
-}
-.card-hover:hover { 
-  border-color: rgba(34,211,238,.55); 
-  box-shadow: 0 0 0 3px rgba(34,211,238,.12), 0 10px 30px rgba(0,0,0,.35); 
-  transform: translateY(-1px); 
-}
-
-.kbd { 
-  background:#0B1220; 
-  border:1px solid #1f2837; 
-  padding:.15rem .38rem; 
-  border-radius:.5rem; 
-  font: 500 12px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas; 
-  color:#a3e7ff 
-}
-
-.log-line.err{ color:#FCA5A5 }
-.log-line.ok{ color:#86EFAC }
-.log-line.info{ color:#93C5FD }

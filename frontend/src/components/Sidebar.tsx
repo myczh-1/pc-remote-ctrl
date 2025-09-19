@@ -232,7 +232,7 @@ export function SidebarContent({ devices, selectedDeviceId, cloudStatus, localSt
                       transition={listItemTransition}
                   >
                     <button 
-                      className={`card card-hover w-full text-left rounded-xl px-3 py-2.5 border flex items-center gap-3 transition-colors ${
+                      className={`flex w-full items-center gap-3 rounded-xl border border-black/10 bg-white/60 px-3 py-2.5 text-left shadow-[0_8px_20px_rgba(15,21,32,0.12)] backdrop-blur-sm transition-all duration-200 hover:-translate-y-[1px] hover:border-prime-400/60 hover:shadow-[0_12px_28px_rgba(15,21,32,0.18)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-prime-400/40 disabled:cursor-not-allowed disabled:opacity-70 dark:border-white/10 dark:bg-white/[0.05] dark:shadow-[0_8px_24px_rgba(2,8,23,0.45)] dark:hover:shadow-[0_12px_32px_rgba(2,8,23,0.55)] ${
                         selectedDeviceId === d.id 
                           ? 'bg-prime-50 dark:bg-prime-900/20 border-prime-200 dark:border-prime-700' 
                           : ''
@@ -240,7 +240,14 @@ export function SidebarContent({ devices, selectedDeviceId, cloudStatus, localSt
                       onClick={() => onSelectDevice?.(d.id)}
                       disabled={!d.online}
                     >
-                      <span className={`status-dot ${d.online ? 'status-on' : 'status-off'}`} />
+                      <span
+                        className={`inline-block h-2.5 w-2.5 rounded-full ${
+                          d.online
+                            ? 'bg-emerald-500 shadow-[0_0_0_3px_rgba(34,197,94,0.15)]'
+                            : 'bg-rose-500 shadow-[0_0_0_3px_rgba(239,68,68,0.12)]'
+                        }`}
+                        aria-hidden
+                      />
                       <span
                         className="font-medium truncate flex-1 text-left"
                         title={d.name.length > 16 ? d.name : undefined}
@@ -260,11 +267,11 @@ export function SidebarContent({ devices, selectedDeviceId, cloudStatus, localSt
         </div>
 
         <div className="mt-auto grid grid-cols-2 gap-2 w-full">
-          <div className="card rounded-xl p-3">
+          <div className="rounded-xl border border-black/10 bg-white/70 p-3 shadow-[0_6px_18px_rgba(15,21,32,0.12)] backdrop-blur-sm dark:border-white/10 dark:bg-white/[0.06] dark:shadow-[0_6px_18px_rgba(2,8,23,0.45)]">
             <div className="text-[11px] text-slate-400">Online</div>
             <div className="text-xl font-semibold">{online}</div>
           </div>
-          <div className="card rounded-xl p-3">
+          <div className="rounded-xl border border-black/10 bg-white/70 p-3 shadow-[0_6px_18px_rgba(15,21,32,0.12)] backdrop-blur-sm dark:border-white/10 dark:bg-white/[0.06] dark:shadow-[0_6px_18px_rgba(2,8,23,0.45)]">
             <div className="text-[11px] text-slate-400">Offline</div>
             <div className="text-xl font-semibold">{offline}</div>
           </div>
@@ -327,7 +334,7 @@ export function Sidebar({ devices, selectedDeviceId, cloudStatus, localStatus, o
         <AnimatePresence initial={false}>
           {isOpen && (
               <motion.aside
-                  className={`fixed inset-y-0 left-0 ${mobileFullWidth ? 'w-screen' : 'w-[280px]'} z-50 xl:hidden bg-white dark:bg-surface-soft border-r border-black/10 dark:border-white/10 glass will-change-transform transform-gpu`}
+                  className={`fixed inset-y-0 left-0 ${mobileFullWidth ? 'w-screen' : 'w-[280px]'} z-50 xl:hidden border-r border-black/10 bg-white/80 backdrop-blur-md backdrop-saturate-[1.4] will-change-transform transform-gpu dark:border-white/10 dark:bg-surface-soft/80`}
                   initial={prefersReduced ? false : { x: mobileFullWidth ? -window.innerWidth : -288, opacity: 0 }}
                   animate={{ x: 0, opacity: 1 }}
                   exit={{ x: mobileFullWidth ? -window.innerWidth : -288, opacity: 0 }}
@@ -357,7 +364,7 @@ export function Sidebar({ devices, selectedDeviceId, cloudStatus, localStatus, o
 
         {/* 桌面版（本地折叠至窄栏，云端展开；联动主内容） */}
         <motion.aside
-          className="hidden xl:flex xl:flex-col overflow-hidden glass bg-white dark:bg-surface-soft border-r border-black/10 dark:border-white/10 will-change-transform transform-gpu"
+          className="hidden xl:flex xl:flex-col overflow-hidden border-r border-black/10 bg-white/80 backdrop-blur-md backdrop-saturate-[1.4] will-change-transform transform-gpu dark:border-white/10 dark:bg-surface-soft/80"
           initial={false}
           animate={{ width: isOpen ? expandedWidth : collapseWidth }}
           transition={drawerTransition}

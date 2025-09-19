@@ -66,7 +66,10 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-white text-slate-900 dark:bg-surface dark:text-slate-100 relative selection:bg-prime-400/20 selection:text-white overflow-hidden">
-      <div className="absolute inset-0 bg-glow pointer-events-none overflow-hidden"></div>
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -left-32 -top-20 h-[420px] w-[420px] rounded-full opacity-[0.35] blur-[80px] bg-[radial-gradient(circle_at_center,#22D3EE_0%,transparent_60%)] dark:opacity-[0.22] dark:blur-[110px]" />
+        <div className="absolute -right-40 -bottom-32 h-[520px] w-[520px] rounded-full opacity-[0.35] blur-[80px] bg-[radial-gradient(circle_at_center,#A78BFA_0%,transparent_60%)] dark:opacity-[0.22] dark:blur-[110px]" />
+      </div>
 
       <div className="relative z-10 flex h-screen overflow-hidden">
         <motion.main layout className="flex-1 flex flex-col overflow-hidden">
