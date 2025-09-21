@@ -3,6 +3,7 @@
 #include <NimBLEDevice.h>
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
+#include "user_handlers.h"
 
 // UUIDs must match frontend
 static const char* SVC_UUID       = "c0de0001-0000-4af1-86a2-7b2e9e000001";
@@ -87,15 +88,23 @@ static void onMqttMessage(char* topic, uint8_t* payload, unsigned int length) {
   if (!err) {
     if (doc["corr_id"].is<String>()) corrId = (const char*)doc["corr_id"];
   }
-  // Do minimal echo/action here
+  // Delegate to user handler
+  bool ok = false; String message;
+  StaticJsonDocument<512> resultData;
+  JsonVariantConst args = doc.containsKey("args") ? doc["args"].as<JsonVariantConst>() : JsonVariantConst();
+  user_on_action(action, args, resultData, ok, message);
+
+  // Build result payload
   String resTopic = String("devices/") + g_deviceId + "/actions/" + action + "/result";
-  StaticJsonDocument<384> out;
+  StaticJsonDocument<768> out;
   if (corrId.length()) out["corr_id"] = corrId;
-  out["ok"] = true;
-  out["message"] = "done";
-  JsonObject data = out.createNestedObject("data");
-  data["echo"] = action;
-  char buf[384]; size_t n = serializeJson(out, buf, sizeof(buf));
+  out["ok"] = ok;
+  out["message"] = message.length() ? message.c_str() : (ok ? "done" : "error");
+  if (!resultData.isNull()) {
+    JsonObject data = out.createNestedObject("data");
+    for (JsonPair kv : resultData.as<JsonObject>()) data[kv.key()] = kv.value();
+  }
+  char buf[768]; size_t n = serializeJson(out, buf, sizeof(buf));
   mqtt.publish(resTopic.c_str(), buf, false);
 }
 
@@ -169,6 +178,8 @@ void setup() {
   Serial.println("ESP32 BLE Provisioning + MQTT");
   // Increase MQTT packet buffer for JSON payloads
   mqtt.setBufferSize(1024);
+  // User initialization (GPIO/ADC/etc.)
+  user_init();
 
   NimBLEDevice::init("PC-Dev");
   NimBLEDevice::setPower(ESP_PWR_LVL_P9);
@@ -212,6 +223,15 @@ void loop() {
       if (millis() - lastStateMs > 30000) {
         publishInitialState();
         lastStateMs = millis();
+      }
+      // user periodic state
+      StaticJsonDocument<512> st;
+      bool has = false;
+      user_periodic_state(st, has);
+      if (has && !g_deviceId.isEmpty()) {
+        String topic = "devices/" + g_deviceId + "/state";
+        char sbuf[512]; size_t sn = serializeJson(st, sbuf, sizeof(sbuf));
+        mqtt.publish(topic.c_str(), sbuf, true);
       }
     }
   }
