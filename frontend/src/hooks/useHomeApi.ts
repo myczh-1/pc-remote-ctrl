@@ -49,7 +49,7 @@ export function useHomeApi(config?: Partial<HomeConfig>) {
     try {
       const res = await clientRef.current.listDevices({ ids: [], type: '', room: '', tags: [], includeState: true }).response
       setDevices((res as ListDevicesResponse).devices)
-      return { ok: true, count: res.devices.length }
+      return { ok: true, count: (res as ListDevicesResponse).devices.length, devices: (res as ListDevicesResponse).devices as Device[] }
     } catch (e: any) {
       const msg = String(e?.message ?? e)
       setError(msg)
@@ -116,6 +116,15 @@ export function useHomeApi(config?: Partial<HomeConfig>) {
     }
   }, [])
 
+  const deleteDevice = useCallback(async (deviceId: string) => {
+    try {
+      const res = await clientRef.current.deleteDevice({ deviceId }).response
+      return { ok: (res as any).ok, message: (res as any).message }
+    } catch (e: any) {
+      return { ok: false, error: String(e?.message ?? e) }
+    }
+  }, [])
+
   const stopWatch = useCallback(() => {
     streamRef.current = null
   }, [])
@@ -133,5 +142,6 @@ export function useHomeApi(config?: Partial<HomeConfig>) {
     startWatch,
     stopWatch,
     upsertDevice,
+    deleteDevice,
   }
 }

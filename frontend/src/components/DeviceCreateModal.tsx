@@ -1,6 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import type { Device } from '../proto/home/service'
 import { AdapterKind } from '../proto/home/service'
+import { useBleProvisioning } from '../hooks/useBleProvisioning'
+import { useHomeApi } from '../hooks/useHomeApi'
 
 interface DeviceCreateModalProps {
   open: boolean
@@ -37,6 +39,19 @@ export function DeviceCreateModal({ open, onCancel, onCreate, initialDevice }: D
       : [{ name: '', args: '', timeout: 2000 }]
   )
   const [submitting, setSubmitting] = useState(false)
+  // BLE provisioning inputs
+  const [ssid, setSsid] = useState('')
+  const [wifiPass, setWifiPass] = useState('')
+  const defaultMqttUrl = useMemo(() => ((import.meta as any).env?.VITE_MQTT_URL as string) || 'tcp://192.168.30.64:1883', [])
+  const [mqttUrl, setMqttUrl] = useState<string>(defaultMqttUrl)
+  const [mqttUser, setMqttUser] = useState('')
+  const [mqttPass, setMqttPass] = useState('')
+  const [bleRunning, setBleRunning] = useState(false)
+  const [bleLogs, setBleLogs] = useState<Array<{ t: number; msg: string; ok?: boolean }>>([])
+  const { provision, disconnect } = useBleProvisioning()
+  const home = useHomeApi()
+  const [step, setStep] = useState<'init' | 'ble' | 'waiting' | 'done'>('init')
+  const [allocated, setAllocated] = useState(false)
 
   // 当 initialDevice 变化时同步状态
   useEffect(() => {
@@ -65,8 +80,45 @@ export function DeviceCreateModal({ open, onCancel, onCreate, initialDevice }: D
       setTags('')
       setAdapterKind(AdapterKind.MQTT)
       setActions([{ name: '', args: '', timeout: 2000 }])
+      setSsid('')
+      setWifiPass('')
+      setMqttUrl(defaultMqttUrl)
+      setMqttUser('')
+      setMqttPass('')
+      setBleLogs([])
+      setAllocated(false)
+      setStep('init')
+      if (open) {
+        (async () => {
+          try {
+            const r = await home.upsertDevice({
+              id: '' as any,
+              name: '', type: '', room: '', tags: [],
+              online: false, lastSeen: 0 as any, topics: {},
+              adapter: { kind: AdapterKind.MQTT, config: {} } as any,
+              actions: [], state: { fields: {} } as any,
+            } as any)
+            if (r.ok) {
+              const msg = String(r.message || '')
+              const m = msg.match(/^created:(.+)$/)
+              if (m) {
+                setId(m[1])
+                setAllocated(true)
+                setStep('ble')
+                setBleLogs(prev => [...prev, { t: Date.now(), msg: `已分配设备ID: ${m[1]}`, ok: true }])
+              } else {
+                setBleLogs(prev => [...prev, { t: Date.now(), msg: `分配设备ID失败: ${msg}`, ok: false }])
+              }
+            } else {
+              setBleLogs(prev => [...prev, { t: Date.now(), msg: `分配设备ID失败: ${r.error}`, ok: false }])
+            }
+          } catch (e: any) {
+            setBleLogs(prev => [...prev, { t: Date.now(), msg: `分配设备ID异常: ${String(e?.message ?? e)}`, ok: false }])
+          }
+        })()
+      }
     }
-  }, [initialDevice])
+  }, [initialDevice, open])
 
   if (!open) return null
 
@@ -106,8 +158,8 @@ export function DeviceCreateModal({ open, onCancel, onCreate, initialDevice }: D
 
         <div className="grid grid-cols-2 gap-3">
           <div className="col-span-1">
-            <label className="text-xs text-slate-500">设备 ID（可选）</label>
-            <input className="w-full rounded-lg border border-black/10 dark:border-white/10 bg-transparent px-2 py-1" value={id} onChange={e => setId(e.target.value)} placeholder="留空自动生成" />
+            <label className="text-xs text-slate-500">设备 ID（后端分配）</label>
+            <input readOnly className="w-full rounded-lg border border-black/10 dark:border-white/10 bg-transparent px-2 py-1" value={id} placeholder="点击下方开始配网后分配" />
           </div>
           <div className="col-span-1">
             <label className="text-xs text-slate-500">名称</label>
@@ -125,13 +177,129 @@ export function DeviceCreateModal({ open, onCancel, onCreate, initialDevice }: D
             <label className="text-xs text-slate-500">标签（逗号分隔）</label>
             <input className="w-full rounded-lg border border-black/10 dark:border-white/10 bg-transparent px-2 py-1" value={tags} onChange={e => setTags(e.target.value)} placeholder="tag1,tag2" />
           </div>
-          <div className="col-span-2">
-            <label className="text-xs text-slate-500">适配器</label>
-            <div className="w-full rounded-lg border border-black/10 dark:border-white/10 bg-gray-50 dark:bg-gray-800/50 px-2 py-1 text-slate-600 dark:text-slate-400">
-              MQTT (固定)
+          {/* 适配器选项移除：当前仅支持 MQTT，UI 不再展示 */}
+        </div>
+
+        {/* BLE 配网（仅新增时显示） */}
+        {!initialDevice && (
+        <div className="mt-3 p-3 rounded-xl border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5">
+          <div className="flex items-center justify-between mb-2">
+            <div>
+              <div className="font-medium">蓝牙配网（Web Bluetooth）</div>
+              <div className="text-xs text-slate-500 dark:text-slate-400">在本机通过蓝牙为设备写入 Wi‑Fi 与 MQTT 参数</div>
             </div>
           </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="col-span-1">
+              <label className="text-xs text-slate-500">Wi‑Fi SSID</label>
+              <input className="w-full rounded-lg border border-black/10 dark:border-white/10 bg-transparent px-2 py-1" value={ssid} onChange={e => setSsid(e.target.value)} placeholder="路由器名称" />
+            </div>
+            <div className="col-span-1">
+              <label className="text-xs text-slate-500">Wi‑Fi 密码</label>
+              <input type="password" className="w-full rounded-lg border border-black/10 dark:border-white/10 bg-transparent px-2 py-1" value={wifiPass} onChange={e => setWifiPass(e.target.value)} placeholder="至少 8 位" />
+            </div>
+            <div className="col-span-2">
+              <label className="text-xs text-slate-500">MQTT URL</label>
+              <input className="w-full rounded-lg border border-black/10 dark:border-white/10 bg-transparent px-2 py-1" value={mqttUrl} onChange={e => setMqttUrl(e.target.value)} placeholder="tcp://192.168.1.100:1883" />
+            </div>
+            <div className="col-span-1">
+              <label className="text-xs text-slate-500">MQTT 用户（可选）</label>
+              <input className="w-full rounded-lg border border-black/10 dark:border-white/10 bg-transparent px-2 py-1" value={mqttUser} onChange={e => setMqttUser(e.target.value)} placeholder="用户名" />
+            </div>
+            <div className="col-span-1">
+              <label className="text-xs text-slate-500">MQTT 密码（可选）</label>
+              <input type="password" className="w-full rounded-lg border border-black/10 dark:border-white/10 bg-transparent px-2 py-1" value={mqttPass} onChange={e => setMqttPass(e.target.value)} placeholder="密码" />
+            </div>
+          </div>
+          <div className="mt-2 flex items-center gap-2">
+            <button
+              disabled={bleRunning}
+              className="px-3 py-2 text-sm rounded-xl bg-gradient-to-r from-prime-500 to-prime-600 text-white hover:from-prime-600 hover:to-prime-700 disabled:opacity-50"
+              onClick={async () => {
+                if (!ssid || !wifiPass) { alert('请填写 Wi‑Fi 名称与密码'); return }
+                setBleRunning(true)
+                setBleLogs([])
+                try {
+                  // 1) 分配设备ID（仅当尚未分配）
+                  if (!allocated) {
+                    const r = await home.upsertDevice({
+                      id: '' as any,
+                      name: '', type: '', room: '', tags: [],
+                      online: false, lastSeen: 0 as any, topics: {},
+                      adapter: { kind: AdapterKind.MQTT, config: {} } as any,
+                      actions: [], state: { fields: {} } as any,
+                    } as any)
+                    if (!r.ok) throw new Error(`分配设备ID失败: ${r.error}`)
+                    const msg = String(r.message || '')
+                    const m = msg.match(/^created:(.+)$/)
+                    if (!m) throw new Error(`分配设备ID失败: ${msg}`)
+                    setId(m[1])
+                    setAllocated(true)
+                    setStep('ble')
+                    setBleLogs(prev => [...prev, { t: Date.now(), msg: `已分配设备ID: ${m[1]}`, ok: true }])
+                  }
+
+                  const res = await provision({ ssid, password: wifiPass, mqttUrl, deviceId: id, mqttUser, mqttPass }, (e) => {
+                    setBleLogs(prev => [...prev, { t: Date.now(), msg: `${e.stage}${e.message ? ': ' + e.message : ''}`, ok: e.ok }].slice(-50))
+                  })
+                  if (res.ok) {
+                    setBleLogs(prev => [...prev, { t: Date.now(), msg: '配网完成，等待设备上线...', ok: true }])
+                    setStep('waiting')
+                    // 轮询等待设备上线（最多 30 秒）
+                    let onlineOk = false
+                    for (let i = 0; i < 30; i++) {
+                      const r = await home.listDevices()
+                      if (r.ok && Array.isArray((r as any).devices)) {
+                        const found = (r as any).devices.find((d: any) => d.id === id)
+                        if (found && (found.online as any)) { onlineOk = true; break }
+                      }
+                      await new Promise(res => setTimeout(res, 1000))
+                    }
+                    if (onlineOk) {
+                      setBleLogs(prev => [...prev, { t: Date.now(), msg: '设备已上线', ok: true }])
+                      await submit()
+                      setStep('done')
+                    } else {
+                      setBleLogs(prev => [...prev, { t: Date.now(), msg: '等待上线超时', ok: false }])
+                      try { if (allocated && id) { await home.deleteDevice(id) } } catch {}
+                      setAllocated(false)
+                      setId('')
+                      setStep('ble')
+                    }
+                  } else {
+                    setBleLogs(prev => [...prev, { t: Date.now(), msg: res.message || '配网失败', ok: false }])
+                    try { if (allocated && id) { await home.deleteDevice(id) } } catch {}
+                    setAllocated(false)
+                    setId('')
+                    setStep('ble')
+                  }
+                } catch (err: any) {
+                  setBleLogs(prev => [...prev, { t: Date.now(), msg: String(err?.message ?? err), ok: false }])
+                  try { if (allocated && id) { await home.deleteDevice(id) } } catch {}
+                  setAllocated(false)
+                  setId('')
+                  setStep('ble')
+                } finally {
+                  setBleRunning(false)
+                }
+              }}
+            >{bleRunning ? '蓝牙进行中...' : '开始蓝牙配网'}</button>
+            <button
+              className="px-3 py-2 text-sm rounded-lg border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5"
+              onClick={() => { disconnect().catch(()=>{}); setBleLogs(prev => [...prev, { t: Date.now(), msg: '已断开蓝牙' }]) }}
+            >断开</button>
+          </div>
+          {bleLogs.length > 0 && (
+            <div className="mt-2 max-h-32 overflow-auto rounded-lg border border-black/10 dark:border-white/10 bg-white/60 dark:bg-white/5 p-2 text-xs">
+              {bleLogs.map((l, i) => (
+                <div key={i} className={l.ok === false ? 'text-red-500' : (l.ok ? 'text-emerald-600' : 'text-slate-500')}>
+                  {new Date(l.t).toLocaleTimeString()} · {l.msg}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
+        )}
 
         <div className="mt-3">
           <div className="flex items-center justify-between">
@@ -156,7 +324,10 @@ export function DeviceCreateModal({ open, onCancel, onCreate, initialDevice }: D
         </div>
 
         <div className="mt-4 flex justify-end gap-2">
-          <button className="px-3 py-2 rounded-lg border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5" onClick={onCancel}>取消</button>
+          <button className="px-3 py-2 rounded-lg border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5" onClick={async () => {
+            if (allocated && step !== 'done' && id) { try { await home.deleteDevice(id) } catch {} }
+            onCancel?.()
+          }}>取消</button>
           <button disabled={submitting} className="px-3 py-2 rounded-xl bg-gradient-to-r from-prime-500 to-prime-600 text-white hover:from-prime-600 hover:to-prime-700 disabled:opacity-50" onClick={submit}>{initialDevice ? '保存' : '创建'}</button>
         </div>
       </div>
