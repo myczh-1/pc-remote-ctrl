@@ -81,17 +81,19 @@ export function detectStateType(key: string, value: any): StateType {
 
 // 格式化显示值
 export function formatStateValue(type: StateType, value: any): string {
+  const num = Number(value)
+  const safeNum = Number.isFinite(num)
   switch (type) {
     case 'temperature':
-      return `${Number(value).toFixed(1)}°C`
+      return safeNum ? `${num.toFixed(1)}°C` : '—'
 
     case 'humidity':
     case 'battery':
     case 'percentage':
-      return `${Math.round(Number(value))}%`
+      return safeNum ? `${Math.round(num)}%` : '—'
 
     case 'brightness':
-      return `${Math.round(Number(value))}%`
+      return safeNum ? `${Math.round(num)}%` : '—'
 
     case 'power':
     case 'boolean':
@@ -107,7 +109,7 @@ export function formatStateValue(type: StateType, value: any): string {
       return '很弱'
 
     case 'number':
-      return Number(value).toLocaleString()
+      return safeNum ? num.toLocaleString() : '—'
 
     case 'text':
       return String(value)

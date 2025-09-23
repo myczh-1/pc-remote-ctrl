@@ -65,7 +65,7 @@ export function LastSeen({ lastSeen, className = '' }: LastSeenProps) {
 
   return (
     <span className={`text-xs text-slate-400 ${className}`}>
-      最后活跃: {getTimeAgo(lastSeen)}
+      上次在线: {getTimeAgo(lastSeen)}
     </span>
   )
 }

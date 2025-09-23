@@ -165,7 +165,7 @@ export default function App() {
                       <div className="text-xs text-red-500">{home.error}</div>
                     )}
                   </div>
-                  <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fill,minmax(260px,1fr))' }}>
+                  <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill,minmax(220px,1fr))' }}>
                     {home.devices.map(d => (
                       <DeviceCard
                         key={d.id}

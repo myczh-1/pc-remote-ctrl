@@ -66,16 +66,10 @@ export function Console({ logs, onClear, onCopy, fullHeight = false, isDarkMode 
         ) : (
           <div className="space-y-1">
             {logs.map((log, index) => (
-              <div key={index} className="flex items-start gap-2">
-                <span className="text-xs mt-0.5">{getLogIcon(log.level)}</span>
-                <div className="flex-1">
-                  <div className={`${getLogColor(log.level)} font-medium`}>
-                    {log.message}
-                  </div>
-                  <div className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
-                    {log.timestamp.toLocaleTimeString()}
-                  </div>
-                </div>
+              <div key={index} className={`flex items-center gap-2 ${getLogColor(log.level)}`}>
+                <span className="text-xs">{getLogIcon(log.level)}</span>
+                <span className="text-xs text-slate-400 dark:text-slate-500">[{log.timestamp.toLocaleTimeString()}]</span>
+                <span className="font-medium truncate">{log.message}</span>
               </div>
             ))}
           </div>
