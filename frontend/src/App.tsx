@@ -8,6 +8,8 @@ import { DeviceDetailDrawer } from './components/DeviceDetailDrawer'
 import { DeviceCreateModal } from './components/DeviceCreateModal'
 import type { Device } from './proto/home/service'
 import { useHomeApi } from './hooks/useHomeApi'
+import { useCloudApi } from './hooks/useCloudApi'
+import { CloudSettings } from './components/CloudSettings'
 import { TelemetryEventKind } from './proto/home/service'
 
 export default function App() {
@@ -22,8 +24,16 @@ export default function App() {
   })
 
   const { logInfo, logError, logSuccess, clearLog, entries } = useLogger()
-  const home = useHomeApi({
-    onEvent: (ev, data) => {
+  const [mode, setMode] = useState<'local' | 'cloud'>(() => {
+    try { return (localStorage.getItem('mode') as any) || 'local' } catch { return 'local' }
+  })
+  const [cloudCfg, setCloudCfg] = useState<{ baseUrl: string; agentId: string }>(() => ({
+    baseUrl: (typeof localStorage !== 'undefined' ? (localStorage.getItem('cloud.baseUrl') || '/cloud') : '/cloud'),
+    agentId: (typeof localStorage !== 'undefined' ? (localStorage.getItem('cloud.agentId') || '') : ''),
+  }))
+  const [cloudSettingsOpen, setCloudSettingsOpen] = useState(false)
+
+  function onEvent(ev: any, data?: Record<string, any>) {
       if (!ev) return
       const id = ev.deviceId
       switch (ev.kind) {
@@ -45,8 +55,10 @@ export default function App() {
           break
         }
       }
-    }
-  })
+  }
+  const api = mode === 'cloud'
+    ? useCloudApi({ baseUrl: cloudCfg.baseUrl, agentId: cloudCfg.agentId, onEvent })
+    : useHomeApi({ onEvent })
   const prefersReduced = useReducedMotion()
   const layoutTransition = useMemo(() => (
     prefersReduced ? { duration: 0 } : { duration: 0.32, ease: [0.22, 1, 0.36, 1] as any }
@@ -56,25 +68,21 @@ export default function App() {
   const [detailDeviceId, setDetailDeviceId] = useState('')
   const [createOpen, setCreateOpen] = useState(false)
   const [editing, setEditing] = useState<Device | undefined>(undefined)
-  const startedRef = React.useRef(false)
-
   React.useEffect(() => {
-    if (startedRef.current) return
-    startedRef.current = true
-    home.listDevices()
-    home.startWatch()
-    return () => home.stopWatch()
-  }, [])
+    api.listDevices()
+    api.startWatch()
+    return () => { try { api.stopWatch() } catch {} }
+  }, [mode, cloudCfg.baseUrl, cloudCfg.agentId])
 
   const handleRefreshDevices = async () => {
-    const r = await home.listDevices()
+    const r = await api.listDevices()
     if (r.ok) logInfo(`设备: ${r.count} 台`)
     else logError(`刷新设备失败: ${r.error}`)
   }
 
   const handleQuickAction = async (deviceId: string, action: string) => {
     logInfo(`执行: ${action} @ ${deviceId}`, 'execution_start', { commandSetName: action })
-    const r = await home.invokeAction(deviceId, action)
+    const r = await api.invokeAction(deviceId, action)
     if (r.ok) {
       logSuccess(`执行完成: ${action}`, 'execution_complete', { commandSetName: action })
     } else {
@@ -99,8 +107,9 @@ export default function App() {
       <div className="relative z-10 flex h-screen overflow-hidden">
         <motion.main layout className="flex-1 flex flex-col overflow-hidden">
           <Topbar
-            mode="local"
+            mode={mode}
             theme={theme}
+            onOpenCloudSettings={() => setCloudSettingsOpen(true)}
             onAddDevice={() => setCreateOpen(true)}
             onToggleTheme={(e) => {
               const root = document.documentElement;
@@ -147,6 +156,11 @@ export default function App() {
               setTimeout(() => root.classList.remove("theme-transition"), 320);
             }}
             onCreate={handleRefreshDevices}
+            onToggleMode={() => {
+              const next = mode === 'local' ? 'cloud' : 'local'
+              setMode(next)
+              try { localStorage.setItem('mode', next) } catch {}
+            }}
           />
 
           <div className={`p-4 md:p-6 flex-1 overflow-hidden bg-white dark:bg-surface`}>
@@ -159,14 +173,14 @@ export default function App() {
                 <motion.div layout transition={layoutTransition} className={`flex-1 min-h-0 overflow-auto`}>
                   <div className="mb-3 flex items-center justify-between">
                     <div className="text-sm text-slate-500 dark:text-slate-400">
-                      {home.loading ? '加载设备中...' : `共 ${home.devices.length} 台设备`}
+                      {api.loading ? '加载设备中...' : `共 ${api.devices.length} 台设备`}
                     </div>
-                    {home.error && (
-                      <div className="text-xs text-red-500">{home.error}</div>
+                    {api.error && (
+                      <div className="text-xs text-red-500">{api.error}</div>
                     )}
                   </div>
                   <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill,minmax(220px,1fr))' }}>
-                    {home.devices.map(d => (
+                    {api.devices.map(d => (
                       <DeviceCard
                         key={d.id}
                         device={d}
@@ -197,12 +211,12 @@ export default function App() {
 
       <DeviceDetailDrawer
         open={detailOpen}
-        device={home.devices.find(d => d.id === detailDeviceId)}
+        device={api.devices.find(d => d.id === detailDeviceId)}
         onClose={() => setDetailOpen(false)}
         onEdit={(dev) => { setDetailOpen(false); setEditing(dev as any); setCreateOpen(true) }}
         onInvoke={async (id, action, args) => {
           logInfo(`执行: ${action} @ ${id}`, 'execution_start', { commandSetName: action })
-          const r = await home.invokeAction(id, action, args)
+          const r = await api.invokeAction(id, action, args)
           if (r.ok) logSuccess(`执行完成: ${action}`, 'execution_complete', { commandSetName: action })
           else logError(`执行失败: ${r.error || r.message}`, 'execution_error', { commandSetName: action })
         }}
@@ -213,14 +227,22 @@ export default function App() {
         initialDevice={editing}
         onCancel={() => { setCreateOpen(false); setEditing(undefined) }}
         onCreate={async (device) => {
-          const r = await home.upsertDevice(device)
+          const r = await api.upsertDevice(device)
           if (r.ok) {
             logSuccess(`${editing ? '设备已更新' : '设备已创建'}: ${device.name || device.id}`)
             setCreateOpen(false); setEditing(undefined)
-            await home.listDevices()
+            await api.listDevices()
           } else {
             logError(`创建设备失败: ${r.error || r.message}`)
           }
+        }}
+      />
+
+      <CloudSettings
+        open={cloudSettingsOpen}
+        onClose={() => setCloudSettingsOpen(false)}
+        onSaved={(cfg) => {
+          setCloudCfg(cfg)
         }}
       />
     </div>

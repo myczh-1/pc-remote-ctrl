@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+package remote_control.cloud.v1;
+
+option go_package = "pc-remote-ctrl/cloud-middleware/proto/cloud;cloudpb";
+
+// 设备/Agent 注册与心跳接口（直连模式）。
+service AgentService {
+  rpc Register(RegisterRequest) returns (RegisterResponse);
+  rpc Heartbeat(HeartbeatRequest) returns (HeartbeatResponse);
+}
+
+// 预留反向隧道接口：后续实现帧复用透传 gRPC 调用。
+service TunnelService {
+  rpc Open(stream TunnelFrame) returns (stream TunnelFrame);
+}
+
+message RegisterRequest {
+  string device_id = 1;           // 设备唯一ID
+  string home_grpc_addr = 2;      // 设备侧 HomeService 可达地址，例如 10.0.0.5:7071 或公网IP:端口
+  string secret = 3;              // 设备注册密钥（与云端配置匹配）
+  repeated string tags = 4;       // 标签（可用于路由/过滤）
+  int32 ttl_sec = 5;              // 注册有效期，心跳刷新
+}
+
+message RegisterResponse {
+  bool ok = 1;
+  string message = 2;
+}
+
+message HeartbeatRequest {
+  string device_id = 1;
+}
+
+message HeartbeatResponse {
+  bool ok = 1;
+}
+
+enum FrameType {
+  FRAME_TYPE_UNSPECIFIED = 0;
+  OPEN = 1;
+  DATA = 2;
+  CLOSE = 3;
+  ERROR = 4;
+}
+
+message TunnelFrame {
+  string corr_id = 1; // 关联一次调用生命周期
+  FrameType type = 2;
+  string method = 3;  // 目标方法名，仅 OPEN 时填写，例如 "/remote_control.home.HomeService/InvokeAction"
+  bytes payload = 4;  // 负载：请求/响应/流数据按 wire 格式承载
+  string message = 5; // 错误描述（ERROR 时）
+}

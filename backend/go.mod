@@ -11,6 +11,7 @@ require (
 	golang.org/x/net v0.43.0
 	google.golang.org/grpc v1.75.0
 	google.golang.org/protobuf v1.36.8
+	pc-remote-ctrl/cloud-middleware v0.0.0-00010101000000-000000000000
 )
 
 require (
@@ -32,4 +33,4 @@ require (
 replace google.golang.org/genproto/googleapis/rpc => google.golang.org/genproto v0.0.0-20210126160654-44e461bb6506
 
 // link local cloud-middleware module so agent can import its generated protos
-// cloud-middleware removed in this branch
+replace pc-remote-ctrl/cloud-middleware => ../cloud-middleware

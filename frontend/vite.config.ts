@@ -19,6 +19,12 @@ export default defineConfig({
         ws: true, // 允许 websocket 代理，便于 grpc-web 流式
         rewrite: (p) => p.replace(/^\/api/, ''), // ⬅️ 去掉前缀
       },
+      '/cloud': {
+        target: 'http://localhost:7073', // 云端中间件 grpc-web 端口
+        changeOrigin: true,
+        ws: true,
+        rewrite: (p) => p.replace(/^\/cloud/, ''),
+      },
     },
   },
 })

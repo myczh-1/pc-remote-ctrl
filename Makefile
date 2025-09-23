@@ -44,14 +44,22 @@ proto-gen: setup-tools
 	  --go_out=$(BACKEND_DIR)/proto --go_opt=paths=source_relative \
 	  --go-grpc_out=$(BACKEND_DIR)/proto --go-grpc_opt=paths=source_relative \
 	  $(PROTO_DIR)/home/*.proto
+	# Go (cloud protos into cloud-middleware)
+	$(PROTOC) -I $(PROTO_DIR) \
+	  --plugin=protoc-gen-go=$(PROTOC_GEN_GO) \
+	  --plugin=protoc-gen-go-grpc=$(PROTOC_GEN_GO_GRPC) \
+	  --go_out=$(CLOUD_DIR)/proto --go_opt=paths=source_relative \
+	  --go-grpc_out=$(CLOUD_DIR)/proto --go-grpc_opt=paths=source_relative \
+	  $(PROTO_DIR)/cloud/*.proto
 	# Frontend (protobuf-ts)
 	cd $(FRONTEND_DIR) && \
 	  test -x "$(PROTOC_GEN_TS)" || (echo "❌ Missing protoc-gen-ts. Run: cd $(FRONTEND_DIR) && npm install"; exit 1); \
 	  $(PROTOC) -I ../$(PROTO_DIR) \
 	    ../$(PROTO_DIR)/home/*.proto \
+	    ../$(PROTO_DIR)/cloud/*.proto \
 	    --plugin=protoc-gen-ts=$(PROTOC_GEN_TS) \
 	    --ts_out=./src/proto --ts_opt=long_type_string
-	@echo "✅ proto generated for Go & TS (home)."
+	@echo "✅ proto generated for Go & TS (home + cloud)."
 
 proto-clean:
 	@echo "Cleaning generated protobuf code..."
@@ -81,8 +89,9 @@ dev-frontend:
 	cd $(FRONTEND_DIR) && npm run dev
 
 # Run cloud middleware (gRPC + gRPC-Web on 7073)
-dev-cloud:
-	@echo "cloud-middleware removed in this branch (no-op)"
+dev-cloud: proto-gen
+	@echo "Starting cloud-middleware in development mode (7073)..."
+	go run $(CLOUD_DIR)/cmd/server/main.go
 
 # Run unified backend with cloud connection enabled (cloud only)
 dev-agent:

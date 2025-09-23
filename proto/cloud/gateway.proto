@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package remote_control.cloud.v1;
 
-option go_package = "pc-remote-ctrl/cloud-middleware/proto;cloudpb";
+option go_package = "pc-remote-ctrl/cloud-middleware/proto/cloud;cloudpb";
 
 // 导入智能家居服务定义
 import "home/service.proto";
