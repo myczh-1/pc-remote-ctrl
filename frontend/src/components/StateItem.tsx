@@ -98,8 +98,10 @@ export function StateRenderer({
   const [showRaw, setShowRaw] = React.useState(false)
 
   const items = parseDeviceState(state)
+  // 在卡片（compact）模式下，隐藏未知类型条目，避免把 JSON 直接渲染在卡片上
+  const renderedItems = compact ? items.filter(it => it.type !== 'unknown') : items
 
-  if (!items.length) {
+  if (!renderedItems.length) {
     return (
       <div className={`text-xs text-slate-400 ${className}`}>
         暂无状态数据
@@ -141,8 +143,7 @@ export function StateRenderer({
           </button>
         </div>
       )}
-      <StateList items={items} compact={compact} maxItems={maxItems} />
+      <StateList items={renderedItems} compact={compact} maxItems={maxItems} />
     </div>
   )
 }
-

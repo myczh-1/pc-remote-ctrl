@@ -157,10 +157,12 @@ export function DeviceCreateModal({ open, onCancel, onCreate, initialDevice }: D
         </div>
 
         <div className="grid grid-cols-2 gap-3">
+          {initialDevice && (
           <div className="col-span-1">
-            <label className="text-xs text-slate-500">设备 ID（后端分配）</label>
-            <input readOnly className="w-full rounded-lg border border-black/10 dark:border-white/10 bg-transparent px-2 py-1" value={id} placeholder="点击下方开始配网后分配" />
+            <label className="text-xs text-slate-500">设备 ID</label>
+            <input readOnly className="w-full rounded-lg border border-black/10 dark:border-white/10 bg-transparent px-2 py-1" value={id} />
           </div>
+          )}
           <div className="col-span-1">
             <label className="text-xs text-slate-500">名称</label>
             <input className="w-full rounded-lg border border-black/10 dark:border-white/10 bg-transparent px-2 py-1" value={name} onChange={e => setName(e.target.value)} placeholder="例如：客厅灯" />

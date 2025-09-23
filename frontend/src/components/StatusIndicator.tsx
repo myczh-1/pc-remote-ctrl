@@ -23,7 +23,7 @@ export function StatusIndicator({
   if (showText) {
     return (
       <div className={`flex items-center gap-2 ${className}`}>
-        <div className={`${sizeClasses[size]} ${colorClass} rounded-full`}></div>
+        <div className={`${sizeClasses[size]} ${colorClass} rounded-full shrink-0`}></div>
         <span className={`text-xs font-medium ${textClass}`}>
           {online ? '在线' : '离线'}
         </span>

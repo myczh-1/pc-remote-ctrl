@@ -34,15 +34,17 @@ export function DeviceDetailDrawer({ open, device, onClose, onInvoke, onEdit }: 
           transition={drawerTransition}
           className="fixed right-0 top-0 bottom-0 z-40 w-[380px] transform-gpu overflow-auto border-l border-black/10 bg-white p-4 will-change-transform dark:border-white/10 dark:bg-surface-soft"
         >
-      <div className="flex items-center justify-between mb-3">
-        <div>
-          <div className="text-sm text-slate-500 dark:text-slate-400">设备详情</div>
-          <div className="text-lg font-semibold text-slate-900 dark:text-slate-100">{device.name || device.id}</div>
+      <div className="mb-3">
+        <div className='flex items-center justify-between'>
+        <div className="text-sm text-slate-500 dark:text-slate-400">设备详情</div>
+        <button className="rounded-lg p-2 hover:bg-black/5 dark:hover:bg-white/5" onClick={onClose}>✕</button>
         </div>
         <div className="flex items-center gap-2">
-          <button className="rounded-lg px-3 py-1 text-xs border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5" onClick={() => device && onEdit?.(device)}>编辑</button>
-          <button className="rounded-lg p-2 hover:bg-black/5 dark:hover:bg-white/5" onClick={onClose}>✕</button>
+          <div className="text-lg font-semibold text-slate-900 dark:text-slate-100 " title={device.name || device.id}>{device.name || device.id}</div>
+          <button className="shrink-0 rounded-lg px-3 py-1 text-xs border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5" onClick={() => device && onEdit?.(device)}>编辑</button>
+       
         </div>
+    
       </div>
 
       <div className="mb-3">

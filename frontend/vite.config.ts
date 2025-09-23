@@ -6,12 +6,12 @@ export default defineConfig({
   plugins: [react()],
   server: {
     host: true,  
-    allowedHosts: ['db78ed4ea13a.ngrok-free.app'],
-    hmr: {
-      protocol: 'wss',
-      host: 'db78ed4ea13a.ngrok-free.app',
-      clientPort: 443
-    },
+    // allowedHosts: ['db78ed4ea13a.ngrok-free.app'],
+    // hmr: {
+    //   protocol: 'wss',
+    //   host: 'db78ed4ea13a.ngrok-free.app',
+    //   clientPort: 443
+    // },
     proxy: {
       '/api': {
         target: 'http://localhost:7071', // 你的 grpc-web 网关

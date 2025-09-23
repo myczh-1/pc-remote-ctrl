@@ -31,6 +31,7 @@ export function useHomeApi(config?: Partial<HomeConfig>) {
   const reconnectTimerRef = useRef<number | null>(null)
   const reconnectAttemptsRef = useRef(0)
   const watchActiveRef = useRef(false)
+  const abortRef = useRef<AbortController | null>(null)
 
   function structToObject(st?: Struct): Record<string, any> {
     if (!st) return {}
@@ -88,6 +89,12 @@ export function useHomeApi(config?: Partial<HomeConfig>) {
     return { kind }
   }
 
+  function isAbortError(err: any): boolean {
+    const name = (err && (err.name || err.constructor?.name)) || ''
+    const msg = String((err && (err.message || err)) || '').toLowerCase()
+    return name === 'AbortError' || msg.includes('abort') || msg.includes('signal is aborted')
+  }
+
   const invokeAction = useCallback(async (deviceId: string, action: string, args?: Record<string, any>, timeoutMs?: number) => {
     try {
       const res = await clientRef.current.invokeAction({
@@ -102,6 +109,26 @@ export function useHomeApi(config?: Partial<HomeConfig>) {
     }
   }, [])
 
+  const stopWatch = useCallback(() => {
+    watchActiveRef.current = false
+    if (reconnectTimerRef.current) {
+      window.clearTimeout(reconnectTimerRef.current)
+      reconnectTimerRef.current = null
+    }
+    try {
+      // prefer aborting via AbortController if provided
+      abortRef.current?.abort()
+      const c: any = streamRef.current as any
+      const fn = c?.cancel
+      if (typeof fn === 'function') { fn.call(c) }
+      else if (typeof c?.close === 'function') { c.close() }
+      else if (typeof c?.responses?.cancel === 'function') { c.responses.cancel() }
+    } finally {
+      abortRef.current = null
+      streamRef.current = null
+    }
+  }, [])
+
   const startWatch = useCallback((ids?: string[]) => {
     stopWatch()
     watchActiveRef.current = true
@@ -110,8 +137,11 @@ export function useHomeApi(config?: Partial<HomeConfig>) {
     const connect = () => {
       if (!watchActiveRef.current) return
       try {
-        const call = clientRef.current.watchDevices({ ids: ids ?? [] })
+        abortRef.current = new AbortController()
+        const call = clientRef.current.watchDevices({ ids: ids ?? [] }, { abort: abortRef.current.signal as any })
         streamRef.current = call
+        // clear previous error on new connection attempt
+        setError('')
         call.responses.onMessage(ev => {
           setEvents(prev => [...prev.slice(-200), ev])
           const id = ev.deviceId
@@ -151,9 +181,9 @@ export function useHomeApi(config?: Partial<HomeConfig>) {
           try { onEventRef.current?.(ev, structToObject(ev.payload)) } catch {}
         })
         call.responses.onError(err => {
+          if (!watchActiveRef.current || isAbortError(err)) return
           const msg = String((err as any)?.message ?? err)
           setError(msg)
-          if (!watchActiveRef.current) return
           const attempt = reconnectAttemptsRef.current++
           const delay = Math.min(30000, 1000 * Math.pow(2, attempt))
           if (reconnectTimerRef.current) window.clearTimeout(reconnectTimerRef.current)
@@ -162,9 +192,9 @@ export function useHomeApi(config?: Partial<HomeConfig>) {
           }, delay) as unknown as number
         })
       } catch (e: any) {
+        if (!watchActiveRef.current || isAbortError(e)) return
         const msg = String(e?.message ?? e)
         setError(msg)
-        if (!watchActiveRef.current) return
         const attempt = reconnectAttemptsRef.current++
         const delay = Math.min(30000, 1000 * Math.pow(2, attempt))
         if (reconnectTimerRef.current) window.clearTimeout(reconnectTimerRef.current)
@@ -191,19 +221,6 @@ export function useHomeApi(config?: Partial<HomeConfig>) {
       return { ok: (res as any).ok, message: (res as any).message }
     } catch (e: any) {
       return { ok: false, error: String(e?.message ?? e) }
-    }
-  }, [])
-
-  const stopWatch = useCallback(() => {
-    watchActiveRef.current = false
-    if (reconnectTimerRef.current) {
-      window.clearTimeout(reconnectTimerRef.current)
-      reconnectTimerRef.current = null
-    }
-    try {
-      streamRef.current?.cancel()
-    } finally {
-      streamRef.current = null
     }
   }, [])
 
