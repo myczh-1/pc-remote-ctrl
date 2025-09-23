@@ -8,6 +8,7 @@ import { DeviceDetailDrawer } from './components/DeviceDetailDrawer'
 import { DeviceCreateModal } from './components/DeviceCreateModal'
 import type { Device } from './proto/home/service'
 import { useHomeApi } from './hooks/useHomeApi'
+import { TelemetryEventKind } from './proto/home/service'
 
 export default function App() {
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -21,7 +22,31 @@ export default function App() {
   })
 
   const { logInfo, logError, logSuccess, clearLog, entries } = useLogger()
-  const home = useHomeApi()
+  const home = useHomeApi({
+    onEvent: (ev, data) => {
+      if (!ev) return
+      const id = ev.deviceId
+      switch (ev.kind) {
+        case TelemetryEventKind.ACTION_RESULT: {
+          const ok = Boolean((data as any)?.ok ?? (data as any)?.success ?? (String((data as any)?.status ?? '').toLowerCase() === 'ok'))
+          if (ok) {
+            logSuccess(`动作回执成功 @ ${id}`)
+          } else {
+            const err = (data as any)?.error || (data as any)?.message || ''
+            logError(`动作回执失败 @ ${id} ${err ? '- ' + err : ''}`, 'execution_error')
+          }
+          break
+        }
+        case TelemetryEventKind.EVENT: {
+          const summary = (() => {
+            try { return JSON.stringify(data).slice(0, 160) } catch { return String(data) }
+          })()
+          logInfo(`事件 @ ${id}: ${summary}`)
+          break
+        }
+      }
+    }
+  })
   const prefersReduced = useReducedMotion()
   const layoutTransition = useMemo(() => (
     prefersReduced ? { duration: 0 } : { duration: 0.32, ease: [0.22, 1, 0.36, 1] as any }

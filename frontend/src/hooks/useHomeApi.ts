@@ -8,16 +8,19 @@ import type { ServerStreamingCall } from '@protobuf-ts/runtime-rpc'
 
 export interface HomeConfig {
   baseUrl: string
+  onEvent?: (ev: DeviceEvent, data?: Record<string, any>) => void
 }
 
 export function useHomeApi(config?: Partial<HomeConfig>) {
   const baseUrl = config?.baseUrl ?? ((import.meta as any).env?.VITE_HOME_GRPCWEB_URL as string ?? '/api')
   const transport = useMemo(() => new GrpcWebFetchTransport({ baseUrl }), [baseUrl])
   const clientRef = useRef(new HomeServiceClient(transport))
+  const onEventRef = useRef<HomeConfig['onEvent']>(config?.onEvent)
 
   useEffect(() => {
     clientRef.current = new HomeServiceClient(new GrpcWebFetchTransport({ baseUrl }))
   }, [baseUrl])
+  useEffect(() => { onEventRef.current = config?.onEvent }, [config?.onEvent])
 
   const [devices, setDevices] = useState<Device[]>([])
   const [loading, setLoading] = useState(false)
@@ -123,7 +126,29 @@ export function useHomeApi(config?: Partial<HomeConfig>) {
               setDevices(prev => prev.map(d => d.id === id ? ({ ...d, online, lastSeen: Date.now() as any }) : d))
               break
             }
+            case TelemetryEventKind.ACTION_RESULT: {
+              const data = structToObject(ev.payload)
+              // Optional: if result carries a nested state, reflect it
+              const nestedState = data && typeof data.state === 'object' ? data.state as Record<string, any> : null
+              if (nestedState) {
+                const fields: any = {}
+                for (const [k, v] of Object.entries(nestedState)) fields[k] = toValue(v)
+                const st: any = { fields }
+                setDevices(prev => prev.map(d => d.id === id ? ({ ...d, state: st, lastSeen: Date.now() as any }) : d))
+              } else {
+                // at least bump lastSeen to reflect activity
+                setDevices(prev => prev.map(d => d.id === id ? ({ ...d, lastSeen: Date.now() as any }) : d))
+              }
+              break
+            }
+            case TelemetryEventKind.EVENT: {
+              // generic event; leave UI state intact, only record lastSeen
+              setDevices(prev => prev.map(d => d.id === id ? ({ ...d, lastSeen: Date.now() as any }) : d))
+              break
+            }
           }
+          // fire external handler if provided
+          try { onEventRef.current?.(ev, structToObject(ev.payload)) } catch {}
         })
         call.responses.onError(err => {
           const msg = String((err as any)?.message ?? err)
