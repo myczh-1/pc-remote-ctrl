@@ -25,6 +25,9 @@ export function useHomeApi(config?: Partial<HomeConfig>) {
 
   const [events, setEvents] = useState<DeviceEvent[]>([])
   const streamRef = useRef<ServerStreamingCall<any, DeviceEvent> | null>(null)
+  const reconnectTimerRef = useRef<number | null>(null)
+  const reconnectAttemptsRef = useRef(0)
+  const watchActiveRef = useRef(false)
 
   function structToObject(st?: Struct): Record<string, any> {
     if (!st) return {}
@@ -60,12 +63,34 @@ export function useHomeApi(config?: Partial<HomeConfig>) {
     }
   }, [])
 
+  function toValue(v: any): any {
+    const kind: any = { oneofKind: undefined }
+    if (v === null || v === undefined) {
+      // protobuf-ts supports nullValue, but we can just use string 'null' for simplicity
+      kind.oneofKind = 'stringValue'; kind.stringValue = 'null'
+      return { kind }
+    }
+    const t = typeof v
+    if (t === 'number' && Number.isFinite(v)) { kind.oneofKind = 'numberValue'; kind.numberValue = v; return { kind } }
+    if (t === 'boolean') { kind.oneofKind = 'boolValue'; kind.boolValue = v; return { kind } }
+    if (Array.isArray(v)) { kind.oneofKind = 'listValue'; kind.listValue = { values: v.map(toValue) }; return { kind } }
+    if (t === 'object') {
+      kind.oneofKind = 'structValue'
+      const fields: any = {}
+      for (const [kk, vv] of Object.entries(v)) fields[kk] = toValue(vv)
+      kind.structValue = { fields }
+      return { kind }
+    }
+    kind.oneofKind = 'stringValue'; kind.stringValue = String(v)
+    return { kind }
+  }
+
   const invokeAction = useCallback(async (deviceId: string, action: string, args?: Record<string, any>, timeoutMs?: number) => {
     try {
       const res = await clientRef.current.invokeAction({
         deviceId,
         action,
-        args: { fields: Object.entries(args ?? {}).reduce<any>((acc, [k, v]) => { acc[k] = { kind: { oneofKind: 'stringValue', stringValue: String(v) } }; return acc }, {}) },
+        args: { fields: Object.entries(args ?? {}).reduce<any>((acc, [k, v]) => { acc[k] = toValue(v); return acc }, {}) },
         timeoutMs: timeoutMs ?? 5000,
       }).response
       return { ok: (res as InvokeActionResponse).ok, response: res as InvokeActionResponse, message: (res as InvokeActionResponse).message }
@@ -76,36 +101,55 @@ export function useHomeApi(config?: Partial<HomeConfig>) {
 
   const startWatch = useCallback((ids?: string[]) => {
     stopWatch()
-    try {
-      const call = clientRef.current.watchDevices({ ids: ids ?? [] })
-      streamRef.current = call
-      call.responses.onMessage(ev => {
-        setEvents(prev => [...prev.slice(-200), ev])
-        // opportunistic UI update: reflect state/online to devices list
-        const id = ev.deviceId
-        switch (ev.kind) {
-          case TelemetryEventKind.STATE: {
-            const patch = structToObject(ev.payload)
-            setDevices(prev => prev.map(d => d.id === id ? ({ ...d, state: ev.payload as any, lastSeen: Date.now() as any }) : d))
-            break
+    watchActiveRef.current = true
+    reconnectAttemptsRef.current = 0
+
+    const connect = () => {
+      if (!watchActiveRef.current) return
+      try {
+        const call = clientRef.current.watchDevices({ ids: ids ?? [] })
+        streamRef.current = call
+        call.responses.onMessage(ev => {
+          setEvents(prev => [...prev.slice(-200), ev])
+          const id = ev.deviceId
+          switch (ev.kind) {
+            case TelemetryEventKind.STATE: {
+              setDevices(prev => prev.map(d => d.id === id ? ({ ...d, state: ev.payload as any, lastSeen: Date.now() as any }) : d))
+              break
+            }
+            case TelemetryEventKind.ONLINE: {
+              const pay = structToObject(ev.payload)
+              const online = Boolean(pay.online ?? pay.status ?? true)
+              setDevices(prev => prev.map(d => d.id === id ? ({ ...d, online, lastSeen: Date.now() as any }) : d))
+              break
+            }
           }
-          case TelemetryEventKind.ONLINE: {
-            const pay = structToObject(ev.payload)
-            const online = Boolean(pay.online ?? pay.status ?? true)
-            setDevices(prev => prev.map(d => d.id === id ? ({ ...d, online, lastSeen: Date.now() as any }) : d))
-            break
-          }
-        }
-      })
-      call.responses.onError(err => {
-        const msg = String((err as any)?.message ?? err)
+        })
+        call.responses.onError(err => {
+          const msg = String((err as any)?.message ?? err)
+          setError(msg)
+          if (!watchActiveRef.current) return
+          const attempt = reconnectAttemptsRef.current++
+          const delay = Math.min(30000, 1000 * Math.pow(2, attempt))
+          if (reconnectTimerRef.current) window.clearTimeout(reconnectTimerRef.current)
+          reconnectTimerRef.current = window.setTimeout(() => {
+            connect()
+          }, delay) as unknown as number
+        })
+      } catch (e: any) {
+        const msg = String(e?.message ?? e)
         setError(msg)
-      })
-      return { ok: true }
-    } catch (e: any) {
-      return { ok: false, error: String(e?.message ?? e) }
+        if (!watchActiveRef.current) return
+        const attempt = reconnectAttemptsRef.current++
+        const delay = Math.min(30000, 1000 * Math.pow(2, attempt))
+        if (reconnectTimerRef.current) window.clearTimeout(reconnectTimerRef.current)
+        reconnectTimerRef.current = window.setTimeout(() => connect(), delay) as unknown as number
+      }
     }
-  }, [])
+
+    connect()
+    return { ok: true }
+  }, [stopWatch])
 
   const upsertDevice = useCallback(async (device: Device) => {
     try {
@@ -126,7 +170,16 @@ export function useHomeApi(config?: Partial<HomeConfig>) {
   }, [])
 
   const stopWatch = useCallback(() => {
-    streamRef.current = null
+    watchActiveRef.current = false
+    if (reconnectTimerRef.current) {
+      window.clearTimeout(reconnectTimerRef.current)
+      reconnectTimerRef.current = null
+    }
+    try {
+      streamRef.current?.cancel()
+    } finally {
+      streamRef.current = null
+    }
   }, [])
 
   useEffect(() => () => stopWatch(), [stopWatch])

@@ -95,7 +95,9 @@ func (r *Devices) saveSnapshot(snap DevicesSnapshot) error {
 func (r *Devices) List() []Device {
     r.mu.RLock(); defer r.mu.RUnlock()
     out := make([]Device, len(r.snap.Devices))
-    copy(out, r.snap.Devices)
+    for i := range r.snap.Devices {
+        out[i] = cloneDevice(r.snap.Devices[i])
+    }
     return out
 }
 
@@ -103,8 +105,8 @@ func (r *Devices) Get(id string) *Device {
     r.mu.RLock(); defer r.mu.RUnlock()
     for i := range r.snap.Devices {
         if r.snap.Devices[i].ID == id {
-            d := r.snap.Devices[i]
-            return &d
+            cd := cloneDevice(r.snap.Devices[i])
+            return &cd
         }
     }
     return nil
@@ -138,4 +140,63 @@ func (r *Devices) Remove(id string) error {
     snap := r.snap
     r.mu.Unlock()
     return r.saveSnapshot(snap)
+}
+
+// clone helpers ensure callers never alias internal maps/slices
+func cloneDevice(d Device) Device {
+    cd := d // copy by value (scalars)
+    // slices / maps deep copy
+    if d.Tags != nil {
+        cd.Tags = append([]string(nil), d.Tags...)
+    }
+    if d.Topics != nil {
+        cd.Topics = cloneMapStringString(d.Topics)
+    }
+    if d.Actions != nil {
+        cd.Actions = make([]ActionSpec, len(d.Actions))
+        for i := range d.Actions {
+            cd.Actions[i] = cloneActionSpec(d.Actions[i])
+        }
+    }
+    // Adapter
+    cd.Adapter = DeviceAdapter{Kind: d.Adapter.Kind}
+    if d.Adapter.Config != nil {
+        cd.Adapter.Config = cloneMapStringAny(d.Adapter.Config)
+    }
+    // Shadow
+    cd.Shadow = Shadow{
+        Version:    d.Shadow.Version,
+        TSReported: d.Shadow.TSReported,
+        TSDesired:  d.Shadow.TSDesired,
+    }
+    if d.Shadow.Reported != nil {
+        cd.Shadow.Reported = cloneMapStringAny(d.Shadow.Reported)
+    }
+    if d.Shadow.Desired != nil {
+        cd.Shadow.Desired = cloneMapStringAny(d.Shadow.Desired)
+    }
+    // Provision / Meta
+    if d.Provision != nil { cd.Provision = cloneMapStringAny(d.Provision) }
+    if d.Meta != nil { cd.Meta = cloneMapStringAny(d.Meta) }
+    return cd
+}
+
+func cloneActionSpec(a ActionSpec) ActionSpec {
+    ca := a
+    if a.ArgsSchema != nil {
+        ca.ArgsSchema = cloneMapStringAny(a.ArgsSchema)
+    }
+    return ca
+}
+
+func cloneMapStringString(m map[string]string) map[string]string {
+    out := make(map[string]string, len(m))
+    for k, v := range m { out[k] = v }
+    return out
+}
+
+func cloneMapStringAny(m map[string]any) map[string]any {
+    out := make(map[string]any, len(m))
+    for k, v := range m { out[k] = v }
+    return out
 }

@@ -4,6 +4,7 @@ import (
     "context"
     "encoding/json"
     "fmt"
+    "log"
     "strings"
     "sync"
     "time"
@@ -134,7 +135,9 @@ func (m *subscriptionManager) ensureSub(ctx context.Context, topic string, qos b
     if m.subs[topic] { m.mu.Unlock(); return }
     m.subs[topic] = true
     m.mu.Unlock()
-    _ = m.mqtt.Subscribe(ctx, topic, qos, cb)
+    if err := m.mqtt.Subscribe(ctx, topic, qos, cb); err != nil {
+        log.Printf("[mqtt] subscribe failed topic=%s qos=%d err=%v", topic, qos, err)
+    }
 }
 
 func toStruct(payload []byte) *structpb.Struct {

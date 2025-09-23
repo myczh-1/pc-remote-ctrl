@@ -168,8 +168,10 @@ func fromPBDevice(p *homepb.Device) (*storage.Device, error) {
     }
     for k, v := range p.GetTopics() { d.Topics[k] = v }
     // adapter
-    d.Adapter.Kind = fromPBAdapterKind(p.GetAdapter().GetKind())
-    d.Adapter.Config = mapStringAnyFromString(p.GetAdapter().GetConfig())
+    if p.GetAdapter() != nil {
+        d.Adapter.Kind = fromPBAdapterKind(p.GetAdapter().GetKind())
+        d.Adapter.Config = mapStringAnyFromString(p.GetAdapter().GetConfig())
+    }
     // actions
     for _, a := range p.GetActions() {
         d.Actions = append(d.Actions, storage.ActionSpec{ Name: a.GetName(), ArgsSchema: mapStringAnyFromString(a.GetArgsSchema()), TimeoutMS: int(a.GetTimeoutMs()) })
