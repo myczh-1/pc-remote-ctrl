@@ -21,7 +21,7 @@ pc-remote-ctrl/
 │   │   └── broker/               # Embedded MQTT broker
 │   ├── proto/                    # Generated Go stubs (do not edit)
 │   └── data/                     # Storage files (devices.json, scenes.json, etc.)
-├── cloud-middleware/             # Cloud registry & proxy
+├── cloud-middleware/             # Cloud registry & tunnel proxy
 │   ├── cmd/server/main.go        # Unified gRPC + gRPC-Web entry (7073)
 │   ├── internal/{device,proxy,grpcserver}
 │   └── proto/                    # Generated Go stubs (do not edit)
@@ -41,9 +41,13 @@ pc-remote-ctrl/
   - Port 7071 serves BOTH native gRPC and gRPC-Web on a single listener (h2c + grpc-web wrapper).
   - Health endpoint: `GET /healthz` → 200 OK.
   - Note: No auth or strict CORS in dev. Do NOT expose publicly without a reverse proxy and ACL.
-- Cloud middleware:
+- Cloud middleware (Tunnel Only):
   - Default gRPC/gRPC-Web port 7073 (env `GRPC_PORT` to override).
+  - Transport: reverse tunnel only. Devices must establish `TunnelService.Open` to be reachable.
+  - `DEFAULT_BACKEND_ADDR` deprecated and ignored for routing.
   - Configure allowed CORS origins via `CORS_ALLOWED_ORIGINS` (comma-separated list). Example: `http://localhost:5173`.
+  - Tunnel tuning (env): `TUNNEL_SESSION_BUF` (default 64), `TUNNEL_MAX_FRAME_BYTES` (default 1048576 bytes)
+  - Auth: when `AGENT_SECRET` is set on cloud, agents must include metadata `x-device-id` and `x-agent-secret` when opening tunnel.
 - Frontend:
   - Dev server on 5173.
   - Vite proxy maps `/api` → `http://localhost:7071` for gRPC-Web to backend.
@@ -70,11 +74,12 @@ make dev-backend
 # Start frontend (5173) - in another terminal
 make dev-frontend
 
-# Optional: Start cloud middleware (7073)
+# Start cloud middleware (7073)
 make dev-cloud
 
-# Optional: Start local agent that connects to cloud middleware
-make dev-agent
+# Backend can register and (later) open tunnel to cloud
+# Example (dev):
+# CLOUD_ADDR=127.0.0.1:7073 AGENT_DEVICE_ID=dev1 make dev-backend
 ```
 
 ### Build for Production
@@ -89,7 +94,7 @@ make build
 ## Architecture
 
 - Backend: unified listener (7071) that handles both gRPC and gRPC-Web; executes command sets as shell scripts (platform-specific: `sh -c` / `cmd /C`).
-- Cloud middleware (7073): device registry + proxy via bi-di streaming; provides `GatewayService` that forwards HomeService requests to local gateways.
+- Cloud middleware (7073): device registry + reverse-tunnel proxy (Tunnel Only); `GatewayService` forwards HomeService requests over tunnels.
 - Frontend: gRPC-Web clients (protobuf-ts) to call backend locally or cloud middleware remotely.
 
 ## Proto & Codegen
@@ -137,9 +142,16 @@ make build
     - Example: `GRPC_PORT=9090 go run ./cmd/server`
   - `CORS_ALLOWED_ORIGINS`: comma-separated list of allowed origins for grpc-web.
     - Example (local dev): `CORS_ALLOWED_ORIGINS="http://localhost:5173, http://127.0.0.1:5173"`
+  - `TUNNEL_SESSION_BUF`: per-session buffered frames (default `64`).
+  - `TUNNEL_MAX_FRAME_BYTES`: max payload size per frame (default `1048576`).
 - Frontend
   - `VITE_CLOUD_GRPCWEB_URL`: grpc-web base URL for cloud middleware (default `http://localhost:7073`).
     - Example: `VITE_CLOUD_GRPCWEB_URL=http://localhost:9090 npm run dev`
+- Backend (agent)
+  - `CLOUD_ADDR`: cloud middleware address (e.g., `127.0.0.1:7073`).
+  - `AGENT_DEVICE_ID`: unique device ID to identify the agent.
+  - `AGENT_SECRET`: optional secret; used by AgentService Register and sent in tunnel metadata `x-agent-secret`.
+  - `AGENT_TUNNEL_UNARY_TIMEOUT_MS`: unary call timeout over tunnel in milliseconds (default `8000`).
 
 Notes
 - Backend currently listens on `7071` and accepts grpc + grpc-web on a single port; no environment flags yet. Use a reverse proxy if you need to remap externally.

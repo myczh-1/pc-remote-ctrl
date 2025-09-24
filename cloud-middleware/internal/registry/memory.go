@@ -10,17 +10,18 @@ import (
 
 type DeviceEntry struct {
     DeviceID string
-    Addr     string
-    Conn     *grpc.ClientConn
+    Addr     string            // deprecated in tunnel-only mode
+    Conn     *grpc.ClientConn  // deprecated in tunnel-only mode
     Tags     []string
     Expires  time.Time
+    Tunnel   *TunnelLink
 }
 
 // MemoryRegistry keeps device routing info in-memory.
 type MemoryRegistry struct {
     mu        sync.RWMutex
     devices   map[string]*DeviceEntry
-    defaultUpstream string // fallback address when device not registered
+    defaultUpstream string // deprecated in tunnel-only mode
 }
 
 func NewMemoryRegistry(defaultUpstream string) *MemoryRegistry {
@@ -81,9 +82,6 @@ func (r *MemoryRegistry) Get(id string) (*DeviceEntry, bool) {
     if ok {
         return e, true
     }
-    if r.defaultUpstream != "" {
-        return &DeviceEntry{DeviceID: "", Addr: r.defaultUpstream}, true
-    }
     return nil, false
 }
 
@@ -100,4 +98,36 @@ func (r *MemoryRegistry) SetConn(id string, conn *grpc.ClientConn) {
         _ = e.Conn.Close()
     }
     e.Conn = conn
+}
+
+// SetTunnel binds a live tunnel link to device id.
+func (r *MemoryRegistry) SetTunnel(id string, link *TunnelLink) {
+    r.mu.Lock()
+    defer r.mu.Unlock()
+    e, ok := r.devices[id]
+    if !ok {
+        e = &DeviceEntry{DeviceID: id}
+        r.devices[id] = e
+    }
+    e.Tunnel = link
+}
+
+// GetTunnel returns the tunnel link for device id.
+func (r *MemoryRegistry) GetTunnel(id string) (*TunnelLink, bool) {
+    r.mu.RLock()
+    e, ok := r.devices[id]
+    r.mu.RUnlock()
+    if !ok || e.Tunnel == nil {
+        return nil, false
+    }
+    return e.Tunnel, true
+}
+
+// ClearTunnel removes the tunnel link for device id.
+func (r *MemoryRegistry) ClearTunnel(id string) {
+    r.mu.Lock()
+    defer r.mu.Unlock()
+    if e, ok := r.devices[id]; ok {
+        e.Tunnel = nil
+    }
 }

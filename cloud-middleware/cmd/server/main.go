@@ -6,12 +6,12 @@ import (
     "net/http"
     "os"
     "os/signal"
+    "strconv"
     "strings"
     "syscall"
     "time"
 
     cloudpb "pc-remote-ctrl/cloud-middleware/proto/cloud"
-    "pc-remote-ctrl/cloud-middleware/internal/executor"
     "pc-remote-ctrl/cloud-middleware/internal/registry"
     svr "pc-remote-ctrl/cloud-middleware/internal/server"
 
@@ -24,9 +24,11 @@ import (
 
 type Config struct {
     Port               string
-    DefaultBackendAddr string
+    DefaultBackendAddr string // deprecated in tunnel-only mode
     AuthMode           string // none|tiny (tiny 待接入 tiny auth)
     AgentSecret        string // 全局 agent 注册密钥（MVP）
+    TunnelSessionBuf   int    // default 64
+    TunnelMaxFrameBytes int   // default 1MiB
 }
 
 func getenv(k, def string) string {
@@ -56,11 +58,19 @@ func loadDotEnv() {
 }
 
 func loadConfig() *Config {
+    atoi := func(k string, def int) int {
+        v := getenv(k, "")
+        if v == "" { return def }
+        if n, err := strconv.Atoi(v); err == nil { return n }
+        return def
+    }
     return &Config{
         Port:               getenv("GRPC_PORT", "7073"),
         DefaultBackendAddr: getenv("DEFAULT_BACKEND_ADDR", ""),
         AuthMode:           getenv("AUTH_MODE", "none"),
         AgentSecret:        getenv("AGENT_SECRET", ""),
+        TunnelSessionBuf:   atoi("TUNNEL_SESSION_BUF", 64),
+        TunnelMaxFrameBytes: atoi("TUNNEL_MAX_FRAME_BYTES", 1024*1024),
     }
 }
 
@@ -75,10 +85,9 @@ func main() {
 
     // init services
     reg := registry.NewMemoryRegistry(cfg.DefaultBackendAddr)
-    dialer := executor.NewDialer()
-    gw := svr.NewGatewayServer(reg, dialer)
+    gw := svr.NewGatewayServer(reg, cfg.TunnelMaxFrameBytes)
     agent := svr.NewAgentServer(reg, cfg.AgentSecret)
-    tunnel := svr.NewTunnelServer()
+    tunnel := svr.NewTunnelServer(reg, cfg.TunnelSessionBuf, cfg.TunnelMaxFrameBytes, cfg.AgentSecret)
 
     cloudpb.RegisterGatewayServiceServer(grpcServer, gw)
     cloudpb.RegisterAgentServiceServer(grpcServer, agent)

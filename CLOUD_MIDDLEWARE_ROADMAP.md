@@ -32,13 +32,12 @@
 
 ---
 
-优先级路线图（P0 → P2）
+优先级路线图（Tunnel Only 模式）
 
-P0 稳定直连链路（已完成/收尾）
-- [x] h2c 直连修复（application/grpc 分支 → grpcServer）。
-- [x] 后端自动注册与心跳，断线重试。
-- [x] 前端云端模式切换与设置面板。
-- [ ] 文档与样例命令（见下）。
+P0 方向调整（文档与声明）
+- [x] 设计调整为“仅隧道（Tunnel Only）”：直连/DEFAULT_BACKEND_ADDR 废弃。
+- [x] 明确路由策略：仅当设备有隧道连接时可用；否则返回 NotFound。
+- [ ] 文档与样例命令更新：以隧道为唯一通道（Agent 必须建立反向隧道）。
 
 P1 反向隧道（NAT 友好）
 - 云端数据面实现：cloud-middleware/internal/server/tunnel.go
@@ -49,7 +48,7 @@ P1 反向隧道（NAT 友好）
   - 启动时连接云端 TunnelService.Open，维持双向流。
   - 将 HomeService 的入站请求从帧反解并调用本地 gRPC，再把响应/流事件编码回帧。
 - Gateway 选择：
-  - 路由策略优先级：隧道连接存在 → 走隧道；否则直连（或 DEFAULT_BACKEND_ADDR）。
+  - 路由策略：仅隧道；无隧道返回 NotFound（直连与回落移除）。
 - 错误语义：
   - 开放式错误映射，保留 gRPC Status.Code；网关仅在路由失败时返回 NotFound/Unavailable。
 
@@ -67,7 +66,7 @@ P1 持久化与多实例
   - 键：device:{id} → {addr, meta, updated_at}，TTL 驱逐。
   - Conn 不持久化，隧道连接在内存中。
 - 云端多实例：
-  - Gateway 层无状态（直连模式可共享）；隧道需“黏住”同一实例（可通过 agent 连接时的租约/一致性哈希）。
+  - Gateway 层无状态；隧道需“黏住”同一实例（可通过 agent 连接时的租约/一致性哈希）。
 
 P2 可观测性与运维
 - 日志结构化：zap/slog，统一 request_id、device_id、corr_id。
@@ -111,28 +110,29 @@ P2 可观测性与运维
 
 ---
 
-校验清单（E2E 手动）
-1) 直连模式：
+校验清单（E2E 手动，隧道专用）
+1) 隧道模式：
    - make dev-cloud
-   - CLOUD_ADDR=127.0.0.1:7073 AGENT_DEVICE_ID=dev1 HOME_GRPC_ADDR=127.0.0.1:7071 make dev-backend
-   - make dev-frontend → 切“云端”→ 齿轮设置：Endpoint=/cloud，Agent ID=dev1
-   - 列表/事件/动作正常。
-2) 回落模式：
-   - DEFAULT_BACKEND_ADDR=127.0.0.1:7071 make dev-cloud
-   - 前端云端设置 Agent ID 为空 → 功能可用。
+   - 启动后端 Agent：CLOUD_ADDR=127.0.0.1:7073 AGENT_DEVICE_ID=dev1 make dev-backend（后续将内置隧道客户端）
+   - 后端启动隧道客户端并 Open 成功（待实现）；
+   - make dev-frontend → 切“云端”→ 设置：Endpoint=/cloud，Agent ID=dev1 → 列表/事件/动作正常。
+2) 无隧道：
+   - 云端起、前端起，但 Agent 未连接 → 所有调用返回 NotFound（符合预期）。
 3) 断线重连：
-   - 停后端→恢复，心跳重注册成功；前端流自动重连（指数退避）。
+   - 停后端→恢复，隧道重连成功；前端流自动重连（指数退避）。
 
 ---
 
 里程碑与验收标准
-- M1（直连生产可用）：
-  - 自动注册/心跳稳定；前端全链路云端可用；基础日志与监控。
-- M2（NAT 支持）：
-  - 隧道数据面落地；路由优先级；压测 200 并发设备、消息可靠性通过。
-- M3（安全完善）：
-  - tiny auth 对接完成；CORS/限流/速率保护；mTLS。
-- M4（运维健壮）：
+- M1（方向一致）：
+  - 文档切换 Tunnel Only；DEFAULT_BACKEND_ADDR 废弃；直连相关代码标注待移除。
+- M2（隧道数据面 MVP）：
+  - 云端 TunnelLink/会话管理实现；Gateway 仅隧道转发；无 Agent 时 NotFound。
+- M3（Agent 客户端）：
+  - 后端隧道客户端接入；前端全链路经隧道可用；断线重连稳定。
+- M4（安全完善）：
+  - tiny auth 对接；Agent 鉴权；CORS/限流/速率保护；mTLS。
+- M5（运维健壮）：
   - Redis 持久化、云端多实例；指标/报警；部署脚本。
 
 ---
@@ -145,4 +145,3 @@ P2 可观测性与运维
 - 手动注册（备用）：
   - `grpcurl -plaintext -d '{"device_id":"dev1","home_grpc_addr":"127.0.0.1:7071","ttl_sec":120}' localhost:7073 remote_control.cloud.v1.AgentService/Register`
   - `grpcurl -plaintext -d '{"device_id":"dev1"}' localhost:7073 remote_control.cloud.v1.AgentService/Heartbeat`
-

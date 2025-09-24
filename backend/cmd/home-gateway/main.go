@@ -6,11 +6,13 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"strings"
 	"syscall"
 	"time"
 
 	home "pc-remote-ctrl/backend/internal/home"
+	cloudcli "pc-remote-ctrl/backend/internal/cloud"
 	"pc-remote-ctrl/backend/internal/mqtt"
 	"pc-remote-ctrl/backend/internal/ops"
 	devstore "pc-remote-ctrl/backend/internal/storage"
@@ -35,11 +37,12 @@ type Config struct {
 	MqttPass     string
 	MqttClientID string
 
-    // Cloud registration (optional)
-    CloudAddr       string // e.g. 127.0.0.1:7073
-    AgentDeviceID   string // required when CloudAddr set
-    AgentSecret     string // optional
-    HomeGRPCAddr    string // override reported addr; default 127.0.0.1:Port
+	// Cloud registration (optional)
+	CloudAddr       string // e.g. 127.0.0.1:7073
+	AgentDeviceID   string // required when CloudAddr set
+	AgentSecret     string // optional
+	HomeGRPCAddr    string // override reported addr; default 127.0.0.1:Port
+	AgentTunnelUnaryTimeoutMS int // default 8000
 }
 
 func getenv(k, def string) string {
@@ -84,6 +87,7 @@ func loadConfig() *Config {
         AgentDeviceID: getenv("AGENT_DEVICE_ID", ""),
         AgentSecret:   getenv("AGENT_SECRET", ""),
         HomeGRPCAddr:  getenv("HOME_GRPC_ADDR", ""),
+		AgentTunnelUnaryTimeoutMS: func() int { if v := getenv("AGENT_TUNNEL_UNARY_TIMEOUT_MS", ""); v != "" { if n, err := strconv.Atoi(v); err == nil { return n } } ; return 8000 }(),
 	}
 }
 
@@ -247,8 +251,15 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-    // cloud registration (optional)
-    tryCloudRegister(ctx, cfg)
+	// cloud registration (optional)
+	tryCloudRegister(ctx, cfg)
+
+	// start tunnel client (Tunnel Only): enabled when CLOUD_ADDR and AGENT_DEVICE_ID provided
+	if cfg.CloudAddr != "" && cfg.AgentDeviceID != "" {
+		localPort := cfg.Port
+		to := time.Duration(cfg.AgentTunnelUnaryTimeoutMS) * time.Millisecond
+		cloudcli.StartTunnelClient(ctx, cfg.CloudAddr, cfg.AgentDeviceID, cfg.AgentSecret, localPort, to)
+	}
 
 	// shutdown signals
 	sigc := make(chan os.Signal, 1)

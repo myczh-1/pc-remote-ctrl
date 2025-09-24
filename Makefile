@@ -1,4 +1,4 @@
-.PHONY: proto-gen proto-clean build-backend build-frontend dev-backend dev-frontend dev-cloud dev-agent clean setup-tools install help
+.PHONY: proto-gen proto-clean build-backend build-frontend dev-backend dev-frontend dev-cloud dev-agent clean setup-tools install help vendor
 
 # ---------- Paths ----------
 PROTO_DIR      := proto
@@ -80,18 +80,25 @@ build-frontend: proto-gen
 
 build: build-backend build-frontend
 
-dev-backend: proto-gen
+vendor:
+	@echo "Syncing workspace vendor directory..."
+	go work vendor
+	@echo "✅ vendor synced (workspace)"
+
+dev-backend: proto-gen vendor
 	@echo "Starting backend (home-gateway) in development mode..."
-	go run $(BACKEND_DIR)/cmd/home-gateway/main.go
+	GOPROXY=https://proxy.golang.org,direct GOSUMDB=sum.golang.org go -C $(BACKEND_DIR) mod tidy
+	go -C $(BACKEND_DIR) run -mod=vendor ./cmd/home-gateway/main.go
 
 dev-frontend:
 	@echo "Starting frontend in development mode..."
 	cd $(FRONTEND_DIR) && npm run dev
 
 # Run cloud middleware (gRPC + gRPC-Web on 7073)
-dev-cloud: proto-gen
+dev-cloud: proto-gen vendor
 	@echo "Starting cloud-middleware in development mode (7073)..."
-	go run $(CLOUD_DIR)/cmd/server/main.go
+	GOPROXY=https://proxy.golang.org,direct GOSUMDB=sum.golang.org go -C $(CLOUD_DIR) mod tidy
+	go run -mod=vendor ./cloud-middleware/cmd/server/main.go
 
 # Run unified backend with cloud connection enabled (cloud only)
 dev-agent:

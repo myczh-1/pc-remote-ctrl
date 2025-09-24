@@ -1,6 +1,6 @@
 module pc-remote-ctrl/backend
 
-go 1.23.0
+go 1.24.4
 
 toolchain go1.24.7
 
@@ -29,8 +29,13 @@ require (
 	nhooyr.io/websocket v1.8.6 // indirect
 )
 
-// unify split import path to root module to avoid dual module paths
+// Unify split path: map submodule path to root module at same commit to avoid ambiguity
 replace google.golang.org/genproto/googleapis/rpc => google.golang.org/genproto v0.0.0-20210126160654-44e461bb6506
+
+// Prevent pulling split submodule versions that collide
+exclude google.golang.org/genproto/googleapis/rpc v0.0.0-20250707201910-8d1bb00bc6a7
+
+exclude google.golang.org/genproto/googleapis/rpc v0.0.0-20250818200422-3122310a409c
 
 // link local cloud-middleware module so agent can import its generated protos
 replace pc-remote-ctrl/cloud-middleware => ../cloud-middleware
