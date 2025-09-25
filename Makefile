@@ -88,7 +88,7 @@ vendor:
 dev-backend: proto-gen vendor
 	@echo "Starting backend (home-gateway) in development mode..."
 	GOPROXY=https://proxy.golang.org,direct GOSUMDB=sum.golang.org go -C $(BACKEND_DIR) mod tidy
-	go -C $(BACKEND_DIR) run -mod=vendor ./cmd/home-gateway/main.go
+	go run -mod=vendor $(BACKEND_DIR)/cmd/home-gateway/main.go
 
 dev-frontend:
 	@echo "Starting frontend in development mode..."

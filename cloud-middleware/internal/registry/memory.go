@@ -100,6 +100,17 @@ func (r *MemoryRegistry) SetConn(id string, conn *grpc.ClientConn) {
     e.Conn = conn
 }
 
+// IDs returns current registered device IDs (for diagnostics only).
+func (r *MemoryRegistry) IDs() []string {
+    r.mu.RLock()
+    defer r.mu.RUnlock()
+    ids := make([]string, 0, len(r.devices))
+    for id := range r.devices {
+        ids = append(ids, id)
+    }
+    return ids
+}
+
 // SetTunnel binds a live tunnel link to device id.
 func (r *MemoryRegistry) SetTunnel(id string, link *TunnelLink) {
     r.mu.Lock()

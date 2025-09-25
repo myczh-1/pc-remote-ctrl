@@ -56,9 +56,10 @@ export default function App() {
         }
       }
   }
-  const api = mode === 'cloud'
-    ? useCloudApi({ baseUrl: cloudCfg.baseUrl, agentId: cloudCfg.agentId, onEvent })
-    : useHomeApi({ onEvent })
+  // Call both hooks to respect Rules of Hooks; pick one based on mode
+  const homeApi = useHomeApi({ onEvent })
+  const cloudApi = useCloudApi({ baseUrl: cloudCfg.baseUrl, agentId: cloudCfg.agentId, onEvent })
+  const api = mode === 'cloud' ? cloudApi : homeApi
   const prefersReduced = useReducedMotion()
   const layoutTransition = useMemo(() => (
     prefersReduced ? { duration: 0 } : { duration: 0.32, ease: [0.22, 1, 0.36, 1] as any }
@@ -173,14 +174,14 @@ export default function App() {
                 <motion.div layout transition={layoutTransition} className={`flex-1 min-h-0 overflow-auto`}>
                   <div className="mb-3 flex items-center justify-between">
                     <div className="text-sm text-slate-500 dark:text-slate-400">
-                      {api.loading ? '加载设备中...' : `共 ${api.devices.length} 台设备`}
+                      {api.loading ? '加载设备中...' : `共 ${(Array.isArray(api.devices) ? api.devices.length : 0)} 台设备`}
                     </div>
                     {api.error && (
                       <div className="text-xs text-red-500">{api.error}</div>
                     )}
                   </div>
                   <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill,minmax(220px,1fr))' }}>
-                    {api.devices.map(d => (
+                    {(api.devices ?? []).map(d => (
                       <DeviceCard
                         key={d.id}
                         device={d}

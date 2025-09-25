@@ -35,6 +35,7 @@ const homeSvc = "/remote_control.home.HomeService/"
 func (s *GatewayServer) unaryViaTunnel(ctx context.Context, deviceID, method string, in proto.Message, out proto.Message) error {
     link, ok := s.reg.GetTunnel(deviceID)
     if !ok {
+        log.Printf("gateway: no tunnel for device_id=%s; reg_ids=%v", deviceID, s.reg.IDs())
         return status.Error(codes.NotFound, "no tunnel for device")
     }
     cid := corrID()
@@ -130,6 +131,7 @@ func (s *GatewayServer) WatchDevices(req *cloudpb.WatchDevicesRequest, stream cl
     deviceID := req.GetDeviceId()
     link, ok := s.reg.GetTunnel(deviceID)
     if !ok {
+        log.Printf("gateway: no tunnel(stream) for device_id=%s; reg_ids=%v", deviceID, s.reg.IDs())
         return status.Error(codes.NotFound, "no tunnel for device")
     }
     cid := corrID()

@@ -3,6 +3,7 @@ package home
 import (
     "context"
     "fmt"
+    "log"
     "strings"
     "time"
 
@@ -53,6 +54,7 @@ func (s *Service) ListDevices(ctx context.Context, req *homepb.ListDevicesReques
         out = append(out, toPBDevice(&d, req.GetIncludeState()))
     }
 
+    log.Printf("[home] ListDevices: matched=%d total=%d", len(out), len(s.devices.List()))
     return &homepb.ListDevicesResponse{Devices: out}, nil
 }
 

@@ -57,8 +57,9 @@ export function useCloudApi(config?: Partial<CloudConfig>) {
     setError('')
     try {
       const res = await clientRef.current.listDevices({ deviceId: agentId, request: { ids: [], type: '', room: '', tags: [], includeState: true } }).response
-      setDevices((res as ListDevicesResponse).devices)
-      return { ok: true, count: (res as ListDevicesResponse).devices.length, devices: (res as ListDevicesResponse).devices as Device[] }
+      const devs = ((res as ListDevicesResponse)?.devices ?? []) as Device[]
+      setDevices(devs)
+      return { ok: true, count: devs.length, devices: devs }
     } catch (e: any) {
       const msg = String(e?.message ?? e)
       setError(msg)
@@ -239,4 +240,3 @@ export function useCloudApi(config?: Partial<CloudConfig>) {
     deleteDevice,
   }
 }
-

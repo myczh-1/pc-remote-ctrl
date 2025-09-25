@@ -172,6 +172,7 @@ func main() {
 		}
 		log.Printf("info: starting with empty devices (first run?)")
 	}
+	log.Printf("[storage] devices loaded: %d from %s", len(devices.List()), cfg.DevicesFile)
 	scenes := devstore.NewScenes(cfg.ScenesFile)
 	if err := scenes.Load(); err != nil {
 		if !os.IsNotExist(err) {
