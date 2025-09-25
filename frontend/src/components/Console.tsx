@@ -2,13 +2,11 @@ import type { LogEntry } from '../types'
 
 interface ConsoleProps {
   logs: LogEntry[]
-  onClear?: () => void
-  onCopy?: () => void
   fullHeight?: boolean
   isDarkMode?: boolean
 }
 
-export function Console({ logs, onClear, onCopy, fullHeight = false, isDarkMode = false }: ConsoleProps) {
+export function Console({ logs, fullHeight = false, isDarkMode = false }: ConsoleProps) {
   const outerBorder = fullHeight ? 'border-l' : 'border-t'
 
   const getLogIcon = (level: string) => {
@@ -36,26 +34,9 @@ export function Console({ logs, onClear, onCopy, fullHeight = false, isDarkMode 
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 002 2z" />
           </svg>
-          <span className="text-black dark:text-white font-medium">控制台</span>
+          <span className="text-black dark:text-white font-medium">日志</span>
         </div>
-        <div className="flex items-center gap-2">
-          {onCopy && (
-            <button
-              onClick={onCopy}
-              className="px-2 py-1 text-xs rounded-lg border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5"
-            >
-              复制
-            </button>
-          )}
-          {onClear && (
-            <button
-              onClick={onClear}
-              className="px-2 py-1 text-xs rounded-lg border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5"
-            >
-              清空
-            </button>
-          )}
-        </div>
+        <div className="flex items-center gap-2" />
       </div>
 
       <div className={`${fullHeight ? 'flex-1 min-h-0' : 'h-52'} overflow-auto rounded-xl bg-white/70 dark:bg-slate-950/70 border border-black/10 dark:border-white/5 p-3 font-mono text-sm leading-6`}>

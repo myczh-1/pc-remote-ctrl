@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react'
 import { useLogger } from './hooks/useLogger'
-import { motion, useReducedMotion } from 'motion/react'
+import { motion, useReducedMotion, AnimatePresence } from 'motion/react'
 import { Topbar } from './components/Topbar'
 import { Console } from './components/Console'
 import { DeviceCard } from './components/DeviceCard'
@@ -11,6 +11,9 @@ import { useHomeApi } from './hooks/useHomeApi'
 import { useCloudApi } from './hooks/useCloudApi'
 import { CloudSettings } from './components/CloudSettings'
 import { TelemetryEventKind } from './proto/home/service'
+import { Sidebar } from './components/Sidebar'
+import { BottomTabBar } from './components/BottomTabBar'
+import { useMediaQuery } from './hooks/useMediaQuery'
 
 export default function App() {
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -69,6 +72,23 @@ export default function App() {
   const [detailDeviceId, setDetailDeviceId] = useState('')
   const [createOpen, setCreateOpen] = useState(false)
   const [editing, setEditing] = useState<Device | undefined>(undefined)
+  const isMobile = useMediaQuery('(max-width: 767px)')
+  const [showLogs, setShowLogs] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem('ui.showLogs')
+      if (saved != null) return saved === '1'
+    } catch {}
+    // 默认：桌面显示，非桌面隐藏
+    if (typeof window !== 'undefined') {
+      return window.matchMedia('(min-width: 1024px)').matches
+    }
+    return true
+  })
+  React.useEffect(() => {
+    try { localStorage.setItem('ui.showLogs', showLogs ? '1' : '0') } catch {}
+  }, [showLogs])
+  // 侧边栏展开（平板/桌面可用），默认收起为窄栏
+  const [sidebarOpen, setSidebarOpen] = useState<boolean>(false)
   React.useEffect(() => {
     api.listDevices()
     api.startWatch()
@@ -106,12 +126,34 @@ export default function App() {
       </div>
 
       <div className="relative z-10 flex h-screen overflow-hidden">
+        {/* 平板/桌面显示左侧窄边栏，移动端隐藏并使用底部 TabBar */}
+        <AnimatePresence initial={false} mode="popLayout">
+          {/* 侧边栏：消失时 slideOutLeft + fadeOut */}
+          {!isMobile && (
+            <motion.div
+              key="left-sidebar"
+              initial={false}
+              exit={{ x: -24, opacity: 0 }}
+              transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] as any }}
+            >
+              <Sidebar
+                onRefreshDevices={handleRefreshDevices}
+                onToggleMode={() => {
+                  const next = mode === 'local' ? 'cloud' : 'local'
+                  setMode(next)
+                  try { localStorage.setItem('mode', next) } catch {}
+                }}
+                onConfigCloud={() => setCloudSettingsOpen(true)}
+                onToggleLogs={() => setShowLogs(v => !v)}
+                onAddDevice={() => setCreateOpen(true)}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
         <motion.main layout className="flex-1 flex flex-col overflow-hidden">
           <Topbar
             mode={mode}
             theme={theme}
-            onOpenCloudSettings={() => setCloudSettingsOpen(true)}
-            onAddDevice={() => setCreateOpen(true)}
             onToggleTheme={(e) => {
               const root = document.documentElement;
 
@@ -156,12 +198,16 @@ export default function App() {
               setTheme(next);
               setTimeout(() => root.classList.remove("theme-transition"), 320);
             }}
-            onCreate={handleRefreshDevices}
-            onToggleMode={() => {
-              const next = mode === 'local' ? 'cloud' : 'local'
-              setMode(next)
-              try { localStorage.setItem('mode', next) } catch {}
+            onToggleFullscreen={() => {
+              const el = document.documentElement as any
+              const fsEl = document.fullscreenElement || (document as any).webkitFullscreenElement
+              if (fsEl) {
+                (document.exitFullscreen || (document as any).webkitExitFullscreen)?.call(document)
+              } else {
+                (el.requestFullscreen || el.webkitRequestFullscreen)?.call(el)
+              }
             }}
+            onExit={() => { /* 留空：按需接入 */ }}
           />
 
           <div className={`p-4 md:p-6 flex-1 overflow-hidden bg-white dark:bg-surface`}>
@@ -180,35 +226,64 @@ export default function App() {
                       <div className="text-xs text-red-500">{api.error}</div>
                     )}
                   </div>
-                  <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill,minmax(220px,1fr))' }}>
+                  {/* 设备卡片网格：移动 2 列，平板 2 列，桌面 3 列，超宽 4 列 */}
+                  <div className="grid gap-3 grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {(api.devices ?? []).map(d => (
-                      <DeviceCard
-                        key={d.id}
-                        device={d}
-                        onQuickAction={(dev, act) => handleQuickAction(dev.id, act)}
-                        onOpenDetail={(dev) => { setDetailDeviceId(dev.id); setDetailOpen(true) }}
-                        onEdit={(dev) => { setEditing(dev as any); setCreateOpen(true) }}
-                      />
+                      <motion.div key={d.id} layout transition={layoutTransition}>
+                        <DeviceCard
+                          device={d}
+                          onQuickAction={(dev, act) => handleQuickAction(dev.id, act)}
+                          onOpenDetail={(dev) => { setDetailDeviceId(dev.id); setDetailOpen(true) }}
+                          onEdit={(dev) => { setEditing(dev as any); setCreateOpen(true) }}
+                        />
+                      </motion.div>
                     ))}
                   </div>
                 </motion.div>
 
-                <motion.div layout transition={layoutTransition}>
-                  <Console
-                    logs={entries}
-                    fullHeight={false}
-                    onClear={clearLog}
-                    isDarkMode={theme === 'dark'}
-                    onCopy={() => {
-                      try { navigator.clipboard.writeText(entries.map(e => e.message).join('\n')) } catch {}
-                    }}
-                  />
-                </motion.div>
+                {/* 日志开关：移动端隐藏不参与布局；平板/桌面可控 */}
+                {!isMobile && showLogs && (
+                  <motion.div layout transition={layoutTransition}>
+                    <Console
+                      logs={entries}
+                      fullHeight={false}
+                      isDarkMode={theme === 'dark'}
+                    />
+                  </motion.div>
+                )}
               </motion.section>
             </div>
           </div>
         </motion.main>
       </div>
+
+      {/* 底部 TabBar（仅移动端，承载侧边栏功能） */}
+      <BottomTabBar
+        visible={isMobile}
+        active={'mode'}
+        onChange={(tab) => {
+          switch (tab) {
+            case 'refresh':
+              handleRefreshDevices();
+              break
+            case 'mode': {
+              const next = mode === 'local' ? 'cloud' : 'local'
+              setMode(next)
+              try { localStorage.setItem('mode', next) } catch {}
+              break
+            }
+            case 'logs':
+              setShowLogs(v => !v)
+              break
+            case 'add':
+              setCreateOpen(true)
+              break
+            case 'settings':
+              setCloudSettingsOpen(true)
+              break
+          }
+        }}
+      />
 
       <DeviceDetailDrawer
         open={detailOpen}
@@ -246,6 +321,20 @@ export default function App() {
           setCloudCfg(cfg)
         }}
       />
+
+      {/* 日志显示开关按钮（仅平板/桌面右下角浮动） */}
+      {!isMobile && (
+        <button
+          className="fixed right-4 bottom-4 z-20 inline-flex items-center gap-1 px-3 py-2 text-xs rounded-full border border-black/10 bg-white/80 shadow hover:bg-black/5 dark:border-white/10 dark:bg-white/[0.08] dark:hover:bg-white/10"
+          onClick={() => setShowLogs(v => !v)}
+          title="显示/隐藏日志"
+        >
+          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+          <span>{showLogs ? '隐藏日志' : '显示日志'}</span>
+        </button>
+      )}
     </div>
   )
 }
