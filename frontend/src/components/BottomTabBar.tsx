@@ -2,11 +2,11 @@ import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 
 interface BottomTabBarProps {
   visible: boolean
-  active: 'refresh' | 'mode' | 'logs' | 'add' | 'settings'
-  onChange?: (tab: 'refresh' | 'mode' | 'logs' | 'add' | 'settings') => void
+  mode: 'local' | 'cloud'
+  onChange?: (tab: 'refresh' | 'mode' | 'add' | 'settings') => void
 }
 
-export function BottomTabBar({ visible, active, onChange }: BottomTabBarProps) {
+export function BottomTabBar({ visible, mode, onChange }: BottomTabBarProps) {
   const prefersReduced = useReducedMotion()
   return (
     <AnimatePresence initial={false}>
@@ -19,21 +19,16 @@ export function BottomTabBar({ visible, active, onChange }: BottomTabBarProps) {
           transition={prefersReduced ? { duration: 0 } : { duration: 0.28, ease: [0.22, 1, 0.36, 1] as any }}
         >
           <div className="mx-auto max-w-screen-sm px-4 pb-3">
-            <div className="pointer-events-auto mx-auto flex items-center justify-between gap-4 rounded-2xl border border-black/10 bg-white/85 px-4 py-2 shadow-xl backdrop-blur-md backdrop-saturate-[1.4] dark:border-white/10 dark:bg-surface-soft/85">
+            <div className="pointer-events-auto mx-auto flex items-center justify-between gap-4 rounded-3xl border border-black/5 bg-gradient-to-r from-sky-400/20 to-fuchsia-400/20 px-3 py-2 shadow-lg backdrop-blur-xl backdrop-saturate-[1.4] dark:border-white/10 dark:from-white/[0.06] dark:to-white/[0.06]">
               {([
                 { key: 'refresh', label: '刷新', icon: (
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                   </svg>
                 )},
-                { key: 'mode', label: '本地/云', icon: (
+                { key: 'mode', label: (mode === 'cloud' ? '云端' : '本地'), icon: (
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12a9 9 0 1018 0A9 9 0 003 12zm9-7v14m-7-7h14" />
-                  </svg>
-                )},
-                { key: 'logs', label: '日志', icon: (
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                   </svg>
                 )},
                 { key: 'add', label: '添加', icon: (
@@ -51,12 +46,17 @@ export function BottomTabBar({ visible, active, onChange }: BottomTabBarProps) {
                 <button
                   key={t.key}
                   onClick={() => onChange?.(t.key as any)}
-                  className={`flex flex-col items-center justify-center py-1 text-xs ${
-                    active === (t.key as any) ? 'text-prime-600 dark:text-prime-400' : 'text-slate-600 dark:text-slate-300'
+                  className={`flex items-center justify-center p-1 transition-transform active:scale-95 ${
+                    (t.key === 'mode' && mode === 'cloud') ? 'text-prime-600 dark:text-prime-400' : 'text-slate-700 dark:text-slate-300'
                   }`}
                 >
-                  <div className={`grid place-items-center rounded-lg ${active === (t.key as any) ? 'bg-prime-500/10' : ''} w-9 h-9`}>{t.icon}</div>
-                  <span>{t.label}</span>
+                  <div
+                    className={`grid place-items-center rounded-lg w-10 h-10 transition-colors hover:bg-black/5 dark:hover:bg-white/10 ${
+                      (t.key === 'mode' && mode === 'cloud') ? 'bg-prime-500/10' : ''
+                    }`}
+                  >
+                    {t.icon}
+                  </div>
                 </button>
               ))}
             </div>
@@ -66,4 +66,3 @@ export function BottomTabBar({ visible, active, onChange }: BottomTabBarProps) {
     </AnimatePresence>
   )
 }
-

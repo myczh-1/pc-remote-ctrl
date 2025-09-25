@@ -119,16 +119,13 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-white text-slate-900 dark:bg-surface dark:text-slate-100 relative selection:bg-prime-400/20 selection:text-white overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -left-32 -top-20 h-[420px] w-[420px] rounded-full opacity-[0.35] blur-[80px] bg-[radial-gradient(circle_at_center,#22D3EE_0%,transparent_60%)] dark:opacity-[0.22] dark:blur-[110px]" />
-        <div className="absolute -right-40 -bottom-32 h-[520px] w-[520px] rounded-full opacity-[0.35] blur-[80px] bg-[radial-gradient(circle_at_center,#A78BFA_0%,transparent_60%)] dark:opacity-[0.22] dark:blur-[110px]" />
-      </div>
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-sky-50/60 to-violet-50/60 text-slate-900 dark:from-[#0b1220] dark:via-[#0b1220] dark:to-[#0a0f1a] dark:text-slate-100 relative selection:bg-prime-400/20 selection:text-white overflow-hidden">
 
       <div className="relative z-10 flex h-screen overflow-hidden">
         {/* 平板/桌面显示左侧窄边栏，移动端隐藏并使用底部 TabBar */}
         <AnimatePresence initial={false} mode="popLayout">
           {/* 侧边栏：消失时 slideOutLeft + fadeOut */}
+
           {!isMobile && (
             <motion.div
               key="left-sidebar"
@@ -137,6 +134,8 @@ export default function App() {
               transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] as any }}
             >
               <Sidebar
+                mode={mode}
+                showLogs={showLogs}
                 onRefreshDevices={handleRefreshDevices}
                 onToggleMode={() => {
                   const next = mode === 'local' ? 'cloud' : 'local'
@@ -210,7 +209,7 @@ export default function App() {
             onExit={() => { /* 留空：按需接入 */ }}
           />
 
-          <div className={`p-4 md:p-6 flex-1 overflow-hidden bg-white dark:bg-surface`}>
+          <div className={`p-4 md:p-6 flex-1 overflow-hidden bg-transparent`}>
             <div className="h-full min-h-0 flex gap-4">
               <motion.section
                 layout
@@ -260,7 +259,7 @@ export default function App() {
       {/* 底部 TabBar（仅移动端，承载侧边栏功能） */}
       <BottomTabBar
         visible={isMobile}
-        active={'mode'}
+        mode={mode}
         onChange={(tab) => {
           switch (tab) {
             case 'refresh':
@@ -272,9 +271,6 @@ export default function App() {
               try { localStorage.setItem('mode', next) } catch {}
               break
             }
-            case 'logs':
-              setShowLogs(v => !v)
-              break
             case 'add':
               setCreateOpen(true)
               break
@@ -322,19 +318,7 @@ export default function App() {
         }}
       />
 
-      {/* 日志显示开关按钮（仅平板/桌面右下角浮动） */}
-      {!isMobile && (
-        <button
-          className="fixed right-4 bottom-4 z-20 inline-flex items-center gap-1 px-3 py-2 text-xs rounded-full border border-black/10 bg-white/80 shadow hover:bg-black/5 dark:border-white/10 dark:bg-white/[0.08] dark:hover:bg-white/10"
-          onClick={() => setShowLogs(v => !v)}
-          title="显示/隐藏日志"
-        >
-          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-          <span>{showLogs ? '隐藏日志' : '显示日志'}</span>
-        </button>
-      )}
+      {/* 移除右下角日志开关，保留侧边栏控制 */}
     </div>
   )
 }

@@ -4,6 +4,7 @@ interface LogDisplayProps {
 }
 
 export function LogDisplay({ log, onClear }: LogDisplayProps) {
+
   const logLines = log ? log.split('\n').filter(line => line.trim()) : []
   const hasLogs = logLines.length > 0
 

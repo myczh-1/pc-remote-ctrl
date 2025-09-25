@@ -12,14 +12,14 @@
   --color-card: #0F141A;
   --color-card-stroke: #1E2630;
 
-  --color-prime-50:  #ECFEFF;
-  --color-prime-100: #CFFAFE;
-  --color-prime-200: #A5F3FC;
-  --color-prime-300: #67E8F9;
-  --color-prime-400: #22D3EE;
-  --color-prime-500: #06B6D4;
-  --color-prime-600: #0891B2;
-  --color-prime-700: #0E7490;
+  --color-prime-50:  #EFF6FF;
+  --color-prime-100: #DBEAFE;
+  --color-prime-200: #BFDBFE;
+  --color-prime-300: #93C5FD;
+  --color-prime-400: #60A5FA;
+  --color-prime-500: #3B82F6;
+  --color-prime-600: #2563EB;
+  --color-prime-700: #1D4ED8;
 
   --shadow-soft: 0 8px 30px rgba(0,0,0,0.35);
   --shadow-ring: inset 0 1px 0 rgba(255,255,255,0.04), 0 8px 24px rgba(2,8,23,0.6);
