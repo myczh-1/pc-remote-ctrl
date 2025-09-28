@@ -6,14 +6,26 @@ interface TopbarProps {
   onToggleTheme?: (e: MouseEvent) => void
   onToggleFullscreen?: () => void // 全屏/退出全屏
   onExit?: () => void // 退出按钮（按需占位）
+  onOpenFilters?: () => void // 移动端：打开筛选抽屉
 }
 
-export function Topbar({ mode, theme, onToggleTheme, onToggleFullscreen, onExit }: TopbarProps) {
+export function Topbar({ mode, theme, onToggleTheme, onToggleFullscreen, onExit, onOpenFilters }: TopbarProps) {
   const [refreshSpin, setRefreshSpin] = useState(false)
   const [addPop, setAddPop] = useState(false)
   return (
     <header className="flex items-center gap-3 border-b border-black/10 bg-white/60 px-5 py-3 backdrop-blur-md backdrop-saturate-[1.4] transition-colors dark:border-white/5 dark:bg-white/[0.08]">
-      <div className="flex items-center gap-2 mr-2" />
+      <div className="flex items-center gap-2 mr-2">
+        {/* 移动端：汉堡按钮，打开筛选抽屉 */}
+        <button
+          onClick={onOpenFilters}
+          className="md:hidden rounded-lg p-2 hover:bg-white/5 border border-white/10"
+          title="筛选"
+        >
+          <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h10M4 18h16" />
+          </svg>
+        </button>
+      </div>
       
       <div className="hidden md:block flex-1 max-w-2xl">
         <div>

@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react'
 import { useLogger } from './hooks/useLogger'
-import { motion, useReducedMotion, AnimatePresence } from 'motion/react'
+import { motion, useReducedMotion } from 'motion/react'
 import { Topbar } from './components/Topbar'
 import { Console } from './components/Console'
 import { DeviceCard } from './components/DeviceCard'
@@ -11,9 +11,12 @@ import { useHomeApi } from './hooks/useHomeApi'
 import { useCloudApi } from './hooks/useCloudApi'
 import { CloudSettings } from './components/CloudSettings'
 import { TelemetryEventKind } from './proto/home/service'
-import { Sidebar } from './components/Sidebar'
+// import { Sidebar } from './components/Sidebar'
 import { BottomTabBar } from './components/BottomTabBar'
 import { useMediaQuery } from './hooks/useMediaQuery'
+import { RightToolbar } from './components/RightToolbar'
+import { DeviceFilters } from './components/DeviceFilters'
+import { MobileFiltersDrawer } from './components/MobileFiltersDrawer'
 
 export default function App() {
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -73,6 +76,7 @@ export default function App() {
   const [createOpen, setCreateOpen] = useState(false)
   const [editing, setEditing] = useState<Device | undefined>(undefined)
   const isMobile = useMediaQuery('(max-width: 767px)')
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
   const [showLogs, setShowLogs] = useState<boolean>(() => {
     try {
       const saved = localStorage.getItem('ui.showLogs')
@@ -87,8 +91,7 @@ export default function App() {
   React.useEffect(() => {
     try { localStorage.setItem('ui.showLogs', showLogs ? '1' : '0') } catch {}
   }, [showLogs])
-  // 侧边栏展开（平板/桌面可用），默认收起为窄栏
-  const [sidebarOpen, setSidebarOpen] = useState<boolean>(false)
+  // 侧边栏已改造为右侧固定工具栏，移除展开状态
   React.useEffect(() => {
     api.listDevices()
     api.startWatch()
@@ -121,38 +124,13 @@ export default function App() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 via-sky-50/60 to-violet-50/60 text-slate-900 dark:from-[#0b1220] dark:via-[#0b1220] dark:to-[#0a0f1a] dark:text-slate-100 relative selection:bg-prime-400/20 selection:text-white overflow-hidden">
 
-      <div className="relative z-10 flex h-screen overflow-hidden">
-        {/* 平板/桌面显示左侧窄边栏，移动端隐藏并使用底部 TabBar */}
-        <AnimatePresence initial={false} mode="popLayout">
-          {/* 侧边栏：消失时 slideOutLeft + fadeOut */}
-
-          {!isMobile && (
-            <motion.div
-              key="left-sidebar"
-              initial={false}
-              exit={{ x: -24, opacity: 0 }}
-              transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] as any }}
-            >
-              <Sidebar
-                mode={mode}
-                showLogs={showLogs}
-                onRefreshDevices={handleRefreshDevices}
-                onToggleMode={() => {
-                  const next = mode === 'local' ? 'cloud' : 'local'
-                  setMode(next)
-                  try { localStorage.setItem('mode', next) } catch {}
-                }}
-                onConfigCloud={() => setCloudSettingsOpen(true)}
-                onToggleLogs={() => setShowLogs(v => !v)}
-                onAddDevice={() => setCreateOpen(true)}
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
-        <motion.main layout className="flex-1 flex flex-col overflow-hidden">
+      <div className="relative z-10 flex h-screen flex-col overflow-hidden">
+        {/* 头部 Headbar：全宽，位于筛选栏之上，层级更高 */}
+        <div className="shrink-0 z-20">
           <Topbar
             mode={mode}
             theme={theme}
+            onOpenFilters={() => setMobileFiltersOpen(true)}
             onToggleTheme={(e) => {
               const root = document.documentElement;
 
@@ -208,7 +186,18 @@ export default function App() {
             }}
             onExit={() => { /* 留空：按需接入 */ }}
           />
+        </div>
 
+        {/* 主体区域：左侧筛选 + 右侧内容 */}
+        <div className="flex-1 flex overflow-hidden">
+          {/* 左侧：设备快捷筛选（桌面可见），无外边距，顶天立地 */}
+          {!isMobile && (
+            <div className="hidden lg:flex w-64 shrink-0">
+              <DeviceFilters />
+            </div>
+          )}
+
+          <motion.main layout className="flex-1 flex flex-col overflow-hidden">
           <div className={`p-4 md:p-6 flex-1 overflow-hidden bg-transparent`}>
             <div className="h-full min-h-0 flex gap-4">
               <motion.section
@@ -253,8 +242,36 @@ export default function App() {
               </motion.section>
             </div>
           </div>
-        </motion.main>
+          </motion.main>
+        </div>
       </div>
+
+      {/* 右侧固定工具栏（桌面端样式 A：悬浮窄柱） */}
+      {!isMobile && (
+        <RightToolbar
+          mode={mode}
+          showLogs={showLogs}
+          onRefreshDevices={handleRefreshDevices}
+          onToggleMode={() => {
+            const next = mode === 'local' ? 'cloud' : 'local'
+            setMode(next)
+            try { localStorage.setItem('mode', next) } catch {}
+          }}
+          onConfigCloud={() => setCloudSettingsOpen(true)}
+          onToggleLogs={() => setShowLogs(v => !v)}
+          onAddDevice={() => setCreateOpen(true)}
+        />
+      )}
+
+      {/* 移动端筛选抽屉 */}
+      {isMobile && (
+        <MobileFiltersDrawer
+          open={mobileFiltersOpen}
+          onClose={() => setMobileFiltersOpen(false)}
+        >
+          <DeviceFilters />
+        </MobileFiltersDrawer>
+      )}
 
       {/* 底部 TabBar（仅移动端，承载侧边栏功能） */}
       <BottomTabBar
