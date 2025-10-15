@@ -57,6 +57,7 @@ export function DeviceCard({ device, onOpenDetail, onQuickAction, onEdit }: Devi
         <DeviceStatus online={device.online} lastSeen={device.lastSeen} showLastSeen className="shrink-0" />
       </div>
 
+<<<<<<< HEAD
       <div className="min-h-0 flex-1 overflow-hidden">
         {device.state ? (
           <div className="h-full bg-black/5 dark:bg-white/5 rounded-lg p-2 overflow-auto">
@@ -73,6 +74,17 @@ export function DeviceCard({ device, onOpenDetail, onQuickAction, onEdit }: Devi
           </div>
         )}
       </div>
+=======
+       
+        <div className="bg-black/5 dark:bg-white/5 rounded-lg p-2">
+          <StateRenderer
+            state={device.state}
+            compact
+            maxItems={2}
+          />
+        </div>
+      
+>>>>>>> cf15a1c (feat:小动)
 
       {quick && (
         <div className="mt-auto pt-2 border-t border-black/5 dark:border-white/5 flex items-center gap-2">
