@@ -11,13 +11,13 @@ import (
 	"syscall"
 	"time"
 
-	home "pc-remote-ctrl/backend/internal/home"
 	cloudcli "pc-remote-ctrl/backend/internal/cloud"
+	home "pc-remote-ctrl/backend/internal/home"
 	"pc-remote-ctrl/backend/internal/mqtt"
 	"pc-remote-ctrl/backend/internal/ops"
 	devstore "pc-remote-ctrl/backend/internal/storage"
 	homepb "pc-remote-ctrl/backend/proto/home"
-    cloudpb "pc-remote-ctrl/cloud-middleware/proto/cloud"
+	cloudpb "pc-remote-ctrl/cloud-middleware/proto/cloud"
 
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
 	"golang.org/x/net/http2"
@@ -37,18 +37,35 @@ type Config struct {
 	MqttPass     string
 	MqttClientID string
 
+	// Device status
+	DeviceOfflineAfter time.Duration
+
 	// Cloud registration (optional)
-	CloudAddr       string // e.g. 127.0.0.1:7073
-	AgentDeviceID   string // required when CloudAddr set
-	AgentSecret     string // optional
-	HomeGRPCAddr    string // override reported addr; default 127.0.0.1:Port
-	AgentTunnelUnaryTimeoutMS int // default 8000
+	CloudAddr                 string // e.g. 127.0.0.1:7073
+	AgentDeviceID             string // required when CloudAddr set
+	AgentSecret               string // optional
+	HomeGRPCAddr              string // override reported addr; default 127.0.0.1:Port
+	AgentTunnelUnaryTimeoutMS int    // default 8000
 }
 
 func getenv(k, def string) string {
 	if v := os.Getenv(k); v != "" {
 		return v
 	}
+	return def
+}
+
+func parseDurationEnv(val string, def time.Duration) time.Duration {
+	if val == "" {
+		return def
+	}
+	if d, err := time.ParseDuration(val); err == nil && d > 0 {
+		return d
+	}
+	if n, err := strconv.Atoi(val); err == nil && n > 0 {
+		return time.Duration(n) * time.Second
+	}
+	log.Printf("[config] invalid duration %q, fallback=%s", val, def)
 	return def
 }
 
@@ -83,73 +100,89 @@ func loadConfig() *Config {
 		MqttPass:        getenv("MQTT_PASS", ""),
 		MqttClientID:    getenv("MQTT_CLIENT_ID", ""),
 
-        CloudAddr:     getenv("CLOUD_ADDR", ""),
-        AgentDeviceID: getenv("AGENT_DEVICE_ID", ""),
-        AgentSecret:   getenv("AGENT_SECRET", ""),
-        HomeGRPCAddr:  getenv("HOME_GRPC_ADDR", ""),
-		AgentTunnelUnaryTimeoutMS: func() int { if v := getenv("AGENT_TUNNEL_UNARY_TIMEOUT_MS", ""); v != "" { if n, err := strconv.Atoi(v); err == nil { return n } } ; return 8000 }(),
+		DeviceOfflineAfter: parseDurationEnv(getenv("DEVICE_OFFLINE_AFTER", ""), 2*time.Minute),
+
+		CloudAddr:     getenv("CLOUD_ADDR", ""),
+		AgentDeviceID: getenv("AGENT_DEVICE_ID", ""),
+		AgentSecret:   getenv("AGENT_SECRET", ""),
+		HomeGRPCAddr:  getenv("HOME_GRPC_ADDR", ""),
+		AgentTunnelUnaryTimeoutMS: func() int {
+			if v := getenv("AGENT_TUNNEL_UNARY_TIMEOUT_MS", ""); v != "" {
+				if n, err := strconv.Atoi(v); err == nil {
+					return n
+				}
+			}
+			return 8000
+		}(),
 	}
 }
 
 func tryCloudRegister(ctx context.Context, cfg *Config) {
-    if cfg.CloudAddr == "" {
-        return
-    }
-    addr := cfg.HomeGRPCAddr
-    if addr == "" {
-        addr = "127.0.0.1:" + cfg.Port
-    }
-    if cfg.AgentDeviceID == "" {
-        log.Printf("[cloud] skip: AGENT_DEVICE_ID not set")
-        return
-    }
-    go func() {
-        backoff := time.Second
-        for {
-            if ctx.Err() != nil { return }
-            conn, err := grpc.DialContext(ctx, cfg.CloudAddr, grpc.WithInsecure())
-            if err != nil {
-                log.Printf("[cloud] dial failed: %v", err)
-                time.Sleep(backoff)
-                if backoff < 15*time.Second { backoff *= 2 }
-                continue
-            }
-            client := cloudpb.NewAgentServiceClient(conn)
-            rctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-            _, err = client.Register(rctx, &cloudpb.RegisterRequest{DeviceId: cfg.AgentDeviceID, HomeGrpcAddr: addr, Secret: cfg.AgentSecret, TtlSec: 120})
-            cancel()
-            if err != nil {
-                log.Printf("[cloud] register failed: %v", err)
-                _ = conn.Close()
-                time.Sleep(backoff)
-                if backoff < 15*time.Second { backoff *= 2 }
-                continue
-            }
-            log.Printf("[cloud] registered device_id=%s upstream=%s via %s", cfg.AgentDeviceID, addr, cfg.CloudAddr)
-            // heartbeat loop
-            hbTicker := time.NewTicker(30 * time.Second)
-            defer hbTicker.Stop()
-            for {
-                select {
-                case <-ctx.Done():
-                    _ = conn.Close(); return
-                case <-hbTicker.C:
-                    hctx, cc := context.WithTimeout(ctx, 3*time.Second)
-                    _, herr := client.Heartbeat(hctx, &cloudpb.HeartbeatRequest{DeviceId: cfg.AgentDeviceID})
-                    cc()
-                    if herr != nil {
-                        log.Printf("[cloud] heartbeat failed: %v", herr)
-                        _ = conn.Close()
-                        time.Sleep(2 * time.Second)
-                        // break to outer loop to re-register
-                        goto REREG
-                    }
-                }
-            }
-        REREG:
-            continue
-        }
-    }()
+	if cfg.CloudAddr == "" {
+		return
+	}
+	addr := cfg.HomeGRPCAddr
+	if addr == "" {
+		addr = "127.0.0.1:" + cfg.Port
+	}
+	if cfg.AgentDeviceID == "" {
+		log.Printf("[cloud] skip: AGENT_DEVICE_ID not set")
+		return
+	}
+	go func() {
+		backoff := time.Second
+		for {
+			if ctx.Err() != nil {
+				return
+			}
+			conn, err := grpc.DialContext(ctx, cfg.CloudAddr, grpc.WithInsecure())
+			if err != nil {
+				log.Printf("[cloud] dial failed: %v", err)
+				time.Sleep(backoff)
+				if backoff < 15*time.Second {
+					backoff *= 2
+				}
+				continue
+			}
+			client := cloudpb.NewAgentServiceClient(conn)
+			rctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+			_, err = client.Register(rctx, &cloudpb.RegisterRequest{DeviceId: cfg.AgentDeviceID, HomeGrpcAddr: addr, Secret: cfg.AgentSecret, TtlSec: 120})
+			cancel()
+			if err != nil {
+				log.Printf("[cloud] register failed: %v", err)
+				_ = conn.Close()
+				time.Sleep(backoff)
+				if backoff < 15*time.Second {
+					backoff *= 2
+				}
+				continue
+			}
+			log.Printf("[cloud] registered device_id=%s upstream=%s via %s", cfg.AgentDeviceID, addr, cfg.CloudAddr)
+			// heartbeat loop
+			hbTicker := time.NewTicker(30 * time.Second)
+			defer hbTicker.Stop()
+			for {
+				select {
+				case <-ctx.Done():
+					_ = conn.Close()
+					return
+				case <-hbTicker.C:
+					hctx, cc := context.WithTimeout(ctx, 3*time.Second)
+					_, herr := client.Heartbeat(hctx, &cloudpb.HeartbeatRequest{DeviceId: cfg.AgentDeviceID})
+					cc()
+					if herr != nil {
+						log.Printf("[cloud] heartbeat failed: %v", herr)
+						_ = conn.Close()
+						time.Sleep(2 * time.Second)
+						// break to outer loop to re-register
+						goto REREG
+					}
+				}
+			}
+		REREG:
+			continue
+		}
+	}()
 }
 
 func main() {
@@ -227,23 +260,23 @@ func main() {
 		grpcweb.WithWebsockets(true),
 		grpcweb.WithWebsocketOriginFunc(func(r *http.Request) bool { return true }),
 	)
-    handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-        // healthz
-        if r.Method == http.MethodGet && r.URL.Path == "/healthz" {
-            w.WriteHeader(http.StatusOK)
-            _, _ = w.Write([]byte("ok"))
-            return
-        }
-        // Support raw gRPC over h2c for upstream callers (e.g., cloud middleware)
-        if r.ProtoMajor == 2 && strings.Contains(r.Header.Get("Content-Type"), "application/grpc") {
-            grpcServer.ServeHTTP(w, r)
-            return
-        }
-        if wrapped.IsGrpcWebRequest(r) || wrapped.IsAcceptableGrpcCorsRequest(r) || wrapped.IsGrpcWebSocketRequest(r) {
-            wrapped.ServeHTTP(w, r)
-            return
-        }
-        // default no content
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// healthz
+		if r.Method == http.MethodGet && r.URL.Path == "/healthz" {
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte("ok"))
+			return
+		}
+		// Support raw gRPC over h2c for upstream callers (e.g., cloud middleware)
+		if r.ProtoMajor == 2 && strings.Contains(r.Header.Get("Content-Type"), "application/grpc") {
+			grpcServer.ServeHTTP(w, r)
+			return
+		}
+		if wrapped.IsGrpcWebRequest(r) || wrapped.IsAcceptableGrpcCorsRequest(r) || wrapped.IsGrpcWebSocketRequest(r) {
+			wrapped.ServeHTTP(w, r)
+			return
+		}
+		// default no content
 		w.WriteHeader(http.StatusNoContent)
 	})
 
@@ -251,6 +284,9 @@ func main() {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
+
+	// background device offline detection
+	homesvc.StartOfflineWatcher(ctx, cfg.DeviceOfflineAfter)
 
 	// cloud registration (optional)
 	tryCloudRegister(ctx, cfg)
