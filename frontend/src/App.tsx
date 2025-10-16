@@ -40,27 +40,27 @@ export default function App() {
   const [cloudSettingsOpen, setCloudSettingsOpen] = useState(false)
 
   function onEvent(ev: any, data?: Record<string, any>) {
-      if (!ev) return
-      const id = ev.deviceId
-      switch (ev.kind) {
-        case TelemetryEventKind.ACTION_RESULT: {
-          const ok = Boolean((data as any)?.ok ?? (data as any)?.success ?? (String((data as any)?.status ?? '').toLowerCase() === 'ok'))
-          if (ok) {
-            logSuccess(`动作回执成功 @ ${id}`)
-          } else {
-            const err = (data as any)?.error || (data as any)?.message || ''
-            logError(`动作回执失败 @ ${id} ${err ? '- ' + err : ''}`, 'execution_error')
-          }
-          break
+    if (!ev) return
+    const id = ev.deviceId
+    switch (ev.kind) {
+      case TelemetryEventKind.ACTION_RESULT: {
+        const ok = Boolean((data as any)?.ok ?? (data as any)?.success ?? (String((data as any)?.status ?? '').toLowerCase() === 'ok'))
+        if (ok) {
+          logSuccess(`动作回执成功 @ ${id}`)
+        } else {
+          const err = (data as any)?.error || (data as any)?.message || ''
+          logError(`动作回执失败 @ ${id} ${err ? '- ' + err : ''}`, 'execution_error')
         }
-        case TelemetryEventKind.EVENT: {
-          const summary = (() => {
-            try { return JSON.stringify(data).slice(0, 160) } catch { return String(data) }
-          })()
-          logInfo(`事件 @ ${id}: ${summary}`)
-          break
-        }
+        break
       }
+      case TelemetryEventKind.EVENT: {
+        const summary = (() => {
+          try { return JSON.stringify(data).slice(0, 160) } catch { return String(data) }
+        })()
+        logInfo(`事件 @ ${id}: ${summary}`)
+        break
+      }
+    }
   }
   // Call both hooks to respect Rules of Hooks; pick one based on mode
   const homeApi = useHomeApi({ onEvent })
@@ -81,7 +81,7 @@ export default function App() {
     try {
       const saved = localStorage.getItem('ui.showLogs')
       if (saved != null) return saved === '1'
-    } catch {}
+    } catch { }
     // 默认：桌面显示，非桌面隐藏
     if (typeof window !== 'undefined') {
       return window.matchMedia('(min-width: 1024px)').matches
@@ -89,19 +89,21 @@ export default function App() {
     return true
   })
   React.useEffect(() => {
-    try { localStorage.setItem('ui.showLogs', showLogs ? '1' : '0') } catch {}
+    try { localStorage.setItem('ui.showLogs', showLogs ? '1' : '0') } catch { }
   }, [showLogs])
   // 侧边栏已改造为右侧固定工具栏，移除展开状态
   React.useEffect(() => {
     api.listDevices()
     api.startWatch()
-    return () => { try { api.stopWatch() } catch {} }
+    return () => { try { api.stopWatch() } catch { } }
   }, [mode, cloudCfg.baseUrl, cloudCfg.agentId])
 
   const handleRefreshDevices = async () => {
     const r = await api.listDevices()
     if (r.ok) logInfo(`设备: ${r.count} 台`)
     else logError(`刷新设备失败: ${r.error}`)
+    console.log(r)
+
   }
 
   const handleQuickAction = async (deviceId: string, action: string) => {
@@ -155,7 +157,7 @@ export default function App() {
                 // @ts-ignore
                 const vt = (document as any).startViewTransition(() => {
                   root.classList.toggle("dark");
-                  try { localStorage.setItem("theme", next); } catch {}
+                  try { localStorage.setItem("theme", next); } catch { }
                 });
                 vt.finished
                   .then(() => new Promise<void>(resolve => { requestAnimationFrame(() => requestAnimationFrame(() => resolve())); }))
@@ -171,7 +173,7 @@ export default function App() {
 
               root.classList.add("theme-transition");
               root.classList.toggle("dark");
-              try { localStorage.setItem("theme", next); } catch {}
+              try { localStorage.setItem("theme", next); } catch { }
               setTheme(next);
               setTimeout(() => root.classList.remove("theme-transition"), 320);
             }}
@@ -198,50 +200,50 @@ export default function App() {
           )}
 
           <motion.main layout className="flex-1 flex flex-col overflow-hidden">
-          <div className={`p-4 md:p-6 flex-1 overflow-hidden bg-transparent`}>
-            <div className="h-full min-h-0 flex gap-4">
-              <motion.section
-                layout
-                transition={layoutTransition}
-                className={`flex gap-6 h-full min-h-0 flex-1 min-w-0 flex-col`}
-              >
-                <motion.div layout transition={layoutTransition} className={`flex-1 min-h-0 overflow-auto`}>
-                  <div className="mb-3 flex items-center justify-between">
-                    <div className="text-sm text-slate-500 dark:text-slate-400">
-                      {api.loading ? '加载设备中...' : `共 ${(Array.isArray(api.devices) ? api.devices.length : 0)} 台设备`}
+            <div className={`p-4 md:p-6 flex-1 overflow-hidden bg-transparent`}>
+              <div className="h-full min-h-0 flex gap-4">
+                <motion.section
+                  layout
+                  transition={layoutTransition}
+                  className={`flex gap-6 h-full min-h-0 flex-1 min-w-0 flex-col`}
+                >
+                  <motion.div layout transition={layoutTransition} className={`flex-1 min-h-0 overflow-auto`}>
+                    <div className="mb-3 flex items-center justify-between">
+                      <div className="text-sm text-slate-500 dark:text-slate-400">
+                        {api.loading ? '加载设备中...' : `共 ${(Array.isArray(api.devices) ? api.devices.length : 0)} 台设备`}
+                      </div>
+                      {api.error && (
+                        <div className="text-xs text-red-500">{api.error}</div>
+                      )}
                     </div>
-                    {api.error && (
-                      <div className="text-xs text-red-500">{api.error}</div>
-                    )}
-                  </div>
-                  {/* 设备卡片网格：移动 2 列，平板 2 列，桌面 3 列，超宽 4 列 */}
-                  <div className="grid gap-3 grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                    {(api.devices ?? []).map(d => (
-                      <motion.div key={d.id} layout transition={layoutTransition}>
-                        <DeviceCard
-                          device={d}
-                          onQuickAction={(dev, act) => handleQuickAction(dev.id, act)}
-                          onOpenDetail={(dev) => { setDetailDeviceId(dev.id); setDetailOpen(true) }}
-                          onEdit={(dev) => { setEditing(dev as any); setCreateOpen(true) }}
-                        />
-                      </motion.div>
-                    ))}
-                  </div>
-                </motion.div>
-
-                {/* 日志开关：移动端隐藏不参与布局；平板/桌面可控 */}
-                {!isMobile && showLogs && (
-                  <motion.div layout transition={layoutTransition}>
-                    <Console
-                      logs={entries}
-                      fullHeight={false}
-                      isDarkMode={theme === 'dark'}
-                    />
+                    {/* 设备卡片网格：自适应列数，限制列宽在 320-400px */}
+                    <div className="grid gap-3 justify-center content-start grid-cols-[repeat(auto-fit,minmax(320px,420px))]">
+                      {(api.devices ?? []).map(d => (
+                        <motion.div key={d.id} layout transition={layoutTransition}>
+                          <DeviceCard
+                            device={d}
+                            onQuickAction={(dev, act) => handleQuickAction(dev.id, act)}
+                            onOpenDetail={(dev) => { setDetailDeviceId(dev.id); setDetailOpen(true) }}
+                            onEdit={(dev) => { setEditing(dev as any); setCreateOpen(true) }}
+                          />
+                        </motion.div>
+                      ))}
+                    </div>
                   </motion.div>
-                )}
-              </motion.section>
+
+                  {/* 日志开关：移动端隐藏不参与布局；平板/桌面可控 */}
+                  {!isMobile && showLogs && (
+                    <motion.div layout transition={layoutTransition}>
+                      <Console
+                        logs={entries}
+                        fullHeight={false}
+                        isDarkMode={theme === 'dark'}
+                      />
+                    </motion.div>
+                  )}
+                </motion.section>
+              </div>
             </div>
-          </div>
           </motion.main>
         </div>
       </div>
@@ -255,7 +257,7 @@ export default function App() {
           onToggleMode={() => {
             const next = mode === 'local' ? 'cloud' : 'local'
             setMode(next)
-            try { localStorage.setItem('mode', next) } catch {}
+            try { localStorage.setItem('mode', next) } catch { }
           }}
           onConfigCloud={() => setCloudSettingsOpen(true)}
           onToggleLogs={() => setShowLogs(v => !v)}
@@ -285,7 +287,7 @@ export default function App() {
             case 'mode': {
               const next = mode === 'local' ? 'cloud' : 'local'
               setMode(next)
-              try { localStorage.setItem('mode', next) } catch {}
+              try { localStorage.setItem('mode', next) } catch { }
               break
             }
             case 'add':
