@@ -1,4 +1,4 @@
-.PHONY: proto-gen proto-clean build-backend build-frontend dev-backend dev-frontend dev-cloud dev-agent clean setup-tools install help vendor
+.PHONY: proto-gen proto-clean build-backend build-frontend dev-backend dev-frontend dev-cloud dev-agent clean setup-tools install help vendor dev
 
 # ---------- Paths ----------
 PROTO_DIR      := proto
@@ -133,6 +133,31 @@ help:
 	@echo "  dev-cloud       - Run cloud middleware in development mode"
 	@echo "  dev-agent       - Run unified backend with cloud connection"
 	@echo "  dev-unified     - Run unified backend (local + cloud modes)"
+	@echo "  dev             - Run backend + cloud + frontend together"
 	@echo "  install         - Install all dependencies"
 	@echo "  clean           - Clean all build artifacts"
 	@echo "  help            - Show this help message"
+
+# Unified dev: backend + cloud + frontend with graceful shutdown
+dev:
+	@echo "Starting backend, cloud-middleware, and frontend..."
+	@$(MAKE) -s proto-gen vendor
+	@bash -c '\
+	  set -euo pipefail; \
+	  trap "echo; echo Stopping services...; kill -TERM $$p_backend $$p_cloud $$p_frontend 2>/dev/null || true; wait $$p_backend $$p_cloud $$p_frontend 2>/dev/null || true" INT TERM EXIT; \
+	  ( \
+	    export GOPROXY=https://proxy.golang.org,direct GOSUMDB=sum.golang.org; \
+	    go -C backend mod tidy; \
+	    go run -mod=vendor backend/cmd/home-gateway/main.go \
+	  ) & p_backend=$$!; \
+	  ( \
+	    export GOPROXY=https://proxy.golang.org,direct GOSUMDB=sum.golang.org; \
+	    go -C cloud-middleware mod tidy; \
+	    go run -mod=vendor ./cloud-middleware/cmd/server/main.go \
+	  ) & p_cloud=$$!; \
+	  ( \
+	    cd frontend; \
+	    npm run dev \
+	  ) & p_frontend=$$!; \
+	  echo "All services started. Press Ctrl+C to stop."; \
+	  wait'
