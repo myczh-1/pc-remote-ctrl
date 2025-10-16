@@ -52,7 +52,7 @@ export function StateList({ items, compact = false, maxItems, className = '' }: 
   if (compact) {
     // 紧凑模式：水平排列
     return (
-      <div className={`flex items-center gap-3 flex-wrap ${className}`}>
+      <div className={`flex items-center gap-3  ${className}`}>
         {displayItems.map((item) => (
           <StateItem key={item.key} item={item} compact />
         ))}
