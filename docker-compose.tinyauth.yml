@@ -1,0 +1,86 @@
+version: "3.9"
+
+x-proxy-env: &proxy-env
+  ROOT_DOMAIN: ${ROOT_DOMAIN}
+  TINYAUTH_URL: ${TINYAUTH_URL}
+
+x-common-labels: &common-labels
+  com.pc-remote-ctrl.stack: "tinyauth-gateway"
+
+networks:
+  tinyauth_net:
+    driver: bridge
+
+volumes:
+  go-mod-cache:
+  go-build-cache:
+  frontend-node-modules:
+
+services:
+  nginx:
+    image: nginx:1.27-alpine
+    depends_on:
+      - tinyauth
+      - cloud
+      - frontend
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.tinyauth.conf:/etc/nginx/nginx.conf:ro
+    environment:
+      <<: *proxy-env
+      CLOUD_UPSTREAM: ${CLOUD_UPSTREAM}
+      FRONTEND_UPSTREAM: ${FRONTEND_UPSTREAM}
+    networks:
+      - tinyauth_net
+    labels: *common-labels
+
+  tinyauth:
+    image: ghcr.io/steveiliop56/tinyauth:v4
+    environment:
+      APP_URL: ${TINYAUTH_URL}
+      COOKIE_DOMAIN: .${ROOT_DOMAIN}
+      USERS: ${TINYAUTH_USERS}
+    expose:
+      - "3000"
+    networks:
+      - tinyauth_net
+    labels: *common-labels
+
+  cloud:
+    image: golang:1.22
+    working_dir: /workspace/cloud-middleware
+    command: sh -c "go run ./cmd/server/main.go"
+    environment:
+      GRPC_PORT: 7073
+      AUTH_MODE: none
+    volumes:
+      - ./:/workspace
+      - go-mod-cache:/go/pkg/mod
+      - go-build-cache:/root/.cache/go-build
+    expose:
+      - "7073"
+    networks:
+      - tinyauth_net
+    labels: *common-labels
+
+  frontend:
+    image: node:20-alpine
+    working_dir: /app
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0 --port 5173"
+    environment:
+      HOST: 0.0.0.0
+      PORT: 5173
+      VITE_API_URL: http://cloud.${ROOT_DOMAIN}
+      VITE_CLOUD_GRPCWEB_URL: http://cloud.${ROOT_DOMAIN}
+    volumes:
+      - ./frontend:/app
+      - frontend-node-modules:/app/node_modules
+    expose:
+      - "5173"
+    networks:
+      - tinyauth_net
+    labels: *common-labels
+    depends_on:
+      - cloud
+

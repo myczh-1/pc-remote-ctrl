@@ -82,7 +82,27 @@ make dev-cloud
 # CLOUD_ADDR=127.0.0.1:7073 AGENT_DEVICE_ID=dev1 make dev-backend
 ```
 
-### Build for Production
+### Deploy TinyAuth Gateway (Docker Compose)
+
+服务器侧使用 `docker-compose.tinyauth.yml` 启动 TinyAuth、cloud middleware、前端与 Nginx：
+
+```bash
+cp tinyauth.env.example .env                      # 配置 ROOT_DOMAIN、TINYAUTH_URL、TINYAUTH_USERS 等
+# 生成 BCrypt 哈希（示例密码 password）
+docker run --rm httpd:2.4-alpine htpasswd -bnBC 10 "" password | tr -d ':\n'
+
+# 配置 DNS 或 /etc/hosts 指向 tinyauth.<域名>、cloud.<域名>、app.<域名>
+docker compose -f docker-compose.tinyauth.yml --env-file .env up -d
+```
+
+验证：
+- `http://tinyauth.<域名>` → TinyAuth 登录页；
+- 未登录访问 `http://cloud.<域名>/healthz` 或 `http://app.<域名>` 会跳转登录；
+- 登录后再访问 cloud/frontend，TinyAuth Cookie 在主域生效，Nginx 放行到内部服务。
+
+若需公开前端，可在 `nginx.tinyauth.conf` 的 `app.$ROOT_DOMAIN` server block 移除 `auth_request`。
+
+# Build for Production
 ```bash
 # Build everything (backend binary -> bin/pc-remote-ctrl; frontend -> frontend/dist)
 make build
