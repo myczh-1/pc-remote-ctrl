@@ -1,0 +1,33 @@
+version: "3.9"
+
+services:
+  cloud-middleware:
+    build:
+      context: .
+      dockerfile: cloud-middleware/Dockerfile
+    image: pc-remote/cloud-middleware:cloud
+    restart: unless-stopped
+    environment:
+      GRPC_PORT: "7073"
+      CORS_ALLOWED_ORIGINS: "${CORS_ALLOWED_ORIGINS:-http://localhost:8080}"
+      AGENT_SECRET: "${AGENT_SECRET:-}"
+      AUTH_MODE: "${AUTH_MODE:-none}"
+    ports:
+      - "7073:7073"
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        VITE_HOME_GRPCWEB_URL: /api
+        VITE_CLOUD_GRPCWEB_URL: /cloud
+    image: pc-remote/frontend:cloud
+    restart: unless-stopped
+    environment:
+      HOME_BACKEND_URL: ""
+      CLOUD_GATEWAY_URL: http://cloud-middleware:7073/
+    depends_on:
+      - cloud-middleware
+    ports:
+      - "8080:80"

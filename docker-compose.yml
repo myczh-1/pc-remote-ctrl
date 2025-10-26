@@ -1,65 +1,63 @@
-version: '3.8'
+version: "3.9"
 
 services:
-  # Mosquitto MQTT Broker - 学习真正的 MQTT
-  mosquitto:
+  mqtt:
     image: eclipse-mosquitto:2.0
-    container_name: home-mqtt
+    restart: unless-stopped
     ports:
-      - "1883:1883"  # MQTT
-      - "9001:9001"  # WebSocket (如果需要)
+      - "1883:1883"
+      - "9001:9001"
     volumes:
-      - ./backend/config/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - ./backend/config/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
       - mosquitto-data:/mosquitto/data
       - mosquitto-log:/mosquitto/log
-    restart: unless-stopped
 
-  # 可选：MQTT Explorer 用于调试
   mqtt-explorer:
     image: smeagolworms4/mqtt-explorer
-    container_name: mqtt-explorer
+    profiles: ["debug"]
+    restart: unless-stopped
+    environment:
+      HTTP_PORT: 4000
     ports:
       - "4000:4000"
-    environment:
-      - HTTP_PORT=4000
-    restart: unless-stopped
+    depends_on:
+      - mqtt
 
-  # 你的网关服务
   home-gateway:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: home-gateway
-    ports:
-      - "7071:7071"
+      context: .
+      dockerfile: backend/Dockerfile
+    image: pc-remote/home-gateway:local
+    restart: unless-stopped
+    depends_on:
+      - mqtt
     environment:
-      - LOCAL_PORT=7071
-      - MQTT_URL=tcp://mosquitto:1883
-      - MQTT_USER=
-      - MQTT_PASS=
-      - HOME_DEVICES_FILE=/data/devices.json
-      - HOME_SCENES_FILE=/data/scenes.json
+      LOCAL_PORT: "7071"
+      MQTT_URL: tcp://mqtt:1883
+      HOME_DEVICES_FILE: /data/devices.json
+      HOME_SCENES_FILE: /data/scenes.json
+      HOME_AUTOMATIONS_FILE: /data/automations.json
     volumes:
       - ./backend/data:/data
-    depends_on:
-      - mosquitto
-    restart: unless-stopped
+    ports:
+      - "7071:7071"
 
-  # 前端开发服务器
   frontend:
     build:
-      context: ./frontend
-      dockerfile: Dockerfile.dev
-    container_name: home-frontend
-    ports:
-      - "3000:3000"
-    environment:
-      - VITE_API_URL=http://localhost:7071
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules  # 防止本地 node_modules 覆盖容器的
-    command: npm run dev
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        VITE_HOME_GRPCWEB_URL: /api
+        VITE_CLOUD_GRPCWEB_URL: /cloud
+    image: pc-remote/frontend:local
     restart: unless-stopped
+    environment:
+      HOME_BACKEND_URL: http://home-gateway:7071/
+      CLOUD_GATEWAY_URL: ""
+    depends_on:
+      - home-gateway
+    ports:
+      - "8080:80"
 
 volumes:
   mosquitto-data:

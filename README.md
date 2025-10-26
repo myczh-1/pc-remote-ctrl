@@ -82,6 +82,27 @@ make dev-cloud
 # CLOUD_ADDR=127.0.0.1:7073 AGENT_DEVICE_ID=dev1 make dev-backend
 ```
 
+## Docker Compose Modes
+
+Two standalone compose files cover the direct (local) and cloud deployments so the backend agent and the cloud middleware never run in the same stack. Both modes include a production frontend container so you can access the UI without `npm run dev`.
+
+### Local / Direct Stack (`docker-compose.yml`)
+- `docker compose up --build` starts `mqtt`, `home-gateway`, and the nginx-based `frontend`; append `--profile debug` to also run `mqtt-explorer`.
+- Ports: MQTT `1883/9001`, backend `7071`, SPA `8080`, optional explorer `4000`.
+- Backend data persists via `./backend/data:/data`, and Mosquitto picks up `backend/config/mosquitto.conf`.
+- The frontend proxies `/api/*` to `home-gateway` using `HOME_BACKEND_URL` (default `http://home-gateway:7071/`). Set `CLOUD_GATEWAY_URL` if you want `/cloud/*` to forward to a remote tunnel endpoint even in the local stack.
+
+### Cloud Stack (`docker-compose.cloud.yml`)
+- `docker compose -f docker-compose.cloud.yml up --build` runs only the cloud middleware plus the frontend so the agent never ships with the cloud mode.
+- Ports: cloud gRPC/gRPC-Web `7073`, SPA `8080`.
+- `cloud-middleware` honors `GRPC_PORT`, `CORS_ALLOWED_ORIGINS`, `AUTH_MODE`, and `AGENT_SECRET` via Compose env overrides.
+- The frontend proxies `/cloud/*` to the in-stack middleware (`CLOUD_GATEWAY_URL=http://cloud-middleware:7073/`) while `/api/*` returns 502 because no backend service exists in this mode.
+
+### Frontend Container Behavior
+- `frontend/Dockerfile` builds the Vite app once and serves it through nginx; build args default `VITE_HOME_GRPCWEB_URL=/api` and `VITE_CLOUD_GRPCWEB_URL=/cloud` so the browser always talks to same-origin paths.
+- `frontend/docker/entrypoint.sh` renders nginx config on boot; override `HOME_BACKEND_URL` or `CLOUD_GATEWAY_URL` (the entrypoint appends a trailing `/` if you forget) when the upstreams sit behind another host or TLS terminator.
+- Both stacks expose the SPA on `http://localhost:8080` and provide `/healthz` so you can hang them behind your own reverse proxy or TinyAuth if needed.
+
 ### Deploy TinyAuth Gateway (Docker Compose)
 
 服务器侧使用 `docker-compose.tinyauth.yml` 启动 TinyAuth、cloud middleware、前端与 Nginx：
@@ -165,8 +186,10 @@ make build
   - `TUNNEL_SESSION_BUF`: per-session buffered frames (default `64`).
   - `TUNNEL_MAX_FRAME_BYTES`: max payload size per frame (default `1048576`).
 - Frontend
-  - `VITE_CLOUD_GRPCWEB_URL`: grpc-web base URL for cloud middleware (default `http://localhost:7073`).
+  - `VITE_HOME_GRPCWEB_URL`: grpc-web base URL for the local agent in SPA/dev builds (default `/api`).
+  - `VITE_CLOUD_GRPCWEB_URL`: grpc-web base URL for cloud middleware in SPA/dev builds (default `http://localhost:7073`).
     - Example: `VITE_CLOUD_GRPCWEB_URL=http://localhost:9090 npm run dev`
+  - Dockerized frontend (nginx) also consumes `HOME_BACKEND_URL` and `CLOUD_GATEWAY_URL` to decide where `/api/*` and `/cloud/*` proxy (trailing `/` is optional; the entrypoint normalizes it).
 - Backend (agent)
   - `CLOUD_ADDR`: cloud middleware address (e.g., `127.0.0.1:7073`).
   - `AGENT_DEVICE_ID`: unique device ID to identify the agent.
