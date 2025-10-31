@@ -1,5 +1,6 @@
 version: "3.9"
 
+
 services:
   mqtt:
     image: eclipse-mosquitto:2.0
@@ -14,7 +15,7 @@ services:
 
   mqtt-explorer:
     image: smeagolworms4/mqtt-explorer
-    profiles: ["debug"]
+    profiles: ["debug"]         # 可选调试UI
     restart: unless-stopped
     environment:
       HTTP_PORT: 4000
@@ -37,6 +38,15 @@ services:
       HOME_DEVICES_FILE: /data/devices.json
       HOME_SCENES_FILE: /data/scenes.json
       HOME_AUTOMATIONS_FILE: /data/automations.json
+          # 云端 cloud-middleware 的外部可达地址（给 agent 连接用）
+      CLOUD_ADDR: "${CLOUD_ADDR}"
+
+      # 这个家庭网关的唯一 ID（你自己定义，但 cloud 会用它来识别“哪一户”）
+      AGENT_DEVICE_ID: "${AGENT_DEVICE_ID}"
+
+      # 如果 cloud-middleware 需要共享密钥，这里要匹配；cloud 现在 AUTH_MODE=none，就可以留空
+      AGENT_SECRET: "${AGENT_SECRET}"
+      HOME_GRPC_ADDR: "${HOME_GRPC_ADDR}"
     volumes:
       - ./backend/data:/data
     ports:
@@ -50,6 +60,7 @@ services:
         VITE_HOME_GRPCWEB_URL: /api
         VITE_CLOUD_GRPCWEB_URL: /cloud
     image: pc-remote/frontend:local
+    profiles: ["local-ui"]      # ← 可选本地前端
     restart: unless-stopped
     environment:
       HOME_BACKEND_URL: http://home-gateway:7071/

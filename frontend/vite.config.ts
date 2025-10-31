@@ -6,7 +6,9 @@ export default defineConfig({
   plugins: [react()],
   server: {
     host: true,  
-    // allowedHosts: ['db78ed4ea13a.ngrok-free.app'],
+    strictPort: true,
+    allowedHosts: ['app.localtest.me'],
+    origin: 'http://app.localtest.me:8003',
     // hmr: {
     //   protocol: 'wss',
     //   host: 'db78ed4ea13a.ngrok-free.app',
