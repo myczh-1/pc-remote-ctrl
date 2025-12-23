@@ -1,0 +1,16 @@
+[req]
+default_bits = 2048
+distinguished_name = dn
+req_extensions = req_ext
+x509_extensions = req_ext
+prompt = no
+
+[dn]
+CN = dev.local
+
+[req_ext]
+subjectAltName = @alt_names
+
+[alt_names]
+DNS.1 = dev.local
+IP.1 = 192.168.30.119
