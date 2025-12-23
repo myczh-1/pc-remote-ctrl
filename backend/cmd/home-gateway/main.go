@@ -90,9 +90,13 @@ func loadDotEnv() {
 }
 
 func loadConfig() *Config {
+	devFile := getenv("HOME_DEVICES_DB", "")
+	if devFile == "" {
+		devFile = getenv("HOME_DEVICES_FILE", "backend/data/home.db")
+	}
 	return &Config{
 		Port:            getenv("LOCAL_PORT", "7071"),
-		DevicesFile:     getenv("HOME_DEVICES_FILE", "backend/data/devices.json"),
+		DevicesFile:     devFile,
 		ScenesFile:      getenv("HOME_SCENES_FILE", "backend/data/scenes.json"),
 		AutomationsFile: getenv("HOME_AUTOMATIONS_FILE", "backend/data/automations.json"),
 		MqttURL:         getenv("MQTT_URL", "tcp://192.168.30.64:1883"),
