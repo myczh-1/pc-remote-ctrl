@@ -90,13 +90,12 @@ func loadDotEnv() {
 }
 
 func loadConfig() *Config {
-	devFile := getenv("HOME_DEVICES_DB", "")
-	if devFile == "" {
-		devFile = getenv("HOME_DEVICES_FILE", "backend/data/home.db")
+	if legacy := os.Getenv("HOME_DEVICES_FILE"); legacy != "" {
+		log.Printf("[config] HOME_DEVICES_FILE is no longer supported; use HOME_DEVICES_DB (sqlite path). Ignoring %q", legacy)
 	}
 	return &Config{
 		Port:            getenv("LOCAL_PORT", "7071"),
-		DevicesFile:     devFile,
+		DevicesFile:     getenv("HOME_DEVICES_DB", "backend/data/home.db"),
 		ScenesFile:      getenv("HOME_SCENES_FILE", "backend/data/scenes.json"),
 		AutomationsFile: getenv("HOME_AUTOMATIONS_FILE", "backend/data/automations.json"),
 		MqttURL:         getenv("MQTT_URL", "tcp://192.168.30.64:1883"),
@@ -203,11 +202,7 @@ func main() {
 	// initialize new storages (devices/scenes/automations)
 	devices := devstore.NewDevices(cfg.DevicesFile)
 	if err := devices.Load(); err != nil {
-		// It's OK if file doesn't exist on first run
-		if !os.IsNotExist(err) {
-			log.Fatalf("FATAL: corrupted devices storage: %v", err)
-		}
-		log.Printf("info: starting with empty devices (first run?)")
+		log.Fatalf("FATAL: load devices db %s failed: %v", cfg.DevicesFile, err)
 	}
 	log.Printf("[storage] devices loaded: %d from %s", len(devices.List()), cfg.DevicesFile)
 	scenes := devstore.NewScenes(cfg.ScenesFile)

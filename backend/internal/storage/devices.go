@@ -76,6 +76,9 @@ func (r *Devices) Load() error {
 	if strings.TrimSpace(r.path) == "" {
 		return errors.New("empty devices database path")
 	}
+	if strings.HasSuffix(strings.ToLower(strings.TrimSpace(r.path)), ".json") {
+		return fmt.Errorf("json device files are not supported; set HOME_DEVICES_DB to a sqlite path (got %s)", r.path)
+	}
 	if err := os.MkdirAll(filepath.Dir(r.path), 0o755); err != nil {
 		return fmt.Errorf("make data dir: %w", err)
 	}
