@@ -925,6 +925,306 @@ func (x *InvokeActionResponse) GetData() *_struct.Struct {
 	return nil
 }
 
+type LogEntry struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Ts            int64                  `protobuf:"varint,2,opt,name=ts,proto3" json:"ts,omitempty"`
+	Kind          string                 `protobuf:"bytes,3,opt,name=kind,proto3" json:"kind,omitempty"`
+	Subject       string                 `protobuf:"bytes,4,opt,name=subject,proto3" json:"subject,omitempty"`
+	Actor         string                 `protobuf:"bytes,5,opt,name=actor,proto3" json:"actor,omitempty"`
+	Data          *_struct.Struct        `protobuf:"bytes,6,opt,name=data,proto3" json:"data,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LogEntry) Reset() {
+	*x = LogEntry{}
+	mi := &file_home_service_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LogEntry) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LogEntry) ProtoMessage() {}
+
+func (x *LogEntry) ProtoReflect() protoreflect.Message {
+	mi := &file_home_service_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LogEntry.ProtoReflect.Descriptor instead.
+func (*LogEntry) Descriptor() ([]byte, []int) {
+	return file_home_service_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *LogEntry) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *LogEntry) GetTs() int64 {
+	if x != nil {
+		return x.Ts
+	}
+	return 0
+}
+
+func (x *LogEntry) GetKind() string {
+	if x != nil {
+		return x.Kind
+	}
+	return ""
+}
+
+func (x *LogEntry) GetSubject() string {
+	if x != nil {
+		return x.Subject
+	}
+	return ""
+}
+
+func (x *LogEntry) GetActor() string {
+	if x != nil {
+		return x.Actor
+	}
+	return ""
+}
+
+func (x *LogEntry) GetData() *_struct.Struct {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+type ListLogsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Kind          string                 `protobuf:"bytes,1,opt,name=kind,proto3" json:"kind,omitempty"`
+	Subject       string                 `protobuf:"bytes,2,opt,name=subject,proto3" json:"subject,omitempty"`
+	PageSize      int32                  `protobuf:"varint,3,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	PageToken     string                 `protobuf:"bytes,4,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"` // last seen id for keyset pagination
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListLogsRequest) Reset() {
+	*x = ListLogsRequest{}
+	mi := &file_home_service_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListLogsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListLogsRequest) ProtoMessage() {}
+
+func (x *ListLogsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_home_service_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListLogsRequest.ProtoReflect.Descriptor instead.
+func (*ListLogsRequest) Descriptor() ([]byte, []int) {
+	return file_home_service_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *ListLogsRequest) GetKind() string {
+	if x != nil {
+		return x.Kind
+	}
+	return ""
+}
+
+func (x *ListLogsRequest) GetSubject() string {
+	if x != nil {
+		return x.Subject
+	}
+	return ""
+}
+
+func (x *ListLogsRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *ListLogsRequest) GetPageToken() string {
+	if x != nil {
+		return x.PageToken
+	}
+	return ""
+}
+
+type ListLogsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Entries       []*LogEntry            `protobuf:"bytes,1,rep,name=entries,proto3" json:"entries,omitempty"`
+	NextPageToken string                 `protobuf:"bytes,2,opt,name=next_page_token,json=nextPageToken,proto3" json:"next_page_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListLogsResponse) Reset() {
+	*x = ListLogsResponse{}
+	mi := &file_home_service_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListLogsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListLogsResponse) ProtoMessage() {}
+
+func (x *ListLogsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_home_service_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListLogsResponse.ProtoReflect.Descriptor instead.
+func (*ListLogsResponse) Descriptor() ([]byte, []int) {
+	return file_home_service_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *ListLogsResponse) GetEntries() []*LogEntry {
+	if x != nil {
+		return x.Entries
+	}
+	return nil
+}
+
+func (x *ListLogsResponse) GetNextPageToken() string {
+	if x != nil {
+		return x.NextPageToken
+	}
+	return ""
+}
+
+type CleanupLogsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	BeforeTs      int64                  `protobuf:"varint,1,opt,name=before_ts,json=beforeTs,proto3" json:"before_ts,omitempty"` // delete logs with ts < before_ts; 0 => all
+	Limit         int32                  `protobuf:"varint,2,opt,name=limit,proto3" json:"limit,omitempty"`                       // optional safety cap; 0 => no cap
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CleanupLogsRequest) Reset() {
+	*x = CleanupLogsRequest{}
+	mi := &file_home_service_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CleanupLogsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CleanupLogsRequest) ProtoMessage() {}
+
+func (x *CleanupLogsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_home_service_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CleanupLogsRequest.ProtoReflect.Descriptor instead.
+func (*CleanupLogsRequest) Descriptor() ([]byte, []int) {
+	return file_home_service_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *CleanupLogsRequest) GetBeforeTs() int64 {
+	if x != nil {
+		return x.BeforeTs
+	}
+	return 0
+}
+
+func (x *CleanupLogsRequest) GetLimit() int32 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
+type CleanupLogsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Deleted       int32                  `protobuf:"varint,1,opt,name=deleted,proto3" json:"deleted,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CleanupLogsResponse) Reset() {
+	*x = CleanupLogsResponse{}
+	mi := &file_home_service_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CleanupLogsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CleanupLogsResponse) ProtoMessage() {}
+
+func (x *CleanupLogsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_home_service_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CleanupLogsResponse.ProtoReflect.Descriptor instead.
+func (*CleanupLogsResponse) Descriptor() ([]byte, []int) {
+	return file_home_service_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *CleanupLogsResponse) GetDeleted() int32 {
+	if x != nil {
+		return x.Deleted
+	}
+	return 0
+}
+
 var File_home_service_proto protoreflect.FileDescriptor
 
 const file_home_service_proto_rawDesc = "" +
@@ -997,7 +1297,28 @@ const file_home_service_proto_rawDesc = "" +
 	"\x02ok\x18\x01 \x01(\bR\x02ok\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\x12\x17\n" +
 	"\acorr_id\x18\x03 \x01(\tR\x06corrId\x12+\n" +
-	"\x04data\x18\x04 \x01(\v2\x17.google.protobuf.StructR\x04data*K\n" +
+	"\x04data\x18\x04 \x01(\v2\x17.google.protobuf.StructR\x04data\"\x9b\x01\n" +
+	"\bLogEntry\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x0e\n" +
+	"\x02ts\x18\x02 \x01(\x03R\x02ts\x12\x12\n" +
+	"\x04kind\x18\x03 \x01(\tR\x04kind\x12\x18\n" +
+	"\asubject\x18\x04 \x01(\tR\asubject\x12\x14\n" +
+	"\x05actor\x18\x05 \x01(\tR\x05actor\x12+\n" +
+	"\x04data\x18\x06 \x01(\v2\x17.google.protobuf.StructR\x04data\"{\n" +
+	"\x0fListLogsRequest\x12\x12\n" +
+	"\x04kind\x18\x01 \x01(\tR\x04kind\x12\x18\n" +
+	"\asubject\x18\x02 \x01(\tR\asubject\x12\x1b\n" +
+	"\tpage_size\x18\x03 \x01(\x05R\bpageSize\x12\x1d\n" +
+	"\n" +
+	"page_token\x18\x04 \x01(\tR\tpageToken\"s\n" +
+	"\x10ListLogsResponse\x127\n" +
+	"\aentries\x18\x01 \x03(\v2\x1d.remote_control.home.LogEntryR\aentries\x12&\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"G\n" +
+	"\x12CleanupLogsRequest\x12\x1b\n" +
+	"\tbefore_ts\x18\x01 \x01(\x03R\bbeforeTs\x12\x14\n" +
+	"\x05limit\x18\x02 \x01(\x05R\x05limit\"/\n" +
+	"\x13CleanupLogsResponse\x12\x18\n" +
+	"\adeleted\x18\x01 \x01(\x05R\adeleted*K\n" +
 	"\vAdapterKind\x12\x1c\n" +
 	"\x18ADAPTER_KIND_UNSPECIFIED\x10\x00\x12\b\n" +
 	"\x04MQTT\x10\x01\x12\n" +
@@ -1016,7 +1337,10 @@ const file_home_service_proto_rawDesc = "" +
 	"\fWatchDevices\x12(.remote_control.home.WatchDevicesRequest\x1a .remote_control.home.DeviceEvent0\x01\x12c\n" +
 	"\fUpsertDevice\x12(.remote_control.home.UpsertDeviceRequest\x1a).remote_control.home.UpsertDeviceResponse\x12c\n" +
 	"\fDeleteDevice\x12(.remote_control.home.DeleteDeviceRequest\x1a).remote_control.home.DeleteDeviceResponse\x12c\n" +
-	"\fInvokeAction\x12(.remote_control.home.InvokeActionRequest\x1a).remote_control.home.InvokeActionResponseB*Z(pc-remote-ctrl/backend/proto/home;homepbb\x06proto3"
+	"\fInvokeAction\x12(.remote_control.home.InvokeActionRequest\x1a).remote_control.home.InvokeActionResponse2\xc9\x01\n" +
+	"\fAuditService\x12W\n" +
+	"\bListLogs\x12$.remote_control.home.ListLogsRequest\x1a%.remote_control.home.ListLogsResponse\x12`\n" +
+	"\vCleanupLogs\x12'.remote_control.home.CleanupLogsRequest\x1a(.remote_control.home.CleanupLogsResponseB*Z(pc-remote-ctrl/backend/proto/home;homepbb\x06proto3"
 
 var (
 	file_home_service_proto_rawDescOnce sync.Once
@@ -1031,7 +1355,7 @@ func file_home_service_proto_rawDescGZIP() []byte {
 }
 
 var file_home_service_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_home_service_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
+var file_home_service_proto_msgTypes = make([]protoimpl.MessageInfo, 21)
 var file_home_service_proto_goTypes = []any{
 	(AdapterKind)(0),             // 0: remote_control.home.AdapterKind
 	(TelemetryEventKind)(0),      // 1: remote_control.home.TelemetryEventKind
@@ -1048,40 +1372,51 @@ var file_home_service_proto_goTypes = []any{
 	(*DeleteDeviceResponse)(nil), // 12: remote_control.home.DeleteDeviceResponse
 	(*InvokeActionRequest)(nil),  // 13: remote_control.home.InvokeActionRequest
 	(*InvokeActionResponse)(nil), // 14: remote_control.home.InvokeActionResponse
-	nil,                          // 15: remote_control.home.Adapter.ConfigEntry
-	nil,                          // 16: remote_control.home.ActionSpec.ArgsSchemaEntry
-	nil,                          // 17: remote_control.home.Device.TopicsEntry
-	(*_struct.Struct)(nil),       // 18: google.protobuf.Struct
+	(*LogEntry)(nil),             // 15: remote_control.home.LogEntry
+	(*ListLogsRequest)(nil),      // 16: remote_control.home.ListLogsRequest
+	(*ListLogsResponse)(nil),     // 17: remote_control.home.ListLogsResponse
+	(*CleanupLogsRequest)(nil),   // 18: remote_control.home.CleanupLogsRequest
+	(*CleanupLogsResponse)(nil),  // 19: remote_control.home.CleanupLogsResponse
+	nil,                          // 20: remote_control.home.Adapter.ConfigEntry
+	nil,                          // 21: remote_control.home.ActionSpec.ArgsSchemaEntry
+	nil,                          // 22: remote_control.home.Device.TopicsEntry
+	(*_struct.Struct)(nil),       // 23: google.protobuf.Struct
 }
 var file_home_service_proto_depIdxs = []int32{
 	0,  // 0: remote_control.home.Adapter.kind:type_name -> remote_control.home.AdapterKind
-	15, // 1: remote_control.home.Adapter.config:type_name -> remote_control.home.Adapter.ConfigEntry
-	16, // 2: remote_control.home.ActionSpec.args_schema:type_name -> remote_control.home.ActionSpec.ArgsSchemaEntry
-	17, // 3: remote_control.home.Device.topics:type_name -> remote_control.home.Device.TopicsEntry
+	20, // 1: remote_control.home.Adapter.config:type_name -> remote_control.home.Adapter.ConfigEntry
+	21, // 2: remote_control.home.ActionSpec.args_schema:type_name -> remote_control.home.ActionSpec.ArgsSchemaEntry
+	22, // 3: remote_control.home.Device.topics:type_name -> remote_control.home.Device.TopicsEntry
 	2,  // 4: remote_control.home.Device.adapter:type_name -> remote_control.home.Adapter
 	3,  // 5: remote_control.home.Device.actions:type_name -> remote_control.home.ActionSpec
-	18, // 6: remote_control.home.Device.state:type_name -> google.protobuf.Struct
+	23, // 6: remote_control.home.Device.state:type_name -> google.protobuf.Struct
 	4,  // 7: remote_control.home.ListDevicesResponse.devices:type_name -> remote_control.home.Device
 	1,  // 8: remote_control.home.DeviceEvent.kind:type_name -> remote_control.home.TelemetryEventKind
-	18, // 9: remote_control.home.DeviceEvent.payload:type_name -> google.protobuf.Struct
+	23, // 9: remote_control.home.DeviceEvent.payload:type_name -> google.protobuf.Struct
 	4,  // 10: remote_control.home.UpsertDeviceRequest.device:type_name -> remote_control.home.Device
-	18, // 11: remote_control.home.InvokeActionRequest.args:type_name -> google.protobuf.Struct
-	18, // 12: remote_control.home.InvokeActionResponse.data:type_name -> google.protobuf.Struct
-	5,  // 13: remote_control.home.HomeService.ListDevices:input_type -> remote_control.home.ListDevicesRequest
-	7,  // 14: remote_control.home.HomeService.WatchDevices:input_type -> remote_control.home.WatchDevicesRequest
-	9,  // 15: remote_control.home.HomeService.UpsertDevice:input_type -> remote_control.home.UpsertDeviceRequest
-	11, // 16: remote_control.home.HomeService.DeleteDevice:input_type -> remote_control.home.DeleteDeviceRequest
-	13, // 17: remote_control.home.HomeService.InvokeAction:input_type -> remote_control.home.InvokeActionRequest
-	6,  // 18: remote_control.home.HomeService.ListDevices:output_type -> remote_control.home.ListDevicesResponse
-	8,  // 19: remote_control.home.HomeService.WatchDevices:output_type -> remote_control.home.DeviceEvent
-	10, // 20: remote_control.home.HomeService.UpsertDevice:output_type -> remote_control.home.UpsertDeviceResponse
-	12, // 21: remote_control.home.HomeService.DeleteDevice:output_type -> remote_control.home.DeleteDeviceResponse
-	14, // 22: remote_control.home.HomeService.InvokeAction:output_type -> remote_control.home.InvokeActionResponse
-	18, // [18:23] is the sub-list for method output_type
-	13, // [13:18] is the sub-list for method input_type
-	13, // [13:13] is the sub-list for extension type_name
-	13, // [13:13] is the sub-list for extension extendee
-	0,  // [0:13] is the sub-list for field type_name
+	23, // 11: remote_control.home.InvokeActionRequest.args:type_name -> google.protobuf.Struct
+	23, // 12: remote_control.home.InvokeActionResponse.data:type_name -> google.protobuf.Struct
+	23, // 13: remote_control.home.LogEntry.data:type_name -> google.protobuf.Struct
+	15, // 14: remote_control.home.ListLogsResponse.entries:type_name -> remote_control.home.LogEntry
+	5,  // 15: remote_control.home.HomeService.ListDevices:input_type -> remote_control.home.ListDevicesRequest
+	7,  // 16: remote_control.home.HomeService.WatchDevices:input_type -> remote_control.home.WatchDevicesRequest
+	9,  // 17: remote_control.home.HomeService.UpsertDevice:input_type -> remote_control.home.UpsertDeviceRequest
+	11, // 18: remote_control.home.HomeService.DeleteDevice:input_type -> remote_control.home.DeleteDeviceRequest
+	13, // 19: remote_control.home.HomeService.InvokeAction:input_type -> remote_control.home.InvokeActionRequest
+	16, // 20: remote_control.home.AuditService.ListLogs:input_type -> remote_control.home.ListLogsRequest
+	18, // 21: remote_control.home.AuditService.CleanupLogs:input_type -> remote_control.home.CleanupLogsRequest
+	6,  // 22: remote_control.home.HomeService.ListDevices:output_type -> remote_control.home.ListDevicesResponse
+	8,  // 23: remote_control.home.HomeService.WatchDevices:output_type -> remote_control.home.DeviceEvent
+	10, // 24: remote_control.home.HomeService.UpsertDevice:output_type -> remote_control.home.UpsertDeviceResponse
+	12, // 25: remote_control.home.HomeService.DeleteDevice:output_type -> remote_control.home.DeleteDeviceResponse
+	14, // 26: remote_control.home.HomeService.InvokeAction:output_type -> remote_control.home.InvokeActionResponse
+	17, // 27: remote_control.home.AuditService.ListLogs:output_type -> remote_control.home.ListLogsResponse
+	19, // 28: remote_control.home.AuditService.CleanupLogs:output_type -> remote_control.home.CleanupLogsResponse
+	22, // [22:29] is the sub-list for method output_type
+	15, // [15:22] is the sub-list for method input_type
+	15, // [15:15] is the sub-list for extension type_name
+	15, // [15:15] is the sub-list for extension extendee
+	0,  // [0:15] is the sub-list for field type_name
 }
 
 func init() { file_home_service_proto_init() }
@@ -1095,9 +1430,9 @@ func file_home_service_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_home_service_proto_rawDesc), len(file_home_service_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   16,
+			NumMessages:   21,
 			NumExtensions: 0,
-			NumServices:   1,
+			NumServices:   2,
 		},
 		GoTypes:           file_home_service_proto_goTypes,
 		DependencyIndexes: file_home_service_proto_depIdxs,

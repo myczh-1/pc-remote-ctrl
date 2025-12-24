@@ -29,6 +29,7 @@ import (
 type Config struct {
 	Port            string
 	DevicesFile     string
+	LogsFile        string
 	ScenesFile      string
 	AutomationsFile string
 	// MQTT broker settings
@@ -96,6 +97,7 @@ func loadConfig() *Config {
 	return &Config{
 		Port:            getenv("LOCAL_PORT", "7071"),
 		DevicesFile:     getenv("HOME_DEVICES_DB", "backend/data/home.db"),
+		LogsFile:        getenv("HOME_LOGS_DB", "backend/data/logs.db"),
 		ScenesFile:      getenv("HOME_SCENES_FILE", "backend/data/scenes.json"),
 		AutomationsFile: getenv("HOME_AUTOMATIONS_FILE", "backend/data/automations.json"),
 		MqttURL:         getenv("MQTT_URL", "tcp://192.168.30.64:1883"),
@@ -205,6 +207,11 @@ func main() {
 		log.Fatalf("FATAL: load devices db %s failed: %v", cfg.DevicesFile, err)
 	}
 	log.Printf("[storage] devices loaded: %d from %s", len(devices.List()), cfg.DevicesFile)
+	auditLogs := devstore.NewAuditLogs(cfg.LogsFile)
+	if err := auditLogs.Load(); err != nil {
+		log.Fatalf("FATAL: load audit db %s failed: %v", cfg.LogsFile, err)
+	}
+	log.Printf("[storage] audit logs ready: %s", cfg.LogsFile)
 	scenes := devstore.NewScenes(cfg.ScenesFile)
 	if err := scenes.Load(); err != nil {
 		if !os.IsNotExist(err) {
@@ -249,9 +256,10 @@ func main() {
 	reflection.Register(grpcServer)
 	// ops via MQTT
 	ops := ops.NewMQTTOps(mqttClient)
-	homesvc := home.New(devices, scenes, ops)
+	homesvc := home.New(devices, scenes, auditLogs, ops)
 	homesvc.InitSubscriptions(mqttClient)
 	homepb.RegisterHomeServiceServer(grpcServer, homesvc)
+	homepb.RegisterAuditServiceServer(grpcServer, home.NewAuditService(auditLogs))
 
 	wrapped := grpcweb.WrapServer(
 		grpcServer,

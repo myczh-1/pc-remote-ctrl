@@ -275,3 +275,143 @@ var HomeService_ServiceDesc = grpc.ServiceDesc{
 	},
 	Metadata: "home/service.proto",
 }
+
+const (
+	AuditService_ListLogs_FullMethodName    = "/remote_control.home.AuditService/ListLogs"
+	AuditService_CleanupLogs_FullMethodName = "/remote_control.home.AuditService/CleanupLogs"
+)
+
+// AuditServiceClient is the client API for AuditService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type AuditServiceClient interface {
+	ListLogs(ctx context.Context, in *ListLogsRequest, opts ...grpc.CallOption) (*ListLogsResponse, error)
+	CleanupLogs(ctx context.Context, in *CleanupLogsRequest, opts ...grpc.CallOption) (*CleanupLogsResponse, error)
+}
+
+type auditServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewAuditServiceClient(cc grpc.ClientConnInterface) AuditServiceClient {
+	return &auditServiceClient{cc}
+}
+
+func (c *auditServiceClient) ListLogs(ctx context.Context, in *ListLogsRequest, opts ...grpc.CallOption) (*ListLogsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListLogsResponse)
+	err := c.cc.Invoke(ctx, AuditService_ListLogs_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *auditServiceClient) CleanupLogs(ctx context.Context, in *CleanupLogsRequest, opts ...grpc.CallOption) (*CleanupLogsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CleanupLogsResponse)
+	err := c.cc.Invoke(ctx, AuditService_CleanupLogs_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// AuditServiceServer is the server API for AuditService service.
+// All implementations must embed UnimplementedAuditServiceServer
+// for forward compatibility.
+type AuditServiceServer interface {
+	ListLogs(context.Context, *ListLogsRequest) (*ListLogsResponse, error)
+	CleanupLogs(context.Context, *CleanupLogsRequest) (*CleanupLogsResponse, error)
+	mustEmbedUnimplementedAuditServiceServer()
+}
+
+// UnimplementedAuditServiceServer must be embedded to have
+// forward compatible implementations.
+//
+// NOTE: this should be embedded by value instead of pointer to avoid a nil
+// pointer dereference when methods are called.
+type UnimplementedAuditServiceServer struct{}
+
+func (UnimplementedAuditServiceServer) ListLogs(context.Context, *ListLogsRequest) (*ListLogsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListLogs not implemented")
+}
+func (UnimplementedAuditServiceServer) CleanupLogs(context.Context, *CleanupLogsRequest) (*CleanupLogsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CleanupLogs not implemented")
+}
+func (UnimplementedAuditServiceServer) mustEmbedUnimplementedAuditServiceServer() {}
+func (UnimplementedAuditServiceServer) testEmbeddedByValue()                      {}
+
+// UnsafeAuditServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to AuditServiceServer will
+// result in compilation errors.
+type UnsafeAuditServiceServer interface {
+	mustEmbedUnimplementedAuditServiceServer()
+}
+
+func RegisterAuditServiceServer(s grpc.ServiceRegistrar, srv AuditServiceServer) {
+	// If the following call pancis, it indicates UnimplementedAuditServiceServer was
+	// embedded by pointer and is nil.  This will cause panics if an
+	// unimplemented method is ever invoked, so we test this at initialization
+	// time to prevent it from happening at runtime later due to I/O.
+	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
+		t.testEmbeddedByValue()
+	}
+	s.RegisterService(&AuditService_ServiceDesc, srv)
+}
+
+func _AuditService_ListLogs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListLogsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuditServiceServer).ListLogs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuditService_ListLogs_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuditServiceServer).ListLogs(ctx, req.(*ListLogsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuditService_CleanupLogs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CleanupLogsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuditServiceServer).CleanupLogs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuditService_CleanupLogs_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuditServiceServer).CleanupLogs(ctx, req.(*CleanupLogsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// AuditService_ServiceDesc is the grpc.ServiceDesc for AuditService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var AuditService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "remote_control.home.AuditService",
+	HandlerType: (*AuditServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "ListLogs",
+			Handler:    _AuditService_ListLogs_Handler,
+		},
+		{
+			MethodName: "CleanupLogs",
+			Handler:    _AuditService_CleanupLogs_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "home/service.proto",
+}

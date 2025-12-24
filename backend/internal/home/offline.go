@@ -69,6 +69,9 @@ func (s *Service) markOffline(id string, now time.Time) error {
 	if err := s.devices.Upsert(*dev); err != nil {
 		return err
 	}
+	s.logAudit("device_offline", id, map[string]any{
+		"reason": "timeout",
+	})
 	payload, _ := structpb.NewStruct(map[string]any{
 		"online":    false,
 		"reason":    "timeout",
