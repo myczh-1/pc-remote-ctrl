@@ -415,3 +415,219 @@ var AuditService_ServiceDesc = grpc.ServiceDesc{
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "home/service.proto",
 }
+
+const (
+	AutomationService_ListAutomations_FullMethodName      = "/remote_control.home.AutomationService/ListAutomations"
+	AutomationService_UpsertAutomation_FullMethodName     = "/remote_control.home.AutomationService/UpsertAutomation"
+	AutomationService_DeleteAutomation_FullMethodName     = "/remote_control.home.AutomationService/DeleteAutomation"
+	AutomationService_SetAutomationEnabled_FullMethodName = "/remote_control.home.AutomationService/SetAutomationEnabled"
+)
+
+// AutomationServiceClient is the client API for AutomationService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type AutomationServiceClient interface {
+	ListAutomations(ctx context.Context, in *ListAutomationsRequest, opts ...grpc.CallOption) (*ListAutomationsResponse, error)
+	UpsertAutomation(ctx context.Context, in *UpsertAutomationRequest, opts ...grpc.CallOption) (*UpsertAutomationResponse, error)
+	DeleteAutomation(ctx context.Context, in *DeleteAutomationRequest, opts ...grpc.CallOption) (*DeleteAutomationResponse, error)
+	SetAutomationEnabled(ctx context.Context, in *SetAutomationEnabledRequest, opts ...grpc.CallOption) (*SetAutomationEnabledResponse, error)
+}
+
+type automationServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewAutomationServiceClient(cc grpc.ClientConnInterface) AutomationServiceClient {
+	return &automationServiceClient{cc}
+}
+
+func (c *automationServiceClient) ListAutomations(ctx context.Context, in *ListAutomationsRequest, opts ...grpc.CallOption) (*ListAutomationsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListAutomationsResponse)
+	err := c.cc.Invoke(ctx, AutomationService_ListAutomations_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *automationServiceClient) UpsertAutomation(ctx context.Context, in *UpsertAutomationRequest, opts ...grpc.CallOption) (*UpsertAutomationResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpsertAutomationResponse)
+	err := c.cc.Invoke(ctx, AutomationService_UpsertAutomation_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *automationServiceClient) DeleteAutomation(ctx context.Context, in *DeleteAutomationRequest, opts ...grpc.CallOption) (*DeleteAutomationResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteAutomationResponse)
+	err := c.cc.Invoke(ctx, AutomationService_DeleteAutomation_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *automationServiceClient) SetAutomationEnabled(ctx context.Context, in *SetAutomationEnabledRequest, opts ...grpc.CallOption) (*SetAutomationEnabledResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SetAutomationEnabledResponse)
+	err := c.cc.Invoke(ctx, AutomationService_SetAutomationEnabled_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// AutomationServiceServer is the server API for AutomationService service.
+// All implementations must embed UnimplementedAutomationServiceServer
+// for forward compatibility.
+type AutomationServiceServer interface {
+	ListAutomations(context.Context, *ListAutomationsRequest) (*ListAutomationsResponse, error)
+	UpsertAutomation(context.Context, *UpsertAutomationRequest) (*UpsertAutomationResponse, error)
+	DeleteAutomation(context.Context, *DeleteAutomationRequest) (*DeleteAutomationResponse, error)
+	SetAutomationEnabled(context.Context, *SetAutomationEnabledRequest) (*SetAutomationEnabledResponse, error)
+	mustEmbedUnimplementedAutomationServiceServer()
+}
+
+// UnimplementedAutomationServiceServer must be embedded to have
+// forward compatible implementations.
+//
+// NOTE: this should be embedded by value instead of pointer to avoid a nil
+// pointer dereference when methods are called.
+type UnimplementedAutomationServiceServer struct{}
+
+func (UnimplementedAutomationServiceServer) ListAutomations(context.Context, *ListAutomationsRequest) (*ListAutomationsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListAutomations not implemented")
+}
+func (UnimplementedAutomationServiceServer) UpsertAutomation(context.Context, *UpsertAutomationRequest) (*UpsertAutomationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpsertAutomation not implemented")
+}
+func (UnimplementedAutomationServiceServer) DeleteAutomation(context.Context, *DeleteAutomationRequest) (*DeleteAutomationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteAutomation not implemented")
+}
+func (UnimplementedAutomationServiceServer) SetAutomationEnabled(context.Context, *SetAutomationEnabledRequest) (*SetAutomationEnabledResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetAutomationEnabled not implemented")
+}
+func (UnimplementedAutomationServiceServer) mustEmbedUnimplementedAutomationServiceServer() {}
+func (UnimplementedAutomationServiceServer) testEmbeddedByValue()                           {}
+
+// UnsafeAutomationServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to AutomationServiceServer will
+// result in compilation errors.
+type UnsafeAutomationServiceServer interface {
+	mustEmbedUnimplementedAutomationServiceServer()
+}
+
+func RegisterAutomationServiceServer(s grpc.ServiceRegistrar, srv AutomationServiceServer) {
+	// If the following call pancis, it indicates UnimplementedAutomationServiceServer was
+	// embedded by pointer and is nil.  This will cause panics if an
+	// unimplemented method is ever invoked, so we test this at initialization
+	// time to prevent it from happening at runtime later due to I/O.
+	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
+		t.testEmbeddedByValue()
+	}
+	s.RegisterService(&AutomationService_ServiceDesc, srv)
+}
+
+func _AutomationService_ListAutomations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListAutomationsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AutomationServiceServer).ListAutomations(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AutomationService_ListAutomations_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AutomationServiceServer).ListAutomations(ctx, req.(*ListAutomationsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AutomationService_UpsertAutomation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpsertAutomationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AutomationServiceServer).UpsertAutomation(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AutomationService_UpsertAutomation_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AutomationServiceServer).UpsertAutomation(ctx, req.(*UpsertAutomationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AutomationService_DeleteAutomation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteAutomationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AutomationServiceServer).DeleteAutomation(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AutomationService_DeleteAutomation_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AutomationServiceServer).DeleteAutomation(ctx, req.(*DeleteAutomationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AutomationService_SetAutomationEnabled_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetAutomationEnabledRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AutomationServiceServer).SetAutomationEnabled(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AutomationService_SetAutomationEnabled_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AutomationServiceServer).SetAutomationEnabled(ctx, req.(*SetAutomationEnabledRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// AutomationService_ServiceDesc is the grpc.ServiceDesc for AutomationService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var AutomationService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "remote_control.home.AutomationService",
+	HandlerType: (*AutomationServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "ListAutomations",
+			Handler:    _AutomationService_ListAutomations_Handler,
+		},
+		{
+			MethodName: "UpsertAutomation",
+			Handler:    _AutomationService_UpsertAutomation_Handler,
+		},
+		{
+			MethodName: "DeleteAutomation",
+			Handler:    _AutomationService_DeleteAutomation_Handler,
+		},
+		{
+			MethodName: "SetAutomationEnabled",
+			Handler:    _AutomationService_SetAutomationEnabled_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "home/service.proto",
+}

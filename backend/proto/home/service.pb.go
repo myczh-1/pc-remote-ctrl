@@ -1225,6 +1225,574 @@ func (x *CleanupLogsResponse) GetDeleted() int32 {
 	return 0
 }
 
+type AutomationAction struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	DeviceId      string                 `protobuf:"bytes,1,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty"`
+	Action        string                 `protobuf:"bytes,2,opt,name=action,proto3" json:"action,omitempty"`
+	Args          *_struct.Struct        `protobuf:"bytes,3,opt,name=args,proto3" json:"args,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AutomationAction) Reset() {
+	*x = AutomationAction{}
+	mi := &file_home_service_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AutomationAction) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AutomationAction) ProtoMessage() {}
+
+func (x *AutomationAction) ProtoReflect() protoreflect.Message {
+	mi := &file_home_service_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AutomationAction.ProtoReflect.Descriptor instead.
+func (*AutomationAction) Descriptor() ([]byte, []int) {
+	return file_home_service_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *AutomationAction) GetDeviceId() string {
+	if x != nil {
+		return x.DeviceId
+	}
+	return ""
+}
+
+func (x *AutomationAction) GetAction() string {
+	if x != nil {
+		return x.Action
+	}
+	return ""
+}
+
+func (x *AutomationAction) GetArgs() *_struct.Struct {
+	if x != nil {
+		return x.Args
+	}
+	return nil
+}
+
+type Automation struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Tags          []string               `protobuf:"bytes,3,rep,name=tags,proto3" json:"tags,omitempty"`
+	Enabled       bool                   `protobuf:"varint,4,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	When          *_struct.Struct        `protobuf:"bytes,5,opt,name=when,proto3" json:"when,omitempty"`
+	Then          []*AutomationAction    `protobuf:"bytes,6,rep,name=then,proto3" json:"then,omitempty"`
+	UpdatedAt     int64                  `protobuf:"varint,7,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Automation) Reset() {
+	*x = Automation{}
+	mi := &file_home_service_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Automation) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Automation) ProtoMessage() {}
+
+func (x *Automation) ProtoReflect() protoreflect.Message {
+	mi := &file_home_service_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Automation.ProtoReflect.Descriptor instead.
+func (*Automation) Descriptor() ([]byte, []int) {
+	return file_home_service_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *Automation) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *Automation) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *Automation) GetTags() []string {
+	if x != nil {
+		return x.Tags
+	}
+	return nil
+}
+
+func (x *Automation) GetEnabled() bool {
+	if x != nil {
+		return x.Enabled
+	}
+	return false
+}
+
+func (x *Automation) GetWhen() *_struct.Struct {
+	if x != nil {
+		return x.When
+	}
+	return nil
+}
+
+func (x *Automation) GetThen() []*AutomationAction {
+	if x != nil {
+		return x.Then
+	}
+	return nil
+}
+
+func (x *Automation) GetUpdatedAt() int64 {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return 0
+}
+
+type ListAutomationsRequest struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	IncludeDisabled bool                   `protobuf:"varint,1,opt,name=include_disabled,json=includeDisabled,proto3" json:"include_disabled,omitempty"`
+	PageSize        int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	PageToken       string                 `protobuf:"bytes,3,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *ListAutomationsRequest) Reset() {
+	*x = ListAutomationsRequest{}
+	mi := &file_home_service_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListAutomationsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListAutomationsRequest) ProtoMessage() {}
+
+func (x *ListAutomationsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_home_service_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListAutomationsRequest.ProtoReflect.Descriptor instead.
+func (*ListAutomationsRequest) Descriptor() ([]byte, []int) {
+	return file_home_service_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *ListAutomationsRequest) GetIncludeDisabled() bool {
+	if x != nil {
+		return x.IncludeDisabled
+	}
+	return false
+}
+
+func (x *ListAutomationsRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *ListAutomationsRequest) GetPageToken() string {
+	if x != nil {
+		return x.PageToken
+	}
+	return ""
+}
+
+type ListAutomationsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Automations   []*Automation          `protobuf:"bytes,1,rep,name=automations,proto3" json:"automations,omitempty"`
+	NextPageToken string                 `protobuf:"bytes,2,opt,name=next_page_token,json=nextPageToken,proto3" json:"next_page_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListAutomationsResponse) Reset() {
+	*x = ListAutomationsResponse{}
+	mi := &file_home_service_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListAutomationsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListAutomationsResponse) ProtoMessage() {}
+
+func (x *ListAutomationsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_home_service_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListAutomationsResponse.ProtoReflect.Descriptor instead.
+func (*ListAutomationsResponse) Descriptor() ([]byte, []int) {
+	return file_home_service_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *ListAutomationsResponse) GetAutomations() []*Automation {
+	if x != nil {
+		return x.Automations
+	}
+	return nil
+}
+
+func (x *ListAutomationsResponse) GetNextPageToken() string {
+	if x != nil {
+		return x.NextPageToken
+	}
+	return ""
+}
+
+type UpsertAutomationRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Automation    *Automation            `protobuf:"bytes,1,opt,name=automation,proto3" json:"automation,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpsertAutomationRequest) Reset() {
+	*x = UpsertAutomationRequest{}
+	mi := &file_home_service_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpsertAutomationRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpsertAutomationRequest) ProtoMessage() {}
+
+func (x *UpsertAutomationRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_home_service_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpsertAutomationRequest.ProtoReflect.Descriptor instead.
+func (*UpsertAutomationRequest) Descriptor() ([]byte, []int) {
+	return file_home_service_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *UpsertAutomationRequest) GetAutomation() *Automation {
+	if x != nil {
+		return x.Automation
+	}
+	return nil
+}
+
+type UpsertAutomationResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Ok            bool                   `protobuf:"varint,1,opt,name=ok,proto3" json:"ok,omitempty"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	AutomationId  string                 `protobuf:"bytes,3,opt,name=automation_id,json=automationId,proto3" json:"automation_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpsertAutomationResponse) Reset() {
+	*x = UpsertAutomationResponse{}
+	mi := &file_home_service_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpsertAutomationResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpsertAutomationResponse) ProtoMessage() {}
+
+func (x *UpsertAutomationResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_home_service_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpsertAutomationResponse.ProtoReflect.Descriptor instead.
+func (*UpsertAutomationResponse) Descriptor() ([]byte, []int) {
+	return file_home_service_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *UpsertAutomationResponse) GetOk() bool {
+	if x != nil {
+		return x.Ok
+	}
+	return false
+}
+
+func (x *UpsertAutomationResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *UpsertAutomationResponse) GetAutomationId() string {
+	if x != nil {
+		return x.AutomationId
+	}
+	return ""
+}
+
+type DeleteAutomationRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AutomationId  string                 `protobuf:"bytes,1,opt,name=automation_id,json=automationId,proto3" json:"automation_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteAutomationRequest) Reset() {
+	*x = DeleteAutomationRequest{}
+	mi := &file_home_service_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteAutomationRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteAutomationRequest) ProtoMessage() {}
+
+func (x *DeleteAutomationRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_home_service_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteAutomationRequest.ProtoReflect.Descriptor instead.
+func (*DeleteAutomationRequest) Descriptor() ([]byte, []int) {
+	return file_home_service_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *DeleteAutomationRequest) GetAutomationId() string {
+	if x != nil {
+		return x.AutomationId
+	}
+	return ""
+}
+
+type DeleteAutomationResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Ok            bool                   `protobuf:"varint,1,opt,name=ok,proto3" json:"ok,omitempty"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteAutomationResponse) Reset() {
+	*x = DeleteAutomationResponse{}
+	mi := &file_home_service_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteAutomationResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteAutomationResponse) ProtoMessage() {}
+
+func (x *DeleteAutomationResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_home_service_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteAutomationResponse.ProtoReflect.Descriptor instead.
+func (*DeleteAutomationResponse) Descriptor() ([]byte, []int) {
+	return file_home_service_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *DeleteAutomationResponse) GetOk() bool {
+	if x != nil {
+		return x.Ok
+	}
+	return false
+}
+
+func (x *DeleteAutomationResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+type SetAutomationEnabledRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AutomationId  string                 `protobuf:"bytes,1,opt,name=automation_id,json=automationId,proto3" json:"automation_id,omitempty"`
+	Enabled       bool                   `protobuf:"varint,2,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetAutomationEnabledRequest) Reset() {
+	*x = SetAutomationEnabledRequest{}
+	mi := &file_home_service_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetAutomationEnabledRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetAutomationEnabledRequest) ProtoMessage() {}
+
+func (x *SetAutomationEnabledRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_home_service_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetAutomationEnabledRequest.ProtoReflect.Descriptor instead.
+func (*SetAutomationEnabledRequest) Descriptor() ([]byte, []int) {
+	return file_home_service_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *SetAutomationEnabledRequest) GetAutomationId() string {
+	if x != nil {
+		return x.AutomationId
+	}
+	return ""
+}
+
+func (x *SetAutomationEnabledRequest) GetEnabled() bool {
+	if x != nil {
+		return x.Enabled
+	}
+	return false
+}
+
+type SetAutomationEnabledResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Ok            bool                   `protobuf:"varint,1,opt,name=ok,proto3" json:"ok,omitempty"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetAutomationEnabledResponse) Reset() {
+	*x = SetAutomationEnabledResponse{}
+	mi := &file_home_service_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetAutomationEnabledResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetAutomationEnabledResponse) ProtoMessage() {}
+
+func (x *SetAutomationEnabledResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_home_service_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetAutomationEnabledResponse.ProtoReflect.Descriptor instead.
+func (*SetAutomationEnabledResponse) Descriptor() ([]byte, []int) {
+	return file_home_service_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *SetAutomationEnabledResponse) GetOk() bool {
+	if x != nil {
+		return x.Ok
+	}
+	return false
+}
+
+func (x *SetAutomationEnabledResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
 var File_home_service_proto protoreflect.FileDescriptor
 
 const file_home_service_proto_rawDesc = "" +
@@ -1318,7 +1886,48 @@ const file_home_service_proto_rawDesc = "" +
 	"\tbefore_ts\x18\x01 \x01(\x03R\bbeforeTs\x12\x14\n" +
 	"\x05limit\x18\x02 \x01(\x05R\x05limit\"/\n" +
 	"\x13CleanupLogsResponse\x12\x18\n" +
-	"\adeleted\x18\x01 \x01(\x05R\adeleted*K\n" +
+	"\adeleted\x18\x01 \x01(\x05R\adeleted\"t\n" +
+	"\x10AutomationAction\x12\x1b\n" +
+	"\tdevice_id\x18\x01 \x01(\tR\bdeviceId\x12\x16\n" +
+	"\x06action\x18\x02 \x01(\tR\x06action\x12+\n" +
+	"\x04args\x18\x03 \x01(\v2\x17.google.protobuf.StructR\x04args\"\xe5\x01\n" +
+	"\n" +
+	"Automation\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x12\n" +
+	"\x04tags\x18\x03 \x03(\tR\x04tags\x12\x18\n" +
+	"\aenabled\x18\x04 \x01(\bR\aenabled\x12+\n" +
+	"\x04when\x18\x05 \x01(\v2\x17.google.protobuf.StructR\x04when\x129\n" +
+	"\x04then\x18\x06 \x03(\v2%.remote_control.home.AutomationActionR\x04then\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\a \x01(\x03R\tupdatedAt\"\x7f\n" +
+	"\x16ListAutomationsRequest\x12)\n" +
+	"\x10include_disabled\x18\x01 \x01(\bR\x0fincludeDisabled\x12\x1b\n" +
+	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x1d\n" +
+	"\n" +
+	"page_token\x18\x03 \x01(\tR\tpageToken\"\x84\x01\n" +
+	"\x17ListAutomationsResponse\x12A\n" +
+	"\vautomations\x18\x01 \x03(\v2\x1f.remote_control.home.AutomationR\vautomations\x12&\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"Z\n" +
+	"\x17UpsertAutomationRequest\x12?\n" +
+	"\n" +
+	"automation\x18\x01 \x01(\v2\x1f.remote_control.home.AutomationR\n" +
+	"automation\"i\n" +
+	"\x18UpsertAutomationResponse\x12\x0e\n" +
+	"\x02ok\x18\x01 \x01(\bR\x02ok\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\x12#\n" +
+	"\rautomation_id\x18\x03 \x01(\tR\fautomationId\">\n" +
+	"\x17DeleteAutomationRequest\x12#\n" +
+	"\rautomation_id\x18\x01 \x01(\tR\fautomationId\"D\n" +
+	"\x18DeleteAutomationResponse\x12\x0e\n" +
+	"\x02ok\x18\x01 \x01(\bR\x02ok\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"\\\n" +
+	"\x1bSetAutomationEnabledRequest\x12#\n" +
+	"\rautomation_id\x18\x01 \x01(\tR\fautomationId\x12\x18\n" +
+	"\aenabled\x18\x02 \x01(\bR\aenabled\"H\n" +
+	"\x1cSetAutomationEnabledResponse\x12\x0e\n" +
+	"\x02ok\x18\x01 \x01(\bR\x02ok\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage*K\n" +
 	"\vAdapterKind\x12\x1c\n" +
 	"\x18ADAPTER_KIND_UNSPECIFIED\x10\x00\x12\b\n" +
 	"\x04MQTT\x10\x01\x12\n" +
@@ -1340,7 +1949,12 @@ const file_home_service_proto_rawDesc = "" +
 	"\fInvokeAction\x12(.remote_control.home.InvokeActionRequest\x1a).remote_control.home.InvokeActionResponse2\xc9\x01\n" +
 	"\fAuditService\x12W\n" +
 	"\bListLogs\x12$.remote_control.home.ListLogsRequest\x1a%.remote_control.home.ListLogsResponse\x12`\n" +
-	"\vCleanupLogs\x12'.remote_control.home.CleanupLogsRequest\x1a(.remote_control.home.CleanupLogsResponseB*Z(pc-remote-ctrl/backend/proto/home;homepbb\x06proto3"
+	"\vCleanupLogs\x12'.remote_control.home.CleanupLogsRequest\x1a(.remote_control.home.CleanupLogsResponse2\xe0\x03\n" +
+	"\x11AutomationService\x12l\n" +
+	"\x0fListAutomations\x12+.remote_control.home.ListAutomationsRequest\x1a,.remote_control.home.ListAutomationsResponse\x12o\n" +
+	"\x10UpsertAutomation\x12,.remote_control.home.UpsertAutomationRequest\x1a-.remote_control.home.UpsertAutomationResponse\x12o\n" +
+	"\x10DeleteAutomation\x12,.remote_control.home.DeleteAutomationRequest\x1a-.remote_control.home.DeleteAutomationResponse\x12{\n" +
+	"\x14SetAutomationEnabled\x120.remote_control.home.SetAutomationEnabledRequest\x1a1.remote_control.home.SetAutomationEnabledResponseB*Z(pc-remote-ctrl/backend/proto/home;homepbb\x06proto3"
 
 var (
 	file_home_service_proto_rawDescOnce sync.Once
@@ -1355,68 +1969,91 @@ func file_home_service_proto_rawDescGZIP() []byte {
 }
 
 var file_home_service_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_home_service_proto_msgTypes = make([]protoimpl.MessageInfo, 21)
+var file_home_service_proto_msgTypes = make([]protoimpl.MessageInfo, 31)
 var file_home_service_proto_goTypes = []any{
-	(AdapterKind)(0),             // 0: remote_control.home.AdapterKind
-	(TelemetryEventKind)(0),      // 1: remote_control.home.TelemetryEventKind
-	(*Adapter)(nil),              // 2: remote_control.home.Adapter
-	(*ActionSpec)(nil),           // 3: remote_control.home.ActionSpec
-	(*Device)(nil),               // 4: remote_control.home.Device
-	(*ListDevicesRequest)(nil),   // 5: remote_control.home.ListDevicesRequest
-	(*ListDevicesResponse)(nil),  // 6: remote_control.home.ListDevicesResponse
-	(*WatchDevicesRequest)(nil),  // 7: remote_control.home.WatchDevicesRequest
-	(*DeviceEvent)(nil),          // 8: remote_control.home.DeviceEvent
-	(*UpsertDeviceRequest)(nil),  // 9: remote_control.home.UpsertDeviceRequest
-	(*UpsertDeviceResponse)(nil), // 10: remote_control.home.UpsertDeviceResponse
-	(*DeleteDeviceRequest)(nil),  // 11: remote_control.home.DeleteDeviceRequest
-	(*DeleteDeviceResponse)(nil), // 12: remote_control.home.DeleteDeviceResponse
-	(*InvokeActionRequest)(nil),  // 13: remote_control.home.InvokeActionRequest
-	(*InvokeActionResponse)(nil), // 14: remote_control.home.InvokeActionResponse
-	(*LogEntry)(nil),             // 15: remote_control.home.LogEntry
-	(*ListLogsRequest)(nil),      // 16: remote_control.home.ListLogsRequest
-	(*ListLogsResponse)(nil),     // 17: remote_control.home.ListLogsResponse
-	(*CleanupLogsRequest)(nil),   // 18: remote_control.home.CleanupLogsRequest
-	(*CleanupLogsResponse)(nil),  // 19: remote_control.home.CleanupLogsResponse
-	nil,                          // 20: remote_control.home.Adapter.ConfigEntry
-	nil,                          // 21: remote_control.home.ActionSpec.ArgsSchemaEntry
-	nil,                          // 22: remote_control.home.Device.TopicsEntry
-	(*_struct.Struct)(nil),       // 23: google.protobuf.Struct
+	(AdapterKind)(0),                     // 0: remote_control.home.AdapterKind
+	(TelemetryEventKind)(0),              // 1: remote_control.home.TelemetryEventKind
+	(*Adapter)(nil),                      // 2: remote_control.home.Adapter
+	(*ActionSpec)(nil),                   // 3: remote_control.home.ActionSpec
+	(*Device)(nil),                       // 4: remote_control.home.Device
+	(*ListDevicesRequest)(nil),           // 5: remote_control.home.ListDevicesRequest
+	(*ListDevicesResponse)(nil),          // 6: remote_control.home.ListDevicesResponse
+	(*WatchDevicesRequest)(nil),          // 7: remote_control.home.WatchDevicesRequest
+	(*DeviceEvent)(nil),                  // 8: remote_control.home.DeviceEvent
+	(*UpsertDeviceRequest)(nil),          // 9: remote_control.home.UpsertDeviceRequest
+	(*UpsertDeviceResponse)(nil),         // 10: remote_control.home.UpsertDeviceResponse
+	(*DeleteDeviceRequest)(nil),          // 11: remote_control.home.DeleteDeviceRequest
+	(*DeleteDeviceResponse)(nil),         // 12: remote_control.home.DeleteDeviceResponse
+	(*InvokeActionRequest)(nil),          // 13: remote_control.home.InvokeActionRequest
+	(*InvokeActionResponse)(nil),         // 14: remote_control.home.InvokeActionResponse
+	(*LogEntry)(nil),                     // 15: remote_control.home.LogEntry
+	(*ListLogsRequest)(nil),              // 16: remote_control.home.ListLogsRequest
+	(*ListLogsResponse)(nil),             // 17: remote_control.home.ListLogsResponse
+	(*CleanupLogsRequest)(nil),           // 18: remote_control.home.CleanupLogsRequest
+	(*CleanupLogsResponse)(nil),          // 19: remote_control.home.CleanupLogsResponse
+	(*AutomationAction)(nil),             // 20: remote_control.home.AutomationAction
+	(*Automation)(nil),                   // 21: remote_control.home.Automation
+	(*ListAutomationsRequest)(nil),       // 22: remote_control.home.ListAutomationsRequest
+	(*ListAutomationsResponse)(nil),      // 23: remote_control.home.ListAutomationsResponse
+	(*UpsertAutomationRequest)(nil),      // 24: remote_control.home.UpsertAutomationRequest
+	(*UpsertAutomationResponse)(nil),     // 25: remote_control.home.UpsertAutomationResponse
+	(*DeleteAutomationRequest)(nil),      // 26: remote_control.home.DeleteAutomationRequest
+	(*DeleteAutomationResponse)(nil),     // 27: remote_control.home.DeleteAutomationResponse
+	(*SetAutomationEnabledRequest)(nil),  // 28: remote_control.home.SetAutomationEnabledRequest
+	(*SetAutomationEnabledResponse)(nil), // 29: remote_control.home.SetAutomationEnabledResponse
+	nil,                                  // 30: remote_control.home.Adapter.ConfigEntry
+	nil,                                  // 31: remote_control.home.ActionSpec.ArgsSchemaEntry
+	nil,                                  // 32: remote_control.home.Device.TopicsEntry
+	(*_struct.Struct)(nil),               // 33: google.protobuf.Struct
 }
 var file_home_service_proto_depIdxs = []int32{
 	0,  // 0: remote_control.home.Adapter.kind:type_name -> remote_control.home.AdapterKind
-	20, // 1: remote_control.home.Adapter.config:type_name -> remote_control.home.Adapter.ConfigEntry
-	21, // 2: remote_control.home.ActionSpec.args_schema:type_name -> remote_control.home.ActionSpec.ArgsSchemaEntry
-	22, // 3: remote_control.home.Device.topics:type_name -> remote_control.home.Device.TopicsEntry
+	30, // 1: remote_control.home.Adapter.config:type_name -> remote_control.home.Adapter.ConfigEntry
+	31, // 2: remote_control.home.ActionSpec.args_schema:type_name -> remote_control.home.ActionSpec.ArgsSchemaEntry
+	32, // 3: remote_control.home.Device.topics:type_name -> remote_control.home.Device.TopicsEntry
 	2,  // 4: remote_control.home.Device.adapter:type_name -> remote_control.home.Adapter
 	3,  // 5: remote_control.home.Device.actions:type_name -> remote_control.home.ActionSpec
-	23, // 6: remote_control.home.Device.state:type_name -> google.protobuf.Struct
+	33, // 6: remote_control.home.Device.state:type_name -> google.protobuf.Struct
 	4,  // 7: remote_control.home.ListDevicesResponse.devices:type_name -> remote_control.home.Device
 	1,  // 8: remote_control.home.DeviceEvent.kind:type_name -> remote_control.home.TelemetryEventKind
-	23, // 9: remote_control.home.DeviceEvent.payload:type_name -> google.protobuf.Struct
+	33, // 9: remote_control.home.DeviceEvent.payload:type_name -> google.protobuf.Struct
 	4,  // 10: remote_control.home.UpsertDeviceRequest.device:type_name -> remote_control.home.Device
-	23, // 11: remote_control.home.InvokeActionRequest.args:type_name -> google.protobuf.Struct
-	23, // 12: remote_control.home.InvokeActionResponse.data:type_name -> google.protobuf.Struct
-	23, // 13: remote_control.home.LogEntry.data:type_name -> google.protobuf.Struct
+	33, // 11: remote_control.home.InvokeActionRequest.args:type_name -> google.protobuf.Struct
+	33, // 12: remote_control.home.InvokeActionResponse.data:type_name -> google.protobuf.Struct
+	33, // 13: remote_control.home.LogEntry.data:type_name -> google.protobuf.Struct
 	15, // 14: remote_control.home.ListLogsResponse.entries:type_name -> remote_control.home.LogEntry
-	5,  // 15: remote_control.home.HomeService.ListDevices:input_type -> remote_control.home.ListDevicesRequest
-	7,  // 16: remote_control.home.HomeService.WatchDevices:input_type -> remote_control.home.WatchDevicesRequest
-	9,  // 17: remote_control.home.HomeService.UpsertDevice:input_type -> remote_control.home.UpsertDeviceRequest
-	11, // 18: remote_control.home.HomeService.DeleteDevice:input_type -> remote_control.home.DeleteDeviceRequest
-	13, // 19: remote_control.home.HomeService.InvokeAction:input_type -> remote_control.home.InvokeActionRequest
-	16, // 20: remote_control.home.AuditService.ListLogs:input_type -> remote_control.home.ListLogsRequest
-	18, // 21: remote_control.home.AuditService.CleanupLogs:input_type -> remote_control.home.CleanupLogsRequest
-	6,  // 22: remote_control.home.HomeService.ListDevices:output_type -> remote_control.home.ListDevicesResponse
-	8,  // 23: remote_control.home.HomeService.WatchDevices:output_type -> remote_control.home.DeviceEvent
-	10, // 24: remote_control.home.HomeService.UpsertDevice:output_type -> remote_control.home.UpsertDeviceResponse
-	12, // 25: remote_control.home.HomeService.DeleteDevice:output_type -> remote_control.home.DeleteDeviceResponse
-	14, // 26: remote_control.home.HomeService.InvokeAction:output_type -> remote_control.home.InvokeActionResponse
-	17, // 27: remote_control.home.AuditService.ListLogs:output_type -> remote_control.home.ListLogsResponse
-	19, // 28: remote_control.home.AuditService.CleanupLogs:output_type -> remote_control.home.CleanupLogsResponse
-	22, // [22:29] is the sub-list for method output_type
-	15, // [15:22] is the sub-list for method input_type
-	15, // [15:15] is the sub-list for extension type_name
-	15, // [15:15] is the sub-list for extension extendee
-	0,  // [0:15] is the sub-list for field type_name
+	33, // 15: remote_control.home.AutomationAction.args:type_name -> google.protobuf.Struct
+	33, // 16: remote_control.home.Automation.when:type_name -> google.protobuf.Struct
+	20, // 17: remote_control.home.Automation.then:type_name -> remote_control.home.AutomationAction
+	21, // 18: remote_control.home.ListAutomationsResponse.automations:type_name -> remote_control.home.Automation
+	21, // 19: remote_control.home.UpsertAutomationRequest.automation:type_name -> remote_control.home.Automation
+	5,  // 20: remote_control.home.HomeService.ListDevices:input_type -> remote_control.home.ListDevicesRequest
+	7,  // 21: remote_control.home.HomeService.WatchDevices:input_type -> remote_control.home.WatchDevicesRequest
+	9,  // 22: remote_control.home.HomeService.UpsertDevice:input_type -> remote_control.home.UpsertDeviceRequest
+	11, // 23: remote_control.home.HomeService.DeleteDevice:input_type -> remote_control.home.DeleteDeviceRequest
+	13, // 24: remote_control.home.HomeService.InvokeAction:input_type -> remote_control.home.InvokeActionRequest
+	16, // 25: remote_control.home.AuditService.ListLogs:input_type -> remote_control.home.ListLogsRequest
+	18, // 26: remote_control.home.AuditService.CleanupLogs:input_type -> remote_control.home.CleanupLogsRequest
+	22, // 27: remote_control.home.AutomationService.ListAutomations:input_type -> remote_control.home.ListAutomationsRequest
+	24, // 28: remote_control.home.AutomationService.UpsertAutomation:input_type -> remote_control.home.UpsertAutomationRequest
+	26, // 29: remote_control.home.AutomationService.DeleteAutomation:input_type -> remote_control.home.DeleteAutomationRequest
+	28, // 30: remote_control.home.AutomationService.SetAutomationEnabled:input_type -> remote_control.home.SetAutomationEnabledRequest
+	6,  // 31: remote_control.home.HomeService.ListDevices:output_type -> remote_control.home.ListDevicesResponse
+	8,  // 32: remote_control.home.HomeService.WatchDevices:output_type -> remote_control.home.DeviceEvent
+	10, // 33: remote_control.home.HomeService.UpsertDevice:output_type -> remote_control.home.UpsertDeviceResponse
+	12, // 34: remote_control.home.HomeService.DeleteDevice:output_type -> remote_control.home.DeleteDeviceResponse
+	14, // 35: remote_control.home.HomeService.InvokeAction:output_type -> remote_control.home.InvokeActionResponse
+	17, // 36: remote_control.home.AuditService.ListLogs:output_type -> remote_control.home.ListLogsResponse
+	19, // 37: remote_control.home.AuditService.CleanupLogs:output_type -> remote_control.home.CleanupLogsResponse
+	23, // 38: remote_control.home.AutomationService.ListAutomations:output_type -> remote_control.home.ListAutomationsResponse
+	25, // 39: remote_control.home.AutomationService.UpsertAutomation:output_type -> remote_control.home.UpsertAutomationResponse
+	27, // 40: remote_control.home.AutomationService.DeleteAutomation:output_type -> remote_control.home.DeleteAutomationResponse
+	29, // 41: remote_control.home.AutomationService.SetAutomationEnabled:output_type -> remote_control.home.SetAutomationEnabledResponse
+	31, // [31:42] is the sub-list for method output_type
+	20, // [20:31] is the sub-list for method input_type
+	20, // [20:20] is the sub-list for extension type_name
+	20, // [20:20] is the sub-list for extension extendee
+	0,  // [0:20] is the sub-list for field type_name
 }
 
 func init() { file_home_service_proto_init() }
@@ -1430,9 +2067,9 @@ func file_home_service_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_home_service_proto_rawDesc), len(file_home_service_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   21,
+			NumMessages:   31,
 			NumExtensions: 0,
-			NumServices:   2,
+			NumServices:   3,
 		},
 		GoTypes:           file_home_service_proto_goTypes,
 		DependencyIndexes: file_home_service_proto_depIdxs,

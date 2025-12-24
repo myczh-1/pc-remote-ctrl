@@ -19,16 +19,15 @@ import (
 type Service struct {
 	homepb.UnimplementedHomeServiceServer
 	devices *storage.Devices
-	scenes  *storage.Scenes
 	audit   *storage.AuditLogs
 	ops     ops.DeviceOps
 	hub     *eventHub
 	submgr  *subscriptionManager
 }
 
-func New(devs *storage.Devices, scenes *storage.Scenes, audit *storage.AuditLogs, ops ops.DeviceOps) *Service {
+func New(devs *storage.Devices, audit *storage.AuditLogs, ops ops.DeviceOps) *Service {
 	// hub/submgr will be set by InitSubscriptions from main after mqtt client is ready
-	return &Service{devices: devs, scenes: scenes, audit: audit, ops: ops, hub: newEventHub()}
+	return &Service{devices: devs, audit: audit, ops: ops, hub: newEventHub()}
 }
 
 // InitSubscriptions wires MQTT subscriptions and starts listening for device topics.
