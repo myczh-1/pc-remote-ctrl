@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { GrpcWebFetchTransport } from '@protobuf-ts/grpcweb-transport'
-import { HomeServiceClient } from '../proto/home/service.client'
-import type { Device, ListDevicesResponse, InvokeActionResponse, DeviceEvent, UpsertDeviceResponse } from '../proto/home/service'
+import { HomeServiceClient, AutomationServiceClient } from '../proto/home/service.client'
+import type { Device, ListDevicesResponse, InvokeActionResponse, DeviceEvent, UpsertDeviceResponse, Automation, ListAutomationsResponse } from '../proto/home/service'
 import { TelemetryEventKind } from '../proto/home/service'
 import type { Struct } from '../proto/google/protobuf/struct'
 import type { ServerStreamingCall } from '@protobuf-ts/runtime-rpc'
@@ -15,10 +15,12 @@ export function useHomeApi(config?: Partial<HomeConfig>) {
   const baseUrl = config?.baseUrl ?? ((import.meta as any).env?.VITE_HOME_GRPCWEB_URL as string ?? '/api')
   const transport = useMemo(() => new GrpcWebFetchTransport({ baseUrl }), [baseUrl])
   const clientRef = useRef(new HomeServiceClient(transport))
+  const autoClientRef = useRef(new AutomationServiceClient(transport))
   const onEventRef = useRef<HomeConfig['onEvent']>(config?.onEvent)
 
   useEffect(() => {
     clientRef.current = new HomeServiceClient(new GrpcWebFetchTransport({ baseUrl }))
+    autoClientRef.current = new AutomationServiceClient(new GrpcWebFetchTransport({ baseUrl }))
   }, [baseUrl])
   useEffect(() => { onEventRef.current = config?.onEvent }, [config?.onEvent])
 
@@ -225,6 +227,42 @@ export function useHomeApi(config?: Partial<HomeConfig>) {
     }
   }, [])
 
+  const listAutomations = useCallback(async (opts?: { includeDisabled?: boolean; tag?: string; name?: string; pageSize?: number; pageToken?: string }) => {
+    try {
+      const res = await autoClientRef.current.listAutomations({
+        includeDisabled: Boolean(opts?.includeDisabled),
+        tag: opts?.tag ?? '',
+        nameContains: opts?.name ?? '',
+        pageSize: opts?.pageSize ?? 20,
+        pageToken: opts?.pageToken ?? '',
+      }).response as ListAutomationsResponse
+      return { ok: true, automations: res.automations as Automation[], nextPageToken: res.nextPageToken ?? '' }
+    } catch (e: any) {
+      return { ok: false, error: String(e?.message ?? e) }
+    }
+  }, [])
+
+  const setAutomationEnabled = useCallback(async (automationId: string, enabled: boolean) => {
+    try {
+      const res = await autoClientRef.current.setAutomationEnabled({ automationId, enabled }).response
+      return { ok: (res as any).ok, message: (res as any).message }
+    } catch (e: any) {
+      return { ok: false, error: String(e?.message ?? e) }
+    }
+  }, [])
+
+  const triggerAutomation = useCallback(async (automationId: string, payload?: Record<string, any>) => {
+    try {
+      const res = await autoClientRef.current.triggerAutomation({
+        automationId,
+        payload: { fields: Object.entries(payload ?? {}).reduce<any>((acc, [k, v]) => { acc[k] = toValue(v); return acc }, {}) },
+      }).response
+      return { ok: (res as any).ok, message: (res as any).message }
+    } catch (e: any) {
+      return { ok: false, error: String(e?.message ?? e) }
+    }
+  }, [])
+
   useEffect(() => () => stopWatch(), [stopWatch])
 
   return {
@@ -239,5 +277,8 @@ export function useHomeApi(config?: Partial<HomeConfig>) {
     stopWatch,
     upsertDevice,
     deleteDevice,
+    listAutomations,
+    setAutomationEnabled,
+    triggerAutomation,
   }
 }

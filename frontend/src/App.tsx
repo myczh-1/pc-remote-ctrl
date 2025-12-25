@@ -17,6 +17,7 @@ import { useMediaQuery } from './hooks/useMediaQuery'
 import { RightToolbar } from './components/RightToolbar'
 import { DeviceFilters } from './components/DeviceFilters'
 import { MobileFiltersDrawer } from './components/MobileFiltersDrawer'
+import type { Automation } from './proto/home/service'
 
 export default function App() {
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -66,11 +67,13 @@ export default function App() {
   const homeApi = useHomeApi({ onEvent })
   const cloudApi = useCloudApi({ baseUrl: cloudCfg.baseUrl, agentId: cloudCfg.agentId, onEvent })
   const api = mode === 'cloud' ? cloudApi : homeApi
+  const automationApi = mode === 'local' ? homeApi : null
   const prefersReduced = useReducedMotion()
   const layoutTransition = useMemo(() => (
     prefersReduced ? { duration: 0 } : { duration: 0.32, ease: [0.22, 1, 0.36, 1] as any }
   ), [prefersReduced])
 
+  const [activeView, setActiveView] = useState<'devices' | 'automations'>('devices')
   const [detailOpen, setDetailOpen] = useState(false)
   const [detailDeviceId, setDetailDeviceId] = useState('')
   const [createOpen, setCreateOpen] = useState(false)
@@ -97,6 +100,54 @@ export default function App() {
     api.startWatch()
     return () => { try { api.stopWatch() } catch { } }
   }, [mode, cloudCfg.baseUrl, cloudCfg.agentId])
+
+  React.useEffect(() => {
+    if (mode === 'cloud' && activeView === 'automations') {
+      setActiveView('devices')
+    }
+  }, [mode, activeView])
+
+  // automation state
+  const [automations, setAutomations] = useState<Automation[]>([])
+  const [autoLoading, setAutoLoading] = useState(false)
+  const [autoError, setAutoError] = useState('')
+  const [autoNext, setAutoNext] = useState('')
+  const [filterTag, setFilterTag] = useState('')
+  const [filterName, setFilterName] = useState('')
+
+  const loadAutomations = async (reset?: boolean) => {
+    if (!automationApi) {
+      setAutoError('云端模式暂不支持自动化管理')
+      return
+    }
+    setAutoLoading(true); setAutoError('')
+    try {
+      const res = await automationApi.listAutomations({
+        includeDisabled: true,
+        tag: filterTag,
+        name: filterName,
+        pageSize: 20,
+        pageToken: reset ? '' : autoNext,
+      })
+      if (!res.ok) {
+        setAutoError(res.error || '加载失败')
+        return
+      }
+      const data = res.automations || []
+      setAutomations(prev => reset ? data : [...prev, ...data])
+      setAutoNext(res.nextPageToken || '')
+    } catch (e: any) {
+      setAutoError(String(e?.message ?? e))
+    } finally {
+      setAutoLoading(false)
+    }
+  }
+
+  React.useEffect(() => {
+    if (activeView === 'automations') {
+      loadAutomations(true)
+    }
+  }, [activeView, filterTag, filterName, mode, cloudCfg.baseUrl, cloudCfg.agentId])
 
   const handleRefreshDevices = async () => {
     const r = await api.listDevices()
@@ -208,27 +259,159 @@ export default function App() {
                   className={`flex gap-6 h-full min-h-0 flex-1 min-w-0 flex-col`}
                 >
                   <motion.div layout transition={layoutTransition} className={`flex-1 min-h-0 overflow-auto`}>
-                    <div className="mb-3 flex items-center justify-between">
-                      <div className="text-sm text-slate-500 dark:text-slate-400">
-                        {api.loading ? '加载设备中...' : `共 ${(Array.isArray(api.devices) ? api.devices.length : 0)} 台设备`}
+                    <div className="mb-3 flex items-center justify-between gap-2">
+                      <div className="inline-flex rounded-full border border-slate-200/70 bg-white/70 px-1 py-1 dark:border-white/10 dark:bg-white/5">
+                        {([
+                          { key: 'devices', label: '设备' },
+                          { key: 'automations', label: '自动化' },
+                        ] as const).map(t => (
+                          <button
+                            key={t.key}
+                            onClick={() => setActiveView(t.key)}
+                            className={`px-3 py-1 text-sm rounded-full transition-colors ${
+                              activeView === t.key
+                                ? 'bg-prime-500 text-white shadow-sm'
+                                : 'text-slate-600 dark:text-slate-300'
+                            }`}
+                          >
+                            {t.label}
+                          </button>
+                        ))}
                       </div>
-                      {api.error && (
+                      {activeView === 'devices' && (
+                        <div className="text-sm text-slate-500 dark:text-slate-400">
+                          {api.loading ? '加载设备中...' : `共 ${(Array.isArray(api.devices) ? api.devices.length : 0)} 台设备`}
+                        </div>
+                      )}
+                      {activeView === 'automations' && (
+                        <div className="text-sm text-slate-500 dark:text-slate-400">
+                          {autoLoading ? '加载自动化...' : `共 ${automations.length} 条`}
+                        </div>
+                      )}
+                      {api.error && activeView === 'devices' && (
                         <div className="text-xs text-red-500">{api.error}</div>
                       )}
+                      {autoError && activeView === 'automations' && (
+                        <div className="text-xs text-red-500">{autoError}</div>
+                      )}
                     </div>
-                    {/* 设备卡片网格：自适应列数，限制列宽在 320-400px */}
-                    <div className="grid gap-3 justify-center content-start grid-cols-[repeat(auto-fit,minmax(320px,420px))]">
-                      {(api.devices ?? []).map(d => (
-                        <motion.div key={d.id} layout transition={layoutTransition}>
-                          <DeviceCard
-                            device={d}
-                            onQuickAction={(dev, act) => handleQuickAction(dev.id, act)}
-                            onOpenDetail={(dev) => { setDetailDeviceId(dev.id); setDetailOpen(true) }}
-                            onEdit={(dev) => { setEditing(dev as any); setCreateOpen(true) }}
+                    {activeView === 'devices' && (
+                      <div className="grid gap-3 justify-center content-start grid-cols-[repeat(auto-fit,minmax(320px,420px))]">
+                        {(api.devices ?? []).map(d => (
+                          <motion.div key={d.id} layout transition={layoutTransition}>
+                            <DeviceCard
+                              device={d}
+                              onQuickAction={(dev, act) => handleQuickAction(dev.id, act)}
+                              onOpenDetail={(dev) => { setDetailDeviceId(dev.id); setDetailOpen(true) }}
+                              onEdit={(dev) => { setEditing(dev as any); setCreateOpen(true) }}
+                            />
+                          </motion.div>
+                        ))}
+                      </div>
+                    )}
+                    {activeView === 'automations' && (
+                      <div className="space-y-3">
+                        <div className="flex flex-wrap gap-2 items-center">
+                          <input
+                            value={filterName}
+                            onChange={e => setFilterName(e.target.value)}
+                            placeholder="按名称搜索"
+                            className="px-3 py-2 rounded-lg bg-white/80 dark:bg-white/10 border border-slate-200/60 dark:border-white/10 text-sm"
                           />
-                        </motion.div>
-                      ))}
-                    </div>
+                          <input
+                            value={filterTag}
+                            onChange={e => setFilterTag(e.target.value)}
+                            placeholder="按标签过滤"
+                            className="px-3 py-2 rounded-lg bg-white/80 dark:bg-white/10 border border-slate-200/60 dark:border-white/10 text-sm"
+                          />
+                          <button
+                            onClick={() => loadAutomations(true)}
+                            className="px-3 py-2 text-sm rounded-lg bg-prime-500 text-white hover:bg-prime-600 active:scale-[0.99]"
+                          >
+                            刷新
+                          </button>
+                          <button
+                            disabled={!autoNext || autoLoading}
+                            onClick={() => loadAutomations(false)}
+                            className="px-3 py-2 text-sm rounded-lg bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-200 disabled:opacity-50"
+                          >
+                            加载更多
+                          </button>
+                        </div>
+                        <div className="grid gap-3 justify-center content-start grid-cols-[repeat(auto-fit,minmax(320px,420px))]">
+                          {automations.map(a => (
+                            <div key={a.id} className="rounded-2xl border border-slate-200/60 dark:border-white/10 bg-white/80 dark:bg-white/[0.04] p-4 shadow-sm flex flex-col gap-2">
+                              <div className="flex items-center justify-between gap-2">
+                                <div>
+                                  <div className="text-base font-semibold">{a.name || a.id}</div>
+                                  <div className="text-xs text-slate-500 dark:text-slate-400 truncate">{a.id}</div>
+                                </div>
+                                <button
+                                  onClick={async () => {
+                                    if (!automationApi) { logError('云端模式暂不支持'); return }
+                                    const r = await automationApi.setAutomationEnabled(a.id, !a.enabled)
+                                    if (r.ok) {
+                                      logSuccess(`${!a.enabled ? '启用' : '停用'}成功`)
+                                      await loadAutomations(true)
+                                    } else {
+                                      logError(r.error || r.message || '操作失败')
+                                    }
+                                  }}
+                                  className={`px-3 py-1 rounded-full text-xs ${a.enabled ? 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-200' : 'bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-200'}`}
+                                >
+                                  {a.enabled ? '已启用' : '已停用'}
+                                </button>
+                              </div>
+                              <div className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                                {a.when ? `触发: ${(a.when as any).type || '未知'}` : '无触发条件'}
+                              </div>
+                              <div className="text-xs text-slate-500 dark:text-slate-400">
+                                动作: {a.then?.length || 0} 个
+                              </div>
+                              <div className="flex gap-2 mt-1">
+                                <button
+                                  onClick={async () => {
+                                    logInfo(`手动触发: ${a.name || a.id}`)
+                                    if (!automationApi) { logError('云端模式暂不支持'); return }
+                                    const r = await automationApi.triggerAutomation(a.id)
+                                    if (r.ok) logSuccess('触发成功')
+                                    else logError(r.error || r.message || '触发失败')
+                                  }}
+                                  className="flex-1 px-3 py-2 rounded-lg bg-prime-500 text-white hover:bg-prime-600 active:scale-[0.99]"
+                                >
+                                  手动触发
+                                </button>
+                                <button
+                                  onClick={async () => {
+                                    if (!automationApi) { logError('云端模式暂不支持'); return }
+                                    const r = await automationApi.setAutomationEnabled(a.id, !a.enabled)
+                                    if (r.ok) {
+                                      logSuccess(`${!a.enabled ? '启用' : '停用'}成功`)
+                                      await loadAutomations(true)
+                                    } else {
+                                      logError(r.error || r.message || '操作失败')
+                                    }
+                                  }}
+                                  className="px-3 py-2 rounded-lg bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-200 active:scale-[0.99]"
+                                >
+                                  {a.enabled ? '停用' : '启用'}
+                                </button>
+                              </div>
+                              {a.tags && a.tags.length > 0 && (
+                                <div className="flex flex-wrap gap-1">
+                                  {a.tags.map(t => (
+                                    <span key={t} className="text-xs px-2 py-1 rounded-full bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-200">{t}</span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                          {!automations.length && !autoLoading && (
+                            <div className="text-sm text-slate-500 dark:text-slate-400">暂无自动化</div>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </motion.div>
 
                   {/* 日志开关：移动端隐藏不参与布局；平板/桌面可控 */}
@@ -279,10 +462,18 @@ export default function App() {
       <BottomTabBar
         visible={isMobile}
         mode={mode}
+        active={activeView}
         onChange={(tab) => {
           switch (tab) {
+            case 'automations':
+              setActiveView('automations')
+              break
             case 'refresh':
-              handleRefreshDevices();
+              if (activeView === 'automations') {
+                loadAutomations(true)
+              } else {
+                handleRefreshDevices();
+              }
               break
             case 'mode': {
               const next = mode === 'local' ? 'cloud' : 'local'
@@ -291,7 +482,11 @@ export default function App() {
               break
             }
             case 'add':
-              setCreateOpen(true)
+              if (activeView === 'automations') {
+                // 预留：自动化编辑暂未实现
+              } else {
+                setCreateOpen(true)
+              }
               break
             case 'settings':
               setCloudSettingsOpen(true)

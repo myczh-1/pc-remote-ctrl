@@ -34,7 +34,8 @@ services:
     environment:
       LOCAL_PORT: "7071"
       MQTT_URL: tcp://mqtt:1883
-      HOME_DEVICES_FILE: /data/devices.json
+      HOME_DEVICES_DB: /data/home.db
+      HOME_DEVICES_FILE: /data/home.db
       HOME_SCENES_FILE: /data/scenes.json
       HOME_AUTOMATIONS_FILE: /data/automations.json
     volumes:
