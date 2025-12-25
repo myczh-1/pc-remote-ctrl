@@ -31,6 +31,7 @@ func corrID() string {
 }
 
 const homeSvc = "/remote_control.home.HomeService/"
+const autoSvc = "/remote_control.home.AutomationService/"
 
 func (s *GatewayServer) unaryViaTunnel(ctx context.Context, deviceID, method string, in proto.Message, out proto.Message) error {
     link, ok := s.reg.GetTunnel(deviceID)
@@ -120,6 +121,51 @@ func (s *GatewayServer) DeleteDevice(ctx context.Context, req *cloudpb.DeleteDev
 func (s *GatewayServer) InvokeAction(ctx context.Context, req *cloudpb.InvokeActionRequest) (*homepb.InvokeActionResponse, error) {
     var out homepb.InvokeActionResponse
     err := s.unaryViaTunnel(ctx, req.GetDeviceId(), homeSvc+"InvokeAction", req.GetRequest(), &out)
+    if err != nil {
+        return nil, err
+    }
+    return &out, nil
+}
+
+func (s *GatewayServer) ListAutomations(ctx context.Context, req *cloudpb.ListAutomationsRequest) (*homepb.ListAutomationsResponse, error) {
+    var out homepb.ListAutomationsResponse
+    err := s.unaryViaTunnel(ctx, req.GetDeviceId(), autoSvc+"ListAutomations", req.GetRequest(), &out)
+    if err != nil {
+        return nil, err
+    }
+    return &out, nil
+}
+
+func (s *GatewayServer) UpsertAutomation(ctx context.Context, req *cloudpb.UpsertAutomationRequest) (*homepb.UpsertAutomationResponse, error) {
+    var out homepb.UpsertAutomationResponse
+    err := s.unaryViaTunnel(ctx, req.GetDeviceId(), autoSvc+"UpsertAutomation", req.GetRequest(), &out)
+    if err != nil {
+        return nil, err
+    }
+    return &out, nil
+}
+
+func (s *GatewayServer) DeleteAutomation(ctx context.Context, req *cloudpb.DeleteAutomationRequest) (*homepb.DeleteAutomationResponse, error) {
+    var out homepb.DeleteAutomationResponse
+    err := s.unaryViaTunnel(ctx, req.GetDeviceId(), autoSvc+"DeleteAutomation", req.GetRequest(), &out)
+    if err != nil {
+        return nil, err
+    }
+    return &out, nil
+}
+
+func (s *GatewayServer) SetAutomationEnabled(ctx context.Context, req *cloudpb.SetAutomationEnabledRequest) (*homepb.SetAutomationEnabledResponse, error) {
+    var out homepb.SetAutomationEnabledResponse
+    err := s.unaryViaTunnel(ctx, req.GetDeviceId(), autoSvc+"SetAutomationEnabled", req.GetRequest(), &out)
+    if err != nil {
+        return nil, err
+    }
+    return &out, nil
+}
+
+func (s *GatewayServer) TriggerAutomation(ctx context.Context, req *cloudpb.TriggerAutomationRequest) (*homepb.TriggerAutomationResponse, error) {
+    var out homepb.TriggerAutomationResponse
+    err := s.unaryViaTunnel(ctx, req.GetDeviceId(), autoSvc+"TriggerAutomation", req.GetRequest(), &out)
     if err != nil {
         return nil, err
     }

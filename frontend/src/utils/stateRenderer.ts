@@ -96,17 +96,19 @@ export function formatStateValue(type: StateType, value: any): string {
       return safeNum ? `${Math.round(num)}%` : '—'
 
     case 'power':
-    case 'boolean':
+    case 'boolean': {
       const boolValue = ['true', 'on', '1', 1, true].includes(value)
       return boolValue ? '开启' : '关闭'
+    }
 
-    case 'signal':
+    case 'signal': {
       const signalValue = Number(value)
       if (signalValue > -30) return '极强'
       if (signalValue > -50) return '强'
       if (signalValue > -70) return '中等'
       if (signalValue > -90) return '弱'
       return '很弱'
+    }
 
     case 'number':
       return safeNum ? num.toLocaleString() : '—'
@@ -139,33 +141,38 @@ export function getStateIcon(type: StateType): string {
 // 获取状态项的颜色
 export function getStateColor(type: StateType, value: any): string {
   switch (type) {
-    case 'temperature':
+    case 'temperature': {
       const temp = Number(value)
       if (temp > 30) return 'text-red-500'
       if (temp < 10) return 'text-blue-500'
       return 'text-green-500'
+    }
 
-    case 'humidity':
+    case 'humidity': {
       const humidity = Number(value)
       if (humidity > 70 || humidity < 30) return 'text-orange-500'
       return 'text-blue-500'
+    }
 
     case 'power':
-    case 'boolean':
+    case 'boolean': {
       const isOn = ['true', 'on', '1', 1, true].includes(value)
       return isOn ? 'text-green-500' : 'text-gray-400'
+    }
 
-    case 'battery':
+    case 'battery': {
       const battery = Number(value)
       if (battery > 50) return 'text-green-500'
       if (battery > 20) return 'text-orange-500'
       return 'text-red-500'
+    }
 
-    case 'signal':
+    case 'signal': {
       const signal = Number(value)
       if (signal > -50) return 'text-green-500'
       if (signal > -70) return 'text-orange-500'
       return 'text-red-500'
+    }
 
     default:
       return 'text-slate-600 dark:text-slate-400'

@@ -20,11 +20,16 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	GatewayService_ListDevices_FullMethodName  = "/remote_control.cloud.v1.GatewayService/ListDevices"
-	GatewayService_WatchDevices_FullMethodName = "/remote_control.cloud.v1.GatewayService/WatchDevices"
-	GatewayService_UpsertDevice_FullMethodName = "/remote_control.cloud.v1.GatewayService/UpsertDevice"
-	GatewayService_DeleteDevice_FullMethodName = "/remote_control.cloud.v1.GatewayService/DeleteDevice"
-	GatewayService_InvokeAction_FullMethodName = "/remote_control.cloud.v1.GatewayService/InvokeAction"
+	GatewayService_ListDevices_FullMethodName          = "/remote_control.cloud.v1.GatewayService/ListDevices"
+	GatewayService_WatchDevices_FullMethodName         = "/remote_control.cloud.v1.GatewayService/WatchDevices"
+	GatewayService_UpsertDevice_FullMethodName         = "/remote_control.cloud.v1.GatewayService/UpsertDevice"
+	GatewayService_DeleteDevice_FullMethodName         = "/remote_control.cloud.v1.GatewayService/DeleteDevice"
+	GatewayService_InvokeAction_FullMethodName         = "/remote_control.cloud.v1.GatewayService/InvokeAction"
+	GatewayService_ListAutomations_FullMethodName      = "/remote_control.cloud.v1.GatewayService/ListAutomations"
+	GatewayService_UpsertAutomation_FullMethodName     = "/remote_control.cloud.v1.GatewayService/UpsertAutomation"
+	GatewayService_DeleteAutomation_FullMethodName     = "/remote_control.cloud.v1.GatewayService/DeleteAutomation"
+	GatewayService_SetAutomationEnabled_FullMethodName = "/remote_control.cloud.v1.GatewayService/SetAutomationEnabled"
+	GatewayService_TriggerAutomation_FullMethodName    = "/remote_control.cloud.v1.GatewayService/TriggerAutomation"
 )
 
 // GatewayServiceClient is the client API for GatewayService service.
@@ -43,6 +48,12 @@ type GatewayServiceClient interface {
 	DeleteDevice(ctx context.Context, in *DeleteDeviceRequest, opts ...grpc.CallOption) (*home.DeleteDeviceResponse, error)
 	// 调用设备动作（转发到 HomeService）
 	InvokeAction(ctx context.Context, in *InvokeActionRequest, opts ...grpc.CallOption) (*home.InvokeActionResponse, error)
+	// 自动化：查询/管理/触发（转发到 AutomationService）
+	ListAutomations(ctx context.Context, in *ListAutomationsRequest, opts ...grpc.CallOption) (*home.ListAutomationsResponse, error)
+	UpsertAutomation(ctx context.Context, in *UpsertAutomationRequest, opts ...grpc.CallOption) (*home.UpsertAutomationResponse, error)
+	DeleteAutomation(ctx context.Context, in *DeleteAutomationRequest, opts ...grpc.CallOption) (*home.DeleteAutomationResponse, error)
+	SetAutomationEnabled(ctx context.Context, in *SetAutomationEnabledRequest, opts ...grpc.CallOption) (*home.SetAutomationEnabledResponse, error)
+	TriggerAutomation(ctx context.Context, in *TriggerAutomationRequest, opts ...grpc.CallOption) (*home.TriggerAutomationResponse, error)
 }
 
 type gatewayServiceClient struct {
@@ -112,6 +123,56 @@ func (c *gatewayServiceClient) InvokeAction(ctx context.Context, in *InvokeActio
 	return out, nil
 }
 
+func (c *gatewayServiceClient) ListAutomations(ctx context.Context, in *ListAutomationsRequest, opts ...grpc.CallOption) (*home.ListAutomationsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(home.ListAutomationsResponse)
+	err := c.cc.Invoke(ctx, GatewayService_ListAutomations_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *gatewayServiceClient) UpsertAutomation(ctx context.Context, in *UpsertAutomationRequest, opts ...grpc.CallOption) (*home.UpsertAutomationResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(home.UpsertAutomationResponse)
+	err := c.cc.Invoke(ctx, GatewayService_UpsertAutomation_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *gatewayServiceClient) DeleteAutomation(ctx context.Context, in *DeleteAutomationRequest, opts ...grpc.CallOption) (*home.DeleteAutomationResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(home.DeleteAutomationResponse)
+	err := c.cc.Invoke(ctx, GatewayService_DeleteAutomation_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *gatewayServiceClient) SetAutomationEnabled(ctx context.Context, in *SetAutomationEnabledRequest, opts ...grpc.CallOption) (*home.SetAutomationEnabledResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(home.SetAutomationEnabledResponse)
+	err := c.cc.Invoke(ctx, GatewayService_SetAutomationEnabled_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *gatewayServiceClient) TriggerAutomation(ctx context.Context, in *TriggerAutomationRequest, opts ...grpc.CallOption) (*home.TriggerAutomationResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(home.TriggerAutomationResponse)
+	err := c.cc.Invoke(ctx, GatewayService_TriggerAutomation_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // GatewayServiceServer is the server API for GatewayService service.
 // All implementations must embed UnimplementedGatewayServiceServer
 // for forward compatibility.
@@ -128,6 +189,12 @@ type GatewayServiceServer interface {
 	DeleteDevice(context.Context, *DeleteDeviceRequest) (*home.DeleteDeviceResponse, error)
 	// 调用设备动作（转发到 HomeService）
 	InvokeAction(context.Context, *InvokeActionRequest) (*home.InvokeActionResponse, error)
+	// 自动化：查询/管理/触发（转发到 AutomationService）
+	ListAutomations(context.Context, *ListAutomationsRequest) (*home.ListAutomationsResponse, error)
+	UpsertAutomation(context.Context, *UpsertAutomationRequest) (*home.UpsertAutomationResponse, error)
+	DeleteAutomation(context.Context, *DeleteAutomationRequest) (*home.DeleteAutomationResponse, error)
+	SetAutomationEnabled(context.Context, *SetAutomationEnabledRequest) (*home.SetAutomationEnabledResponse, error)
+	TriggerAutomation(context.Context, *TriggerAutomationRequest) (*home.TriggerAutomationResponse, error)
 	mustEmbedUnimplementedGatewayServiceServer()
 }
 
@@ -152,6 +219,21 @@ func (UnimplementedGatewayServiceServer) DeleteDevice(context.Context, *DeleteDe
 }
 func (UnimplementedGatewayServiceServer) InvokeAction(context.Context, *InvokeActionRequest) (*home.InvokeActionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method InvokeAction not implemented")
+}
+func (UnimplementedGatewayServiceServer) ListAutomations(context.Context, *ListAutomationsRequest) (*home.ListAutomationsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListAutomations not implemented")
+}
+func (UnimplementedGatewayServiceServer) UpsertAutomation(context.Context, *UpsertAutomationRequest) (*home.UpsertAutomationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpsertAutomation not implemented")
+}
+func (UnimplementedGatewayServiceServer) DeleteAutomation(context.Context, *DeleteAutomationRequest) (*home.DeleteAutomationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteAutomation not implemented")
+}
+func (UnimplementedGatewayServiceServer) SetAutomationEnabled(context.Context, *SetAutomationEnabledRequest) (*home.SetAutomationEnabledResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetAutomationEnabled not implemented")
+}
+func (UnimplementedGatewayServiceServer) TriggerAutomation(context.Context, *TriggerAutomationRequest) (*home.TriggerAutomationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method TriggerAutomation not implemented")
 }
 func (UnimplementedGatewayServiceServer) mustEmbedUnimplementedGatewayServiceServer() {}
 func (UnimplementedGatewayServiceServer) testEmbeddedByValue()                        {}
@@ -257,6 +339,96 @@ func _GatewayService_InvokeAction_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _GatewayService_ListAutomations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListAutomationsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GatewayServiceServer).ListAutomations(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GatewayService_ListAutomations_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GatewayServiceServer).ListAutomations(ctx, req.(*ListAutomationsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GatewayService_UpsertAutomation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpsertAutomationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GatewayServiceServer).UpsertAutomation(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GatewayService_UpsertAutomation_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GatewayServiceServer).UpsertAutomation(ctx, req.(*UpsertAutomationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GatewayService_DeleteAutomation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteAutomationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GatewayServiceServer).DeleteAutomation(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GatewayService_DeleteAutomation_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GatewayServiceServer).DeleteAutomation(ctx, req.(*DeleteAutomationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GatewayService_SetAutomationEnabled_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetAutomationEnabledRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GatewayServiceServer).SetAutomationEnabled(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GatewayService_SetAutomationEnabled_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GatewayServiceServer).SetAutomationEnabled(ctx, req.(*SetAutomationEnabledRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GatewayService_TriggerAutomation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TriggerAutomationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GatewayServiceServer).TriggerAutomation(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GatewayService_TriggerAutomation_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GatewayServiceServer).TriggerAutomation(ctx, req.(*TriggerAutomationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // GatewayService_ServiceDesc is the grpc.ServiceDesc for GatewayService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -279,6 +451,26 @@ var GatewayService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "InvokeAction",
 			Handler:    _GatewayService_InvokeAction_Handler,
+		},
+		{
+			MethodName: "ListAutomations",
+			Handler:    _GatewayService_ListAutomations_Handler,
+		},
+		{
+			MethodName: "UpsertAutomation",
+			Handler:    _GatewayService_UpsertAutomation_Handler,
+		},
+		{
+			MethodName: "DeleteAutomation",
+			Handler:    _GatewayService_DeleteAutomation_Handler,
+		},
+		{
+			MethodName: "SetAutomationEnabled",
+			Handler:    _GatewayService_SetAutomationEnabled_Handler,
+		},
+		{
+			MethodName: "TriggerAutomation",
+			Handler:    _GatewayService_TriggerAutomation_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

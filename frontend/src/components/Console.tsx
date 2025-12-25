@@ -6,7 +6,7 @@ interface ConsoleProps {
   isDarkMode?: boolean
 }
 
-export function Console({ logs, fullHeight = false, isDarkMode = false }: ConsoleProps) {
+export function Console({ logs, fullHeight = false, isDarkMode: _isDarkMode = false }: ConsoleProps) {
   const outerBorder = fullHeight ? 'border-l' : 'border-t'
 
   const getLogIcon = (level: string) => {

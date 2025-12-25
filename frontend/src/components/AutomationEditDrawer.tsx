@@ -34,7 +34,8 @@ export function AutomationEditDrawer({ open, initial, onClose, onSubmit }: Props
       setWhenType((w.type as WhenType) || 'state')
       setWhenDevice(w.device_id || '')
       setWhenPath(w.path || '')
-      setWhenEquals(String(w.equals ?? ''))
+      const eqVal = (w as any).equals
+      setWhenEquals(String(eqVal ?? ''))
       setTags((initial.tags || []).join(','))
       setActions((initial.then || []).map(t => ({
         deviceId: t.deviceId || '',
@@ -108,7 +109,7 @@ export function AutomationEditDrawer({ open, initial, onClose, onSubmit }: Props
       tags: tags.split(',').map(t => t.trim()).filter(Boolean),
       when,
       then: parsedActions,
-      updatedAt: initial?.updatedAt || 0,
+      updatedAt: initial?.updatedAt ?? '0',
     }
     try {
       setSaving(true)

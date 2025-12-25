@@ -39,37 +39,38 @@ const te = new TextEncoder()
 const td = new TextDecoder()
 
 export function useBleProvisioning() {
-  let device: BluetoothDevice | null = null
-  let server: BluetoothRemoteGATTServer | null = null
-  let service: BluetoothRemoteGATTService | null = null
-  let statusChar: BluetoothRemoteGATTCharacteristic | null = null
+  // Casts to avoid TS DOM lib dependency; runtime objects provided by browser
+  let device: any = null
+  let server: any = null
+  let service: any = null
+  let statusChar: any = null
 
   async function getService() {
     if (!device) throw new Error('No device')
     server = device.gatt?.connected ? device.gatt! : await device.gatt!.connect()
-    service = await server.getPrimaryService(SERVICE_UUID as BluetoothServiceUUID)
+    service = await server.getPrimaryService(SERVICE_UUID as any)
   }
 
   async function requestDevice(): Promise<void> {
     // Relax filtering to accept all devices; confirm service after connect.
     // This helps when firmware doesn't advertise the 128-bit service UUID.
-    // @ts-ignore
-    const dev: BluetoothDevice = await navigator.bluetooth.requestDevice({
+    // @ts-expect-error navigator.bluetooth may be unavailable in some env
+    const dev: any = await (navigator as any).bluetooth.requestDevice({
       acceptAllDevices: true,
       optionalServices: [SERVICE_UUID as any],
     })
     device = dev
   }
 
-  async function writeChar(uuid: BluetoothCharacteristicUUID, value: string) {
+  async function writeChar(uuid: any, value: string) {
     if (!service) throw new Error('No GATT service')
-    const ch = await service.getCharacteristic(uuid)
+    const ch: any = await service.getCharacteristic(uuid as any)
     await ch.writeValue(te.encode(value))
   }
 
   function parseStatus(ev: Event): ProvisionEvent | null {
-    const target = ev.target as BluetoothRemoteGATTCharacteristic
-    const dv = (target.value as DataView) || new DataView(new ArrayBuffer(0))
+    const target = ev.target as any
+    const dv = (target?.value as DataView) || new DataView(new ArrayBuffer(0))
     const s = td.decode(dv)
     try {
       const obj = JSON.parse(s)
@@ -122,7 +123,7 @@ export function useBleProvisioning() {
       }
       statusChar!.addEventListener('characteristicvaluechanged', handler as any)
       service!.getCharacteristic(CONTROL_CHAR as any)
-        .then(ch => ch.writeValue(te.encode('PROVISION')))
+        .then((ch: any) => ch.writeValue(te.encode('PROVISION')))
         .catch(reject)
     })
     return result

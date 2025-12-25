@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { GrpcWebFetchTransport } from '@protobuf-ts/grpcweb-transport'
 import { GatewayServiceClient } from '../proto/cloud/gateway.client'
-import type { Device, ListDevicesResponse, InvokeActionResponse, DeviceEvent, UpsertDeviceResponse } from '../proto/home/service'
+import type { Device, ListDevicesResponse, InvokeActionResponse, DeviceEvent, UpsertDeviceResponse, Automation, ListAutomationsResponse } from '../proto/home/service'
 import { TelemetryEventKind } from '../proto/home/service'
 import type { Struct } from '../proto/google/protobuf/struct'
 import type { ServerStreamingCall } from '@protobuf-ts/runtime-rpc'
@@ -67,6 +67,60 @@ export function useCloudApi(config?: Partial<CloudConfig>) {
       return { ok: false, error: msg }
     } finally {
       setLoading(false)
+    }
+  }, [agentId])
+
+  const listAutomations = useCallback(async (opts?: { includeDisabled?: boolean; tag?: string; name?: string; pageSize?: number; pageToken?: string }) => {
+    try {
+      const res = await clientRef.current.listAutomations({
+        deviceId: agentId,
+        request: {
+          includeDisabled: Boolean(opts?.includeDisabled),
+          tag: opts?.tag ?? '',
+          nameContains: opts?.name ?? '',
+          pageSize: opts?.pageSize ?? 20,
+          pageToken: opts?.pageToken ?? '',
+        }
+      }).response as ListAutomationsResponse
+      return { ok: true, automations: res.automations as Automation[], nextPageToken: res.nextPageToken ?? '' }
+    } catch (e: any) {
+      return { ok: false, error: String(e?.message ?? e) }
+    }
+  }, [agentId])
+
+  const setAutomationEnabled = useCallback(async (automationId: string, enabled: boolean) => {
+    try {
+      const res = await clientRef.current.setAutomationEnabled({
+        deviceId: agentId,
+        request: { automationId, enabled },
+      }).response
+      return { ok: (res as any).ok, message: (res as any).message }
+    } catch (e: any) {
+      return { ok: false, error: String(e?.message ?? e) }
+    }
+  }, [agentId])
+
+  const triggerAutomation = useCallback(async (automationId: string, payload?: Record<string, any>) => {
+    try {
+      const res = await clientRef.current.triggerAutomation({
+        deviceId: agentId,
+        request: {
+          automationId,
+          payload: { fields: Object.entries(payload ?? {}).reduce<any>((acc, [k, v]) => { acc[k] = toValue(v); return acc }, {}) },
+        },
+      }).response
+      return { ok: (res as any).ok, message: (res as any).message }
+    } catch (e: any) {
+      return { ok: false, error: String(e?.message ?? e) }
+    }
+  }, [agentId])
+
+  const upsertAutomation = useCallback(async (automation: Automation) => {
+    try {
+      const res = await clientRef.current.upsertAutomation({ deviceId: agentId, request: { automation } }).response
+      return { ok: (res as any).ok, message: (res as any).message, automationId: (res as any).automationId }
+    } catch (e: any) {
+      return { ok: false, error: String(e?.message ?? e) }
     }
   }, [agentId])
 
@@ -238,5 +292,10 @@ export function useCloudApi(config?: Partial<CloudConfig>) {
     stopWatch,
     upsertDevice,
     deleteDevice,
+    listAuditLogs: (_opts: any) => ({ ok: false, error: '云端暂未支持查询审计日志' }),
+    listAutomations,
+    setAutomationEnabled,
+    triggerAutomation,
+    upsertAutomation,
   }
 }

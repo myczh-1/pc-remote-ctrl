@@ -14,7 +14,7 @@ dist-ssr
 
 # Build outputs
 bin/
-backend/.gocache/
+backend/.gocache/ 
 vendor/
 backend/data/*.json
 

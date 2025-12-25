@@ -31,7 +31,7 @@ export default function App() {
     return 'dark'
   })
 
-  const { logInfo, logError, logSuccess, clearLog, entries } = useLogger()
+  const { logInfo, logError, logSuccess, clearLog: _clearLog, entries } = useLogger()
   const [mode, setMode] = useState<'local' | 'cloud'>(() => {
     try { return (localStorage.getItem('mode') as any) || 'local' } catch { return 'local' }
   })
@@ -68,7 +68,7 @@ export default function App() {
   const homeApi = useHomeApi({ onEvent })
   const cloudApi = useCloudApi({ baseUrl: cloudCfg.baseUrl, agentId: cloudCfg.agentId, onEvent })
   const api = mode === 'cloud' ? cloudApi : homeApi
-  const automationApi = mode === 'local' ? homeApi : null
+  const automationApi = mode === 'local' ? homeApi : cloudApi
   const prefersReduced = useReducedMotion()
   const layoutTransition = useMemo(() => (
     prefersReduced ? { duration: 0 } : { duration: 0.32, ease: [0.22, 1, 0.36, 1] as any }
@@ -104,7 +104,7 @@ export default function App() {
 
   React.useEffect(() => {
     if (mode === 'cloud' && activeView === 'automations') {
-      setActiveView('devices')
+      loadAutomations(true)
     }
   }, [mode, activeView])
 
@@ -117,7 +117,7 @@ export default function App() {
   const [filterName, setFilterName] = useState('')
   const [autoEditOpen, setAutoEditOpen] = useState(false)
   const [editingAuto, setEditingAuto] = useState<Automation | undefined>(undefined)
-  const [autoLogs, setAutoLogs] = useState<Record<string, { entries: LogEntry[]; loading: boolean; error?: string }>>({})
+  const [autoLogs, setAutoLogs] = useState<Record<string, { entries: LogEntry[]; loading: boolean; error?: string; next?: string }>>({})
   const [logsOpen, setLogsOpen] = useState<Record<string, boolean>>({})
   const tryStringify = (obj: any) => {
     try { return JSON.stringify(obj) } catch { return String(obj) }
@@ -156,6 +156,31 @@ export default function App() {
       loadAutomations(true)
     }
   }, [activeView, filterTag, filterName, mode, cloudCfg.baseUrl, cloudCfg.agentId])
+
+  const loadAutomationLogs = async (automationId: string, reset?: boolean) => {
+    if (!automationApi?.listAuditLogs) { logError('暂不支持查询日志'); return }
+    setAutoLogs(prev => ({ ...prev, [automationId]: { ...(prev[automationId] || { entries: [] }), loading: true, error: undefined } }))
+    const prevState = autoLogs[automationId]
+    const res = await automationApi.listAuditLogs({
+      subject: automationId,
+      pageSize: 10,
+      pageToken: reset ? '' : (prevState?.next || ''),
+      kind: 'automation_execute',
+    })
+    if (res.ok) {
+      const entries = (res as any).entries || []
+      setAutoLogs(prev => ({
+        ...prev,
+        [automationId]: {
+          entries: reset ? entries : [...(prevState?.entries || []), ...entries],
+          loading: false,
+          next: (res as any).nextPageToken || '',
+        },
+      }))
+    } else {
+      setAutoLogs(prev => ({ ...prev, [automationId]: { ...(prevState || { entries: [] }), loading: false, error: (res as any).error } }))
+    }
+  }
 
   const handleRefreshDevices = async () => {
     const r = await api.listDevices()
@@ -213,7 +238,7 @@ export default function App() {
               const next = root.classList.contains("dark") ? "light" : "dark";
 
               if (supportsVT) {
-                // @ts-ignore
+                // @ts-expect-error: startViewTransition is experimental
                 const vt = (document as any).startViewTransition(() => {
                   root.classList.toggle("dark");
                   try { localStorage.setItem("theme", next); } catch { }
@@ -366,14 +391,7 @@ export default function App() {
                                       const open = !logsOpen[a.id]
                                       setLogsOpen(prev => ({ ...prev, [a.id]: open }))
                                       if (open && !autoLogs[a.id]) {
-                                        if (!automationApi) { logError('云端模式暂不支持'); return }
-                                        setAutoLogs(prev => ({ ...prev, [a.id]: { entries: [], loading: true } }))
-                                        const res = await automationApi.listAuditLogs({ subject: a.id, pageSize: 10 })
-                                        if (res.ok) {
-                                          setAutoLogs(prev => ({ ...prev, [a.id]: { entries: res.entries || [], loading: false } }))
-                                        } else {
-                                          setAutoLogs(prev => ({ ...prev, [a.id]: { entries: [], loading: false, error: res.error } }))
-                                        }
+                                        await loadAutomationLogs(a.id, true)
                                       }
                                     }}
                                     className="text-xs px-3 py-1 rounded-full bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-200"
@@ -455,6 +473,14 @@ export default function App() {
                                       {log.data && <span className="truncate text-slate-500">{tryStringify(log.data)}</span>}
                                     </div>
                                   ))}
+                                  {autoLogs[a.id]?.next && (
+                                    <button
+                                      onClick={() => loadAutomationLogs(a.id, false)}
+                                      className="text-xs px-3 py-1 rounded-full bg-white/70 dark:bg-white/10 text-slate-700 dark:text-slate-200 border border-slate-200/60 dark:border-white/10"
+                                    >
+                                      加载更多
+                                    </button>
+                                  )}
                                   {(!autoLogs[a.id]?.entries || autoLogs[a.id]?.entries.length === 0) && !autoLogs[a.id]?.loading && (
                                     <div className="text-xs text-slate-500">暂无日志</div>
                                   )}

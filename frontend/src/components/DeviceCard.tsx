@@ -10,7 +10,7 @@ interface DeviceCardProps {
   onEdit?: (device: Device) => void
 }
 
-export function DeviceCard({ device, onOpenDetail, onQuickAction, onEdit }: DeviceCardProps) {
+export function DeviceCard({ device, onOpenDetail, onQuickAction, onEdit: _onEdit }: DeviceCardProps) {
   const online = device.online
   const quick = device.actions?.[0]?.name
   // no emoji placeholder

@@ -10,8 +10,8 @@ interface TopbarProps {
 }
 
 export function Topbar({ mode, theme, onToggleTheme, onToggleFullscreen, onExit, onOpenFilters }: TopbarProps) {
-  const [refreshSpin, setRefreshSpin] = useState(false)
-  const [addPop, setAddPop] = useState(false)
+  const [_refreshSpin, _setRefreshSpin] = useState(false)
+  const [_addPop, _setAddPop] = useState(false)
   return (
     <header className="flex items-center gap-3 border-b border-black/10 bg-white/60 px-5 py-3 backdrop-blur-md backdrop-saturate-[1.4] transition-colors dark:border-white/5 dark:bg-white/[0.08]">
       <div className="flex items-center gap-2 mr-2">
