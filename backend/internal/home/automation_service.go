@@ -102,6 +102,21 @@ func (s *AutomationService) SetAutomationEnabled(ctx context.Context, req *homep
 	return &homepb.SetAutomationEnabledResponse{Ok: true, Message: "ok"}, nil
 }
 
+func (s *AutomationService) TriggerAutomation(ctx context.Context, req *homepb.TriggerAutomationRequest) (*homepb.TriggerAutomationResponse, error) {
+	if req.GetAutomationId() == "" {
+		return &homepb.TriggerAutomationResponse{Ok: false, Message: "automation_id required"}, nil
+	}
+	payload := mapFromStruct(req.GetPayload())
+	if s.engine == nil {
+		return &homepb.TriggerAutomationResponse{Ok: false, Message: "engine not available"}, nil
+	}
+	if err := s.engine.TriggerNow(ctx, req.GetAutomationId(), payload); err != nil {
+		return &homepb.TriggerAutomationResponse{Ok: false, Message: err.Error()}, nil
+	}
+	s.logAudit("automation_manual_trigger", req.GetAutomationId(), payload)
+	return &homepb.TriggerAutomationResponse{Ok: true, Message: "ok"}, nil
+}
+
 func fromPBAutomation(a *homepb.Automation) (*storage.Automation, error) {
 	st := &storage.Automation{
 		ID:      a.GetId(),

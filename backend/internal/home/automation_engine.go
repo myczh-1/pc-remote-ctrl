@@ -20,12 +20,21 @@ type AutomationEngine struct {
 	ops   ops.DeviceOps
 	audit *storage.AuditLogs
 
-	mu    sync.RWMutex
-	cache []storage.Automation
+	mu      sync.RWMutex
+	cache   []storage.Automation
+	execing map[string]bool      // automationID -> running
+	lastRun map[string]time.Time // automationID -> last execution ts
 }
 
 func NewAutomationEngine(autos *storage.Automations, devs *storage.Devices, ops ops.DeviceOps, audit *storage.AuditLogs) *AutomationEngine {
-	return &AutomationEngine{autos: autos, devs: devs, ops: ops, audit: audit}
+	return &AutomationEngine{
+		autos:   autos,
+		devs:    devs,
+		ops:     ops,
+		audit:   audit,
+		execing: map[string]bool{},
+		lastRun: map[string]time.Time{},
+	}
 }
 
 // Run subscribes to device events and processes automations until ctx is cancelled.
@@ -73,12 +82,50 @@ func (e *AutomationEngine) handleEvent(ev *homepb.DeviceEvent) {
 			continue
 		}
 		if matchTrigger(a.When, ev) {
-			go e.runAutomation(a, ev)
+			go e.runAutomation(a, ev, false)
 		}
 	}
 }
 
-func (e *AutomationEngine) runAutomation(a storage.Automation, ev *homepb.DeviceEvent) {
+// TriggerNow executes an automation on demand (manual trigger).
+func (e *AutomationEngine) TriggerNow(ctx context.Context, automationID string, payload map[string]any) error {
+	e.mu.RLock()
+	var picked *storage.Automation
+	for i := range e.cache {
+		if e.cache[i].ID == automationID {
+			tmp := e.cache[i]
+			picked = &tmp
+			break
+		}
+	}
+	e.mu.RUnlock()
+	if picked == nil {
+		return fmt.Errorf("automation not found")
+	}
+	if !picked.Enabled {
+		return fmt.Errorf("automation disabled")
+	}
+	go e.runAutomation(*picked, nil, true)
+	e.logAudit("automation_manual", automationID, map[string]any{"payload": payload})
+	return nil
+}
+
+func (e *AutomationEngine) runAutomation(a storage.Automation, ev *homepb.DeviceEvent, force bool) {
+	if !force && !e.acquire(a.ID) {
+		return
+	}
+	defer func() {
+		if !force {
+			e.release(a.ID)
+		}
+	}()
+
+	// debounce per automation unless force
+	if !force && e.isDebounced(a.ID, 500*time.Millisecond) {
+		return
+	}
+	e.markRun(a.ID)
+
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	for _, act := range a.Then {
@@ -161,6 +208,38 @@ func (e *AutomationEngine) logAudit(kind, subject string, data map[string]any) {
 		return
 	}
 	_ = e.audit.Append(storage.AuditEntry{Kind: kind, Subject: subject, Data: data})
+}
+
+func (e *AutomationEngine) acquire(id string) bool {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	if e.execing[id] {
+		return false
+	}
+	e.execing[id] = true
+	return true
+}
+
+func (e *AutomationEngine) release(id string) {
+	e.mu.Lock()
+	delete(e.execing, id)
+	e.mu.Unlock()
+}
+
+func (e *AutomationEngine) isDebounced(id string, minGap time.Duration) bool {
+	e.mu.RLock()
+	last, ok := e.lastRun[id]
+	e.mu.RUnlock()
+	if !ok {
+		return false
+	}
+	return time.Since(last) < minGap
+}
+
+func (e *AutomationEngine) markRun(id string) {
+	e.mu.Lock()
+	e.lastRun[id] = time.Now()
+	e.mu.Unlock()
 }
 
 func errString(err error) string {

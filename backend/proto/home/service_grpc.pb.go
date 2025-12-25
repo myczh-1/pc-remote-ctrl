@@ -421,6 +421,7 @@ const (
 	AutomationService_UpsertAutomation_FullMethodName     = "/remote_control.home.AutomationService/UpsertAutomation"
 	AutomationService_DeleteAutomation_FullMethodName     = "/remote_control.home.AutomationService/DeleteAutomation"
 	AutomationService_SetAutomationEnabled_FullMethodName = "/remote_control.home.AutomationService/SetAutomationEnabled"
+	AutomationService_TriggerAutomation_FullMethodName    = "/remote_control.home.AutomationService/TriggerAutomation"
 )
 
 // AutomationServiceClient is the client API for AutomationService service.
@@ -431,6 +432,7 @@ type AutomationServiceClient interface {
 	UpsertAutomation(ctx context.Context, in *UpsertAutomationRequest, opts ...grpc.CallOption) (*UpsertAutomationResponse, error)
 	DeleteAutomation(ctx context.Context, in *DeleteAutomationRequest, opts ...grpc.CallOption) (*DeleteAutomationResponse, error)
 	SetAutomationEnabled(ctx context.Context, in *SetAutomationEnabledRequest, opts ...grpc.CallOption) (*SetAutomationEnabledResponse, error)
+	TriggerAutomation(ctx context.Context, in *TriggerAutomationRequest, opts ...grpc.CallOption) (*TriggerAutomationResponse, error)
 }
 
 type automationServiceClient struct {
@@ -481,6 +483,16 @@ func (c *automationServiceClient) SetAutomationEnabled(ctx context.Context, in *
 	return out, nil
 }
 
+func (c *automationServiceClient) TriggerAutomation(ctx context.Context, in *TriggerAutomationRequest, opts ...grpc.CallOption) (*TriggerAutomationResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(TriggerAutomationResponse)
+	err := c.cc.Invoke(ctx, AutomationService_TriggerAutomation_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AutomationServiceServer is the server API for AutomationService service.
 // All implementations must embed UnimplementedAutomationServiceServer
 // for forward compatibility.
@@ -489,6 +501,7 @@ type AutomationServiceServer interface {
 	UpsertAutomation(context.Context, *UpsertAutomationRequest) (*UpsertAutomationResponse, error)
 	DeleteAutomation(context.Context, *DeleteAutomationRequest) (*DeleteAutomationResponse, error)
 	SetAutomationEnabled(context.Context, *SetAutomationEnabledRequest) (*SetAutomationEnabledResponse, error)
+	TriggerAutomation(context.Context, *TriggerAutomationRequest) (*TriggerAutomationResponse, error)
 	mustEmbedUnimplementedAutomationServiceServer()
 }
 
@@ -510,6 +523,9 @@ func (UnimplementedAutomationServiceServer) DeleteAutomation(context.Context, *D
 }
 func (UnimplementedAutomationServiceServer) SetAutomationEnabled(context.Context, *SetAutomationEnabledRequest) (*SetAutomationEnabledResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetAutomationEnabled not implemented")
+}
+func (UnimplementedAutomationServiceServer) TriggerAutomation(context.Context, *TriggerAutomationRequest) (*TriggerAutomationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method TriggerAutomation not implemented")
 }
 func (UnimplementedAutomationServiceServer) mustEmbedUnimplementedAutomationServiceServer() {}
 func (UnimplementedAutomationServiceServer) testEmbeddedByValue()                           {}
@@ -604,6 +620,24 @@ func _AutomationService_SetAutomationEnabled_Handler(srv interface{}, ctx contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AutomationService_TriggerAutomation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TriggerAutomationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AutomationServiceServer).TriggerAutomation(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AutomationService_TriggerAutomation_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AutomationServiceServer).TriggerAutomation(ctx, req.(*TriggerAutomationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AutomationService_ServiceDesc is the grpc.ServiceDesc for AutomationService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -626,6 +660,10 @@ var AutomationService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetAutomationEnabled",
 			Handler:    _AutomationService_SetAutomationEnabled_Handler,
+		},
+		{
+			MethodName: "TriggerAutomation",
+			Handler:    _AutomationService_TriggerAutomation_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -1809,6 +1809,110 @@ func (x *SetAutomationEnabledResponse) GetMessage() string {
 	return ""
 }
 
+type TriggerAutomationRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AutomationId  string                 `protobuf:"bytes,1,opt,name=automation_id,json=automationId,proto3" json:"automation_id,omitempty"`
+	Payload       *_struct.Struct        `protobuf:"bytes,2,opt,name=payload,proto3" json:"payload,omitempty"` // optional context for audit
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *TriggerAutomationRequest) Reset() {
+	*x = TriggerAutomationRequest{}
+	mi := &file_home_service_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TriggerAutomationRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TriggerAutomationRequest) ProtoMessage() {}
+
+func (x *TriggerAutomationRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_home_service_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TriggerAutomationRequest.ProtoReflect.Descriptor instead.
+func (*TriggerAutomationRequest) Descriptor() ([]byte, []int) {
+	return file_home_service_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *TriggerAutomationRequest) GetAutomationId() string {
+	if x != nil {
+		return x.AutomationId
+	}
+	return ""
+}
+
+func (x *TriggerAutomationRequest) GetPayload() *_struct.Struct {
+	if x != nil {
+		return x.Payload
+	}
+	return nil
+}
+
+type TriggerAutomationResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Ok            bool                   `protobuf:"varint,1,opt,name=ok,proto3" json:"ok,omitempty"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *TriggerAutomationResponse) Reset() {
+	*x = TriggerAutomationResponse{}
+	mi := &file_home_service_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TriggerAutomationResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TriggerAutomationResponse) ProtoMessage() {}
+
+func (x *TriggerAutomationResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_home_service_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TriggerAutomationResponse.ProtoReflect.Descriptor instead.
+func (*TriggerAutomationResponse) Descriptor() ([]byte, []int) {
+	return file_home_service_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *TriggerAutomationResponse) GetOk() bool {
+	if x != nil {
+		return x.Ok
+	}
+	return false
+}
+
+func (x *TriggerAutomationResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
 var File_home_service_proto protoreflect.FileDescriptor
 
 const file_home_service_proto_rawDesc = "" +
@@ -1945,6 +2049,12 @@ const file_home_service_proto_rawDesc = "" +
 	"\aenabled\x18\x02 \x01(\bR\aenabled\"H\n" +
 	"\x1cSetAutomationEnabledResponse\x12\x0e\n" +
 	"\x02ok\x18\x01 \x01(\bR\x02ok\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"r\n" +
+	"\x18TriggerAutomationRequest\x12#\n" +
+	"\rautomation_id\x18\x01 \x01(\tR\fautomationId\x121\n" +
+	"\apayload\x18\x02 \x01(\v2\x17.google.protobuf.StructR\apayload\"E\n" +
+	"\x19TriggerAutomationResponse\x12\x0e\n" +
+	"\x02ok\x18\x01 \x01(\bR\x02ok\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage*K\n" +
 	"\vAdapterKind\x12\x1c\n" +
 	"\x18ADAPTER_KIND_UNSPECIFIED\x10\x00\x12\b\n" +
@@ -1967,12 +2077,13 @@ const file_home_service_proto_rawDesc = "" +
 	"\fInvokeAction\x12(.remote_control.home.InvokeActionRequest\x1a).remote_control.home.InvokeActionResponse2\xc9\x01\n" +
 	"\fAuditService\x12W\n" +
 	"\bListLogs\x12$.remote_control.home.ListLogsRequest\x1a%.remote_control.home.ListLogsResponse\x12`\n" +
-	"\vCleanupLogs\x12'.remote_control.home.CleanupLogsRequest\x1a(.remote_control.home.CleanupLogsResponse2\xe0\x03\n" +
+	"\vCleanupLogs\x12'.remote_control.home.CleanupLogsRequest\x1a(.remote_control.home.CleanupLogsResponse2\xd4\x04\n" +
 	"\x11AutomationService\x12l\n" +
 	"\x0fListAutomations\x12+.remote_control.home.ListAutomationsRequest\x1a,.remote_control.home.ListAutomationsResponse\x12o\n" +
 	"\x10UpsertAutomation\x12,.remote_control.home.UpsertAutomationRequest\x1a-.remote_control.home.UpsertAutomationResponse\x12o\n" +
 	"\x10DeleteAutomation\x12,.remote_control.home.DeleteAutomationRequest\x1a-.remote_control.home.DeleteAutomationResponse\x12{\n" +
-	"\x14SetAutomationEnabled\x120.remote_control.home.SetAutomationEnabledRequest\x1a1.remote_control.home.SetAutomationEnabledResponseB*Z(pc-remote-ctrl/backend/proto/home;homepbb\x06proto3"
+	"\x14SetAutomationEnabled\x120.remote_control.home.SetAutomationEnabledRequest\x1a1.remote_control.home.SetAutomationEnabledResponse\x12r\n" +
+	"\x11TriggerAutomation\x12-.remote_control.home.TriggerAutomationRequest\x1a..remote_control.home.TriggerAutomationResponseB*Z(pc-remote-ctrl/backend/proto/home;homepbb\x06proto3"
 
 var (
 	file_home_service_proto_rawDescOnce sync.Once
@@ -1987,7 +2098,7 @@ func file_home_service_proto_rawDescGZIP() []byte {
 }
 
 var file_home_service_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_home_service_proto_msgTypes = make([]protoimpl.MessageInfo, 31)
+var file_home_service_proto_msgTypes = make([]protoimpl.MessageInfo, 33)
 var file_home_service_proto_goTypes = []any{
 	(AdapterKind)(0),                     // 0: remote_control.home.AdapterKind
 	(TelemetryEventKind)(0),              // 1: remote_control.home.TelemetryEventKind
@@ -2019,59 +2130,64 @@ var file_home_service_proto_goTypes = []any{
 	(*DeleteAutomationResponse)(nil),     // 27: remote_control.home.DeleteAutomationResponse
 	(*SetAutomationEnabledRequest)(nil),  // 28: remote_control.home.SetAutomationEnabledRequest
 	(*SetAutomationEnabledResponse)(nil), // 29: remote_control.home.SetAutomationEnabledResponse
-	nil,                                  // 30: remote_control.home.Adapter.ConfigEntry
-	nil,                                  // 31: remote_control.home.ActionSpec.ArgsSchemaEntry
-	nil,                                  // 32: remote_control.home.Device.TopicsEntry
-	(*_struct.Struct)(nil),               // 33: google.protobuf.Struct
+	(*TriggerAutomationRequest)(nil),     // 30: remote_control.home.TriggerAutomationRequest
+	(*TriggerAutomationResponse)(nil),    // 31: remote_control.home.TriggerAutomationResponse
+	nil,                                  // 32: remote_control.home.Adapter.ConfigEntry
+	nil,                                  // 33: remote_control.home.ActionSpec.ArgsSchemaEntry
+	nil,                                  // 34: remote_control.home.Device.TopicsEntry
+	(*_struct.Struct)(nil),               // 35: google.protobuf.Struct
 }
 var file_home_service_proto_depIdxs = []int32{
 	0,  // 0: remote_control.home.Adapter.kind:type_name -> remote_control.home.AdapterKind
-	30, // 1: remote_control.home.Adapter.config:type_name -> remote_control.home.Adapter.ConfigEntry
-	31, // 2: remote_control.home.ActionSpec.args_schema:type_name -> remote_control.home.ActionSpec.ArgsSchemaEntry
-	32, // 3: remote_control.home.Device.topics:type_name -> remote_control.home.Device.TopicsEntry
+	32, // 1: remote_control.home.Adapter.config:type_name -> remote_control.home.Adapter.ConfigEntry
+	33, // 2: remote_control.home.ActionSpec.args_schema:type_name -> remote_control.home.ActionSpec.ArgsSchemaEntry
+	34, // 3: remote_control.home.Device.topics:type_name -> remote_control.home.Device.TopicsEntry
 	2,  // 4: remote_control.home.Device.adapter:type_name -> remote_control.home.Adapter
 	3,  // 5: remote_control.home.Device.actions:type_name -> remote_control.home.ActionSpec
-	33, // 6: remote_control.home.Device.state:type_name -> google.protobuf.Struct
+	35, // 6: remote_control.home.Device.state:type_name -> google.protobuf.Struct
 	4,  // 7: remote_control.home.ListDevicesResponse.devices:type_name -> remote_control.home.Device
 	1,  // 8: remote_control.home.DeviceEvent.kind:type_name -> remote_control.home.TelemetryEventKind
-	33, // 9: remote_control.home.DeviceEvent.payload:type_name -> google.protobuf.Struct
+	35, // 9: remote_control.home.DeviceEvent.payload:type_name -> google.protobuf.Struct
 	4,  // 10: remote_control.home.UpsertDeviceRequest.device:type_name -> remote_control.home.Device
-	33, // 11: remote_control.home.InvokeActionRequest.args:type_name -> google.protobuf.Struct
-	33, // 12: remote_control.home.InvokeActionResponse.data:type_name -> google.protobuf.Struct
-	33, // 13: remote_control.home.LogEntry.data:type_name -> google.protobuf.Struct
+	35, // 11: remote_control.home.InvokeActionRequest.args:type_name -> google.protobuf.Struct
+	35, // 12: remote_control.home.InvokeActionResponse.data:type_name -> google.protobuf.Struct
+	35, // 13: remote_control.home.LogEntry.data:type_name -> google.protobuf.Struct
 	15, // 14: remote_control.home.ListLogsResponse.entries:type_name -> remote_control.home.LogEntry
-	33, // 15: remote_control.home.AutomationAction.args:type_name -> google.protobuf.Struct
-	33, // 16: remote_control.home.Automation.when:type_name -> google.protobuf.Struct
+	35, // 15: remote_control.home.AutomationAction.args:type_name -> google.protobuf.Struct
+	35, // 16: remote_control.home.Automation.when:type_name -> google.protobuf.Struct
 	20, // 17: remote_control.home.Automation.then:type_name -> remote_control.home.AutomationAction
 	21, // 18: remote_control.home.ListAutomationsResponse.automations:type_name -> remote_control.home.Automation
 	21, // 19: remote_control.home.UpsertAutomationRequest.automation:type_name -> remote_control.home.Automation
-	5,  // 20: remote_control.home.HomeService.ListDevices:input_type -> remote_control.home.ListDevicesRequest
-	7,  // 21: remote_control.home.HomeService.WatchDevices:input_type -> remote_control.home.WatchDevicesRequest
-	9,  // 22: remote_control.home.HomeService.UpsertDevice:input_type -> remote_control.home.UpsertDeviceRequest
-	11, // 23: remote_control.home.HomeService.DeleteDevice:input_type -> remote_control.home.DeleteDeviceRequest
-	13, // 24: remote_control.home.HomeService.InvokeAction:input_type -> remote_control.home.InvokeActionRequest
-	16, // 25: remote_control.home.AuditService.ListLogs:input_type -> remote_control.home.ListLogsRequest
-	18, // 26: remote_control.home.AuditService.CleanupLogs:input_type -> remote_control.home.CleanupLogsRequest
-	22, // 27: remote_control.home.AutomationService.ListAutomations:input_type -> remote_control.home.ListAutomationsRequest
-	24, // 28: remote_control.home.AutomationService.UpsertAutomation:input_type -> remote_control.home.UpsertAutomationRequest
-	26, // 29: remote_control.home.AutomationService.DeleteAutomation:input_type -> remote_control.home.DeleteAutomationRequest
-	28, // 30: remote_control.home.AutomationService.SetAutomationEnabled:input_type -> remote_control.home.SetAutomationEnabledRequest
-	6,  // 31: remote_control.home.HomeService.ListDevices:output_type -> remote_control.home.ListDevicesResponse
-	8,  // 32: remote_control.home.HomeService.WatchDevices:output_type -> remote_control.home.DeviceEvent
-	10, // 33: remote_control.home.HomeService.UpsertDevice:output_type -> remote_control.home.UpsertDeviceResponse
-	12, // 34: remote_control.home.HomeService.DeleteDevice:output_type -> remote_control.home.DeleteDeviceResponse
-	14, // 35: remote_control.home.HomeService.InvokeAction:output_type -> remote_control.home.InvokeActionResponse
-	17, // 36: remote_control.home.AuditService.ListLogs:output_type -> remote_control.home.ListLogsResponse
-	19, // 37: remote_control.home.AuditService.CleanupLogs:output_type -> remote_control.home.CleanupLogsResponse
-	23, // 38: remote_control.home.AutomationService.ListAutomations:output_type -> remote_control.home.ListAutomationsResponse
-	25, // 39: remote_control.home.AutomationService.UpsertAutomation:output_type -> remote_control.home.UpsertAutomationResponse
-	27, // 40: remote_control.home.AutomationService.DeleteAutomation:output_type -> remote_control.home.DeleteAutomationResponse
-	29, // 41: remote_control.home.AutomationService.SetAutomationEnabled:output_type -> remote_control.home.SetAutomationEnabledResponse
-	31, // [31:42] is the sub-list for method output_type
-	20, // [20:31] is the sub-list for method input_type
-	20, // [20:20] is the sub-list for extension type_name
-	20, // [20:20] is the sub-list for extension extendee
-	0,  // [0:20] is the sub-list for field type_name
+	35, // 20: remote_control.home.TriggerAutomationRequest.payload:type_name -> google.protobuf.Struct
+	5,  // 21: remote_control.home.HomeService.ListDevices:input_type -> remote_control.home.ListDevicesRequest
+	7,  // 22: remote_control.home.HomeService.WatchDevices:input_type -> remote_control.home.WatchDevicesRequest
+	9,  // 23: remote_control.home.HomeService.UpsertDevice:input_type -> remote_control.home.UpsertDeviceRequest
+	11, // 24: remote_control.home.HomeService.DeleteDevice:input_type -> remote_control.home.DeleteDeviceRequest
+	13, // 25: remote_control.home.HomeService.InvokeAction:input_type -> remote_control.home.InvokeActionRequest
+	16, // 26: remote_control.home.AuditService.ListLogs:input_type -> remote_control.home.ListLogsRequest
+	18, // 27: remote_control.home.AuditService.CleanupLogs:input_type -> remote_control.home.CleanupLogsRequest
+	22, // 28: remote_control.home.AutomationService.ListAutomations:input_type -> remote_control.home.ListAutomationsRequest
+	24, // 29: remote_control.home.AutomationService.UpsertAutomation:input_type -> remote_control.home.UpsertAutomationRequest
+	26, // 30: remote_control.home.AutomationService.DeleteAutomation:input_type -> remote_control.home.DeleteAutomationRequest
+	28, // 31: remote_control.home.AutomationService.SetAutomationEnabled:input_type -> remote_control.home.SetAutomationEnabledRequest
+	30, // 32: remote_control.home.AutomationService.TriggerAutomation:input_type -> remote_control.home.TriggerAutomationRequest
+	6,  // 33: remote_control.home.HomeService.ListDevices:output_type -> remote_control.home.ListDevicesResponse
+	8,  // 34: remote_control.home.HomeService.WatchDevices:output_type -> remote_control.home.DeviceEvent
+	10, // 35: remote_control.home.HomeService.UpsertDevice:output_type -> remote_control.home.UpsertDeviceResponse
+	12, // 36: remote_control.home.HomeService.DeleteDevice:output_type -> remote_control.home.DeleteDeviceResponse
+	14, // 37: remote_control.home.HomeService.InvokeAction:output_type -> remote_control.home.InvokeActionResponse
+	17, // 38: remote_control.home.AuditService.ListLogs:output_type -> remote_control.home.ListLogsResponse
+	19, // 39: remote_control.home.AuditService.CleanupLogs:output_type -> remote_control.home.CleanupLogsResponse
+	23, // 40: remote_control.home.AutomationService.ListAutomations:output_type -> remote_control.home.ListAutomationsResponse
+	25, // 41: remote_control.home.AutomationService.UpsertAutomation:output_type -> remote_control.home.UpsertAutomationResponse
+	27, // 42: remote_control.home.AutomationService.DeleteAutomation:output_type -> remote_control.home.DeleteAutomationResponse
+	29, // 43: remote_control.home.AutomationService.SetAutomationEnabled:output_type -> remote_control.home.SetAutomationEnabledResponse
+	31, // 44: remote_control.home.AutomationService.TriggerAutomation:output_type -> remote_control.home.TriggerAutomationResponse
+	33, // [33:45] is the sub-list for method output_type
+	21, // [21:33] is the sub-list for method input_type
+	21, // [21:21] is the sub-list for extension type_name
+	21, // [21:21] is the sub-list for extension extendee
+	0,  // [0:21] is the sub-list for field type_name
 }
 
 func init() { file_home_service_proto_init() }
@@ -2085,7 +2201,7 @@ func file_home_service_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_home_service_proto_rawDesc), len(file_home_service_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   31,
+			NumMessages:   33,
 			NumExtensions: 0,
 			NumServices:   3,
 		},
