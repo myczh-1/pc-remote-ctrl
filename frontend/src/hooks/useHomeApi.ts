@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { GrpcWebFetchTransport } from '@protobuf-ts/grpcweb-transport'
-import { HomeServiceClient, AutomationServiceClient } from '../proto/home/service.client'
-import type { Device, ListDevicesResponse, InvokeActionResponse, DeviceEvent, UpsertDeviceResponse, Automation, ListAutomationsResponse } from '../proto/home/service'
+import { HomeServiceClient, AutomationServiceClient, AuditServiceClient } from '../proto/home/service.client'
+import type { Device, ListDevicesResponse, InvokeActionResponse, DeviceEvent, UpsertDeviceResponse, Automation, ListAutomationsResponse, LogEntry, ListLogsResponse } from '../proto/home/service'
 import { TelemetryEventKind } from '../proto/home/service'
 import type { Struct } from '../proto/google/protobuf/struct'
 import type { ServerStreamingCall } from '@protobuf-ts/runtime-rpc'
@@ -16,11 +16,13 @@ export function useHomeApi(config?: Partial<HomeConfig>) {
   const transport = useMemo(() => new GrpcWebFetchTransport({ baseUrl }), [baseUrl])
   const clientRef = useRef(new HomeServiceClient(transport))
   const autoClientRef = useRef(new AutomationServiceClient(transport))
+  const auditClientRef = useRef(new AuditServiceClient(transport))
   const onEventRef = useRef<HomeConfig['onEvent']>(config?.onEvent)
 
   useEffect(() => {
     clientRef.current = new HomeServiceClient(new GrpcWebFetchTransport({ baseUrl }))
     autoClientRef.current = new AutomationServiceClient(new GrpcWebFetchTransport({ baseUrl }))
+    auditClientRef.current = new AuditServiceClient(new GrpcWebFetchTransport({ baseUrl }))
   }, [baseUrl])
   useEffect(() => { onEventRef.current = config?.onEvent }, [config?.onEvent])
 
@@ -263,6 +265,29 @@ export function useHomeApi(config?: Partial<HomeConfig>) {
     }
   }, [])
 
+  const upsertAutomation = useCallback(async (automation: Automation) => {
+    try {
+      const res = await autoClientRef.current.upsertAutomation({ automation }).response
+      return { ok: (res as any).ok, message: (res as any).message, automationId: (res as any).automationId }
+    } catch (e: any) {
+      return { ok: false, error: String(e?.message ?? e) }
+    }
+  }, [])
+
+  const listAuditLogs = useCallback(async (opts: { kind?: string; subject?: string; pageSize?: number; pageToken?: string }) => {
+    try {
+      const res = await auditClientRef.current.listLogs({
+        kind: opts.kind ?? '',
+        subject: opts.subject ?? '',
+        pageSize: opts.pageSize ?? 20,
+        pageToken: opts.pageToken ?? '',
+      }).response as ListLogsResponse
+      return { ok: true, entries: (res.entries as LogEntry[]) || [], nextPageToken: res.nextPageToken ?? '' }
+    } catch (e: any) {
+      return { ok: false, error: String(e?.message ?? e) }
+    }
+  }, [])
+
   useEffect(() => () => stopWatch(), [stopWatch])
 
   return {
@@ -280,5 +305,7 @@ export function useHomeApi(config?: Partial<HomeConfig>) {
     listAutomations,
     setAutomationEnabled,
     triggerAutomation,
+    upsertAutomation,
+    listAuditLogs,
   }
 }

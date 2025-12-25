@@ -17,7 +17,8 @@ import { useMediaQuery } from './hooks/useMediaQuery'
 import { RightToolbar } from './components/RightToolbar'
 import { DeviceFilters } from './components/DeviceFilters'
 import { MobileFiltersDrawer } from './components/MobileFiltersDrawer'
-import type { Automation } from './proto/home/service'
+import type { Automation, LogEntry } from './proto/home/service'
+import { AutomationEditDrawer } from './components/AutomationEditDrawer'
 
 export default function App() {
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -114,6 +115,13 @@ export default function App() {
   const [autoNext, setAutoNext] = useState('')
   const [filterTag, setFilterTag] = useState('')
   const [filterName, setFilterName] = useState('')
+  const [autoEditOpen, setAutoEditOpen] = useState(false)
+  const [editingAuto, setEditingAuto] = useState<Automation | undefined>(undefined)
+  const [autoLogs, setAutoLogs] = useState<Record<string, { entries: LogEntry[]; loading: boolean; error?: string }>>({})
+  const [logsOpen, setLogsOpen] = useState<Record<string, boolean>>({})
+  const tryStringify = (obj: any) => {
+    try { return JSON.stringify(obj) } catch { return String(obj) }
+  }
 
   const loadAutomations = async (reset?: boolean) => {
     if (!automationApi) {
@@ -312,6 +320,12 @@ export default function App() {
                     {activeView === 'automations' && (
                       <div className="space-y-3">
                         <div className="flex flex-wrap gap-2 items-center">
+                          <button
+                            onClick={() => { setEditingAuto(undefined); setAutoEditOpen(true) }}
+                            className="px-3 py-2 text-sm rounded-lg bg-prime-500 text-white hover:bg-prime-600 active:scale-[0.99]"
+                          >
+                            新建自动化
+                          </button>
                           <input
                             value={filterName}
                             onChange={e => setFilterName(e.target.value)}
@@ -346,21 +360,48 @@ export default function App() {
                                   <div className="text-base font-semibold">{a.name || a.id}</div>
                                   <div className="text-xs text-slate-500 dark:text-slate-400 truncate">{a.id}</div>
                                 </div>
-                                <button
-                                  onClick={async () => {
-                                    if (!automationApi) { logError('云端模式暂不支持'); return }
-                                    const r = await automationApi.setAutomationEnabled(a.id, !a.enabled)
-                                    if (r.ok) {
-                                      logSuccess(`${!a.enabled ? '启用' : '停用'}成功`)
-                                      await loadAutomations(true)
-                                    } else {
-                                      logError(r.error || r.message || '操作失败')
-                                    }
-                                  }}
-                                  className={`px-3 py-1 rounded-full text-xs ${a.enabled ? 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-200' : 'bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-200'}`}
-                                >
-                                  {a.enabled ? '已启用' : '已停用'}
-                                </button>
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    onClick={async () => {
+                                      const open = !logsOpen[a.id]
+                                      setLogsOpen(prev => ({ ...prev, [a.id]: open }))
+                                      if (open && !autoLogs[a.id]) {
+                                        if (!automationApi) { logError('云端模式暂不支持'); return }
+                                        setAutoLogs(prev => ({ ...prev, [a.id]: { entries: [], loading: true } }))
+                                        const res = await automationApi.listAuditLogs({ subject: a.id, pageSize: 10 })
+                                        if (res.ok) {
+                                          setAutoLogs(prev => ({ ...prev, [a.id]: { entries: res.entries || [], loading: false } }))
+                                        } else {
+                                          setAutoLogs(prev => ({ ...prev, [a.id]: { entries: [], loading: false, error: res.error } }))
+                                        }
+                                      }
+                                    }}
+                                    className="text-xs px-3 py-1 rounded-full bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-200"
+                                  >
+                                    {logsOpen[a.id] ? '收起日志' : '查看日志'}
+                                  </button>
+                                  <button
+                                    onClick={() => { setEditingAuto(a as Automation); setAutoEditOpen(true) }}
+                                    className="text-xs px-3 py-1 rounded-full bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-200"
+                                  >
+                                    编辑
+                                  </button>
+                                  <button
+                                    onClick={async () => {
+                                      if (!automationApi) { logError('云端模式暂不支持'); return }
+                                      const r = await automationApi.setAutomationEnabled(a.id, !a.enabled)
+                                      if (r.ok) {
+                                        logSuccess(`${!a.enabled ? '启用' : '停用'}成功`)
+                                        await loadAutomations(true)
+                                      } else {
+                                        logError(r.error || r.message || '操作失败')
+                                      }
+                                    }}
+                                    className={`px-3 py-1 rounded-full text-xs ${a.enabled ? 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-200' : 'bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-200'}`}
+                                  >
+                                    {a.enabled ? '已启用' : '已停用'}
+                                  </button>
+                                </div>
                               </div>
                               <div className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
                                 {a.when ? `触发: ${(a.when as any).type || '未知'}` : '无触发条件'}
@@ -402,6 +443,21 @@ export default function App() {
                                   {a.tags.map(t => (
                                     <span key={t} className="text-xs px-2 py-1 rounded-full bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-200">{t}</span>
                                   ))}
+                                </div>
+                              )}
+                              {logsOpen[a.id] && (
+                                <div className="mt-2 rounded-lg bg-slate-50 dark:bg-white/5 border border-slate-200/60 dark:border-white/10 p-2 space-y-1">
+                                  {autoLogs[a.id]?.loading && <div className="text-xs text-slate-500">加载日志...</div>}
+                                  {autoLogs[a.id]?.error && <div className="text-xs text-red-500">{autoLogs[a.id]?.error}</div>}
+                                  {(autoLogs[a.id]?.entries || []).map((log) => (
+                                    <div key={log.id} className="text-xs text-slate-600 dark:text-slate-300 flex justify-between gap-2">
+                                      <span className="truncate">{new Date(Number(log.ts || 0)).toLocaleTimeString()} · {log.kind}</span>
+                                      {log.data && <span className="truncate text-slate-500">{tryStringify(log.data)}</span>}
+                                    </div>
+                                  ))}
+                                  {(!autoLogs[a.id]?.entries || autoLogs[a.id]?.entries.length === 0) && !autoLogs[a.id]?.loading && (
+                                    <div className="text-xs text-slate-500">暂无日志</div>
+                                  )}
                                 </div>
                               )}
                             </div>
@@ -529,6 +585,20 @@ export default function App() {
         onClose={() => setCloudSettingsOpen(false)}
         onSaved={(cfg) => {
           setCloudCfg(cfg)
+        }}
+      />
+
+      <AutomationEditDrawer
+        open={autoEditOpen}
+        initial={editingAuto}
+        onClose={() => { setAutoEditOpen(false); setEditingAuto(undefined) }}
+        onSubmit={async (automation) => {
+          if (!automationApi) throw new Error('云端模式暂不支持自动化管理')
+          const res = await automationApi.upsertAutomation(automation)
+          if (!res.ok) throw new Error(res.error || res.message || '保存失败')
+          logSuccess(`${editingAuto ? '更新' : '创建'}成功`)
+          setAutoEditOpen(false); setEditingAuto(undefined)
+          await loadAutomations(true)
         }}
       />
 
