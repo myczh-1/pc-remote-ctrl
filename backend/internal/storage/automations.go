@@ -35,6 +35,8 @@ type ListAutomationsOptions struct {
 	IncludeDisabled bool
 	PageSize        int
 	PageToken       string // format: "<updated_at>:<id>"
+	Tag             string
+	NameContains    string
 }
 
 // Automations persists automation definitions in SQLite with JSON payloads.
@@ -235,6 +237,8 @@ func (a *Automations) List(opts ListAutomationsOptions) ([]Automation, string, e
 	defer rows.Close()
 
 	out := []Automation{}
+	requestedTag := strings.TrimSpace(opts.Tag)
+	nameSubstr := strings.ToLower(strings.TrimSpace(opts.NameContains))
 	for rows.Next() {
 		var (
 			id, name                     string
@@ -255,6 +259,12 @@ func (a *Automations) List(opts ListAutomationsOptions) ([]Automation, string, e
 		if thenJSON.Valid && thenJSON.String != "" {
 			_ = json.Unmarshal([]byte(thenJSON.String), &auto.Then)
 		}
+		if requestedTag != "" && !hasTag(auto.Tags, requestedTag) {
+			continue
+		}
+		if nameSubstr != "" && !strings.Contains(strings.ToLower(auto.Name), nameSubstr) {
+			continue
+		}
 		out = append(out, auto)
 	}
 	if err := rows.Err(); err != nil {
@@ -268,4 +278,13 @@ func (a *Automations) List(opts ListAutomationsOptions) ([]Automation, string, e
 		out = out[:pageSize]
 	}
 	return out, next, nil
+}
+
+func hasTag(tags []string, t string) bool {
+	for _, tag := range tags {
+		if strings.EqualFold(strings.TrimSpace(tag), strings.TrimSpace(t)) {
+			return true
+		}
+	}
+	return false
 }

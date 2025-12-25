@@ -3,6 +3,7 @@ package home
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"pc-remote-ctrl/backend/internal/storage"
@@ -14,12 +15,13 @@ import (
 // AutomationService manages automation definitions via gRPC.
 type AutomationService struct {
 	homepb.UnimplementedAutomationServiceServer
-	autos *storage.Automations
-	audit *storage.AuditLogs
+	autos  *storage.Automations
+	audit  *storage.AuditLogs
+	engine *AutomationEngine
 }
 
-func NewAutomationService(autos *storage.Automations, audit *storage.AuditLogs) *AutomationService {
-	return &AutomationService{autos: autos, audit: audit}
+func NewAutomationService(autos *storage.Automations, audit *storage.AuditLogs, engine *AutomationEngine) *AutomationService {
+	return &AutomationService{autos: autos, audit: audit, engine: engine}
 }
 
 func (s *AutomationService) ListAutomations(ctx context.Context, req *homepb.ListAutomationsRequest) (*homepb.ListAutomationsResponse, error) {
@@ -27,6 +29,8 @@ func (s *AutomationService) ListAutomations(ctx context.Context, req *homepb.Lis
 		IncludeDisabled: req.GetIncludeDisabled(),
 		PageSize:        int(req.GetPageSize()),
 		PageToken:       req.GetPageToken(),
+		Tag:             req.GetTag(),
+		NameContains:    req.GetNameContains(),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("list automations: %w", err)
@@ -58,10 +62,14 @@ func (s *AutomationService) UpsertAutomation(ctx context.Context, req *homepb.Up
 	if err != nil {
 		return &homepb.UpsertAutomationResponse{Ok: false, Message: err.Error()}, nil
 	}
+	if err := validateAutomation(*stAuto); err != nil {
+		return &homepb.UpsertAutomationResponse{Ok: false, Message: err.Error()}, nil
+	}
 	stAuto.UpdatedAt = time.Now().UnixMilli()
 	if err := s.autos.Upsert(*stAuto); err != nil {
 		return &homepb.UpsertAutomationResponse{Ok: false, Message: err.Error()}, nil
 	}
+	_ = s.reloadEngine()
 	s.logAudit("automation_upsert", id, map[string]any{
 		"name":    stAuto.Name,
 		"enabled": stAuto.Enabled,
@@ -77,6 +85,7 @@ func (s *AutomationService) DeleteAutomation(ctx context.Context, req *homepb.De
 	if err := s.autos.Remove(req.GetAutomationId()); err != nil {
 		return &homepb.DeleteAutomationResponse{Ok: false, Message: err.Error()}, nil
 	}
+	_ = s.reloadEngine()
 	s.logAudit("automation_delete", req.GetAutomationId(), nil)
 	return &homepb.DeleteAutomationResponse{Ok: true, Message: "ok"}, nil
 }
@@ -88,6 +97,7 @@ func (s *AutomationService) SetAutomationEnabled(ctx context.Context, req *homep
 	if err := s.autos.SetEnabled(req.GetAutomationId(), req.GetEnabled()); err != nil {
 		return &homepb.SetAutomationEnabledResponse{Ok: false, Message: err.Error()}, nil
 	}
+	_ = s.reloadEngine()
 	s.logAudit("automation_enable", req.GetAutomationId(), map[string]any{"enabled": req.GetEnabled()})
 	return &homepb.SetAutomationEnabledResponse{Ok: true, Message: "ok"}, nil
 }
@@ -146,4 +156,41 @@ func (s *AutomationService) logAudit(kind, subject string, data map[string]any) 
 		return
 	}
 	_ = s.audit.Append(storage.AuditEntry{Kind: kind, Subject: subject, Data: data})
+}
+
+func (s *AutomationService) reloadEngine() error {
+	if s.engine == nil {
+		return nil
+	}
+	return s.engine.Reload()
+}
+
+func validateAutomation(a storage.Automation) error {
+	if strings.TrimSpace(a.Name) == "" {
+		return fmt.Errorf("name required")
+	}
+	if len(a.Then) == 0 {
+		return fmt.Errorf("then actions required")
+	}
+	for i, act := range a.Then {
+		if strings.TrimSpace(act.DeviceID) == "" {
+			return fmt.Errorf("then[%d].device_id required", i)
+		}
+		if strings.TrimSpace(act.Action) == "" {
+			return fmt.Errorf("then[%d].action required", i)
+		}
+	}
+	wtype := strings.ToLower(fmt.Sprint(a.When["type"]))
+	if wtype == "" {
+		return fmt.Errorf("when.type required")
+	}
+	switch wtype {
+	case "state", "event", "online", "action_result":
+	default:
+		return fmt.Errorf("unsupported when.type %s", wtype)
+	}
+	if dev := strings.TrimSpace(fmt.Sprint(a.When["device_id"])); dev == "" {
+		return fmt.Errorf("when.device_id required")
+	}
+	return nil
 }

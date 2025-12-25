@@ -251,10 +251,11 @@ func main() {
 	// ops via MQTT
 	ops := ops.NewMQTTOps(mqttClient)
 	homesvc := home.New(devices, auditLogs, ops)
+	engine := home.NewAutomationEngine(automations, devices, ops, auditLogs)
 	homesvc.InitSubscriptions(mqttClient)
 	homepb.RegisterHomeServiceServer(grpcServer, homesvc)
 	homepb.RegisterAuditServiceServer(grpcServer, home.NewAuditService(auditLogs))
-	homepb.RegisterAutomationServiceServer(grpcServer, home.NewAutomationService(automations, auditLogs))
+	homepb.RegisterAutomationServiceServer(grpcServer, home.NewAutomationService(automations, auditLogs, engine))
 
 	wrapped := grpcweb.WrapServer(
 		grpcServer,
@@ -289,6 +290,8 @@ func main() {
 
 	// background device offline detection
 	homesvc.StartOfflineWatcher(ctx, cfg.DeviceOfflineAfter)
+	// automation engine consuming device events
+	homesvc.AttachAutomationEngine(ctx, engine)
 
 	// cloud registration (optional)
 	tryCloudRegister(ctx, cfg)

@@ -1382,6 +1382,8 @@ type ListAutomationsRequest struct {
 	IncludeDisabled bool                   `protobuf:"varint,1,opt,name=include_disabled,json=includeDisabled,proto3" json:"include_disabled,omitempty"`
 	PageSize        int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
 	PageToken       string                 `protobuf:"bytes,3,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
+	Tag             string                 `protobuf:"bytes,4,opt,name=tag,proto3" json:"tag,omitempty"`
+	NameContains    string                 `protobuf:"bytes,5,opt,name=name_contains,json=nameContains,proto3" json:"name_contains,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -1433,6 +1435,20 @@ func (x *ListAutomationsRequest) GetPageSize() int32 {
 func (x *ListAutomationsRequest) GetPageToken() string {
 	if x != nil {
 		return x.PageToken
+	}
+	return ""
+}
+
+func (x *ListAutomationsRequest) GetTag() string {
+	if x != nil {
+		return x.Tag
+	}
+	return ""
+}
+
+func (x *ListAutomationsRequest) GetNameContains() string {
+	if x != nil {
+		return x.NameContains
 	}
 	return ""
 }
@@ -1900,12 +1916,14 @@ const file_home_service_proto_rawDesc = "" +
 	"\x04when\x18\x05 \x01(\v2\x17.google.protobuf.StructR\x04when\x129\n" +
 	"\x04then\x18\x06 \x03(\v2%.remote_control.home.AutomationActionR\x04then\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\a \x01(\x03R\tupdatedAt\"\x7f\n" +
+	"updated_at\x18\a \x01(\x03R\tupdatedAt\"\xb6\x01\n" +
 	"\x16ListAutomationsRequest\x12)\n" +
 	"\x10include_disabled\x18\x01 \x01(\bR\x0fincludeDisabled\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x1d\n" +
 	"\n" +
-	"page_token\x18\x03 \x01(\tR\tpageToken\"\x84\x01\n" +
+	"page_token\x18\x03 \x01(\tR\tpageToken\x12\x10\n" +
+	"\x03tag\x18\x04 \x01(\tR\x03tag\x12#\n" +
+	"\rname_contains\x18\x05 \x01(\tR\fnameContains\"\x84\x01\n" +
 	"\x17ListAutomationsResponse\x12A\n" +
 	"\vautomations\x18\x01 \x03(\v2\x1f.remote_control.home.AutomationR\vautomations\x12&\n" +
 	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"Z\n" +

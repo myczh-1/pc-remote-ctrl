@@ -36,6 +36,13 @@ func (s *Service) InitSubscriptions(c mqtt.Client) {
 	go s.submgr.initAll(context.Background())
 }
 
+func (s *Service) AttachAutomationEngine(ctx context.Context, eng *AutomationEngine) {
+	if eng == nil {
+		return
+	}
+	eng.Run(ctx, s.hub)
+}
+
 func (s *Service) ListDevices(ctx context.Context, req *homepb.ListDevicesRequest) (*homepb.ListDevicesResponse, error) {
 	// Build composite filter from request - no special cases
 	filter := NewCompositeFilter(
