@@ -13,6 +13,7 @@ import (
 	homepb "pc-remote-ctrl/backend/proto/home"
 
 	crand "crypto/rand"
+
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
@@ -160,6 +161,7 @@ func (s *Service) DeleteDevice(ctx context.Context, req *homepb.DeleteDeviceRequ
 	return &homepb.DeleteDeviceResponse{Ok: true, Message: "ok"}, nil
 }
 
+// 接受前端调用
 func (s *Service) InvokeAction(ctx context.Context, req *homepb.InvokeActionRequest) (*homepb.InvokeActionResponse, error) {
 	args := mapFromStruct(req.GetArgs())
 	data, err := s.ops.InvokeAction(ctx, req.GetDeviceId(), req.GetAction(), args)
