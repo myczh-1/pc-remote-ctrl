@@ -248,6 +248,279 @@ export interface InvokeActionResponse {
     data?: Struct;
 }
 /**
+ * @generated from protobuf message remote_control.home.LogEntry
+ */
+export interface LogEntry {
+    /**
+     * @generated from protobuf field: int64 id = 1
+     */
+    id: string;
+    /**
+     * @generated from protobuf field: int64 ts = 2
+     */
+    ts: string;
+    /**
+     * @generated from protobuf field: string kind = 3
+     */
+    kind: string;
+    /**
+     * @generated from protobuf field: string subject = 4
+     */
+    subject: string;
+    /**
+     * @generated from protobuf field: string actor = 5
+     */
+    actor: string;
+    /**
+     * @generated from protobuf field: google.protobuf.Struct data = 6
+     */
+    data?: Struct;
+}
+/**
+ * @generated from protobuf message remote_control.home.ListLogsRequest
+ */
+export interface ListLogsRequest {
+    /**
+     * @generated from protobuf field: string kind = 1
+     */
+    kind: string;
+    /**
+     * @generated from protobuf field: string subject = 2
+     */
+    subject: string;
+    /**
+     * @generated from protobuf field: int32 page_size = 3
+     */
+    pageSize: number;
+    /**
+     * @generated from protobuf field: string page_token = 4
+     */
+    pageToken: string; // last seen id for keyset pagination
+}
+/**
+ * @generated from protobuf message remote_control.home.ListLogsResponse
+ */
+export interface ListLogsResponse {
+    /**
+     * @generated from protobuf field: repeated remote_control.home.LogEntry entries = 1
+     */
+    entries: LogEntry[];
+    /**
+     * @generated from protobuf field: string next_page_token = 2
+     */
+    nextPageToken: string;
+}
+/**
+ * @generated from protobuf message remote_control.home.CleanupLogsRequest
+ */
+export interface CleanupLogsRequest {
+    /**
+     * @generated from protobuf field: int64 before_ts = 1
+     */
+    beforeTs: string; // delete logs with ts < before_ts; 0 => all
+    /**
+     * @generated from protobuf field: int32 limit = 2
+     */
+    limit: number; // optional safety cap; 0 => no cap
+}
+/**
+ * @generated from protobuf message remote_control.home.CleanupLogsResponse
+ */
+export interface CleanupLogsResponse {
+    /**
+     * @generated from protobuf field: int32 deleted = 1
+     */
+    deleted: number;
+}
+/**
+ * @generated from protobuf message remote_control.home.AutomationAction
+ */
+export interface AutomationAction {
+    /**
+     * @generated from protobuf field: string device_id = 1
+     */
+    deviceId: string;
+    /**
+     * @generated from protobuf field: string action = 2
+     */
+    action: string;
+    /**
+     * @generated from protobuf field: google.protobuf.Struct args = 3
+     */
+    args?: Struct;
+}
+/**
+ * @generated from protobuf message remote_control.home.Automation
+ */
+export interface Automation {
+    /**
+     * @generated from protobuf field: string id = 1
+     */
+    id: string;
+    /**
+     * @generated from protobuf field: string name = 2
+     */
+    name: string;
+    /**
+     * @generated from protobuf field: repeated string tags = 3
+     */
+    tags: string[];
+    /**
+     * @generated from protobuf field: bool enabled = 4
+     */
+    enabled: boolean;
+    /**
+     * @generated from protobuf field: google.protobuf.Struct when = 5
+     */
+    when?: Struct;
+    /**
+     * @generated from protobuf field: repeated remote_control.home.AutomationAction then = 6
+     */
+    then: AutomationAction[];
+    /**
+     * @generated from protobuf field: int64 updated_at = 7
+     */
+    updatedAt: string;
+}
+/**
+ * @generated from protobuf message remote_control.home.ListAutomationsRequest
+ */
+export interface ListAutomationsRequest {
+    /**
+     * @generated from protobuf field: bool include_disabled = 1
+     */
+    includeDisabled: boolean;
+    /**
+     * @generated from protobuf field: int32 page_size = 2
+     */
+    pageSize: number;
+    /**
+     * @generated from protobuf field: string page_token = 3
+     */
+    pageToken: string;
+    /**
+     * @generated from protobuf field: string tag = 4
+     */
+    tag: string;
+    /**
+     * @generated from protobuf field: string name_contains = 5
+     */
+    nameContains: string;
+}
+/**
+ * @generated from protobuf message remote_control.home.ListAutomationsResponse
+ */
+export interface ListAutomationsResponse {
+    /**
+     * @generated from protobuf field: repeated remote_control.home.Automation automations = 1
+     */
+    automations: Automation[];
+    /**
+     * @generated from protobuf field: string next_page_token = 2
+     */
+    nextPageToken: string;
+}
+/**
+ * @generated from protobuf message remote_control.home.UpsertAutomationRequest
+ */
+export interface UpsertAutomationRequest {
+    /**
+     * @generated from protobuf field: remote_control.home.Automation automation = 1
+     */
+    automation?: Automation;
+}
+/**
+ * @generated from protobuf message remote_control.home.UpsertAutomationResponse
+ */
+export interface UpsertAutomationResponse {
+    /**
+     * @generated from protobuf field: bool ok = 1
+     */
+    ok: boolean;
+    /**
+     * @generated from protobuf field: string message = 2
+     */
+    message: string;
+    /**
+     * @generated from protobuf field: string automation_id = 3
+     */
+    automationId: string;
+}
+/**
+ * @generated from protobuf message remote_control.home.DeleteAutomationRequest
+ */
+export interface DeleteAutomationRequest {
+    /**
+     * @generated from protobuf field: string automation_id = 1
+     */
+    automationId: string;
+}
+/**
+ * @generated from protobuf message remote_control.home.DeleteAutomationResponse
+ */
+export interface DeleteAutomationResponse {
+    /**
+     * @generated from protobuf field: bool ok = 1
+     */
+    ok: boolean;
+    /**
+     * @generated from protobuf field: string message = 2
+     */
+    message: string;
+}
+/**
+ * @generated from protobuf message remote_control.home.SetAutomationEnabledRequest
+ */
+export interface SetAutomationEnabledRequest {
+    /**
+     * @generated from protobuf field: string automation_id = 1
+     */
+    automationId: string;
+    /**
+     * @generated from protobuf field: bool enabled = 2
+     */
+    enabled: boolean;
+}
+/**
+ * @generated from protobuf message remote_control.home.SetAutomationEnabledResponse
+ */
+export interface SetAutomationEnabledResponse {
+    /**
+     * @generated from protobuf field: bool ok = 1
+     */
+    ok: boolean;
+    /**
+     * @generated from protobuf field: string message = 2
+     */
+    message: string;
+}
+/**
+ * @generated from protobuf message remote_control.home.TriggerAutomationRequest
+ */
+export interface TriggerAutomationRequest {
+    /**
+     * @generated from protobuf field: string automation_id = 1
+     */
+    automationId: string;
+    /**
+     * @generated from protobuf field: google.protobuf.Struct payload = 2
+     */
+    payload?: Struct; // optional context for audit
+}
+/**
+ * @generated from protobuf message remote_control.home.TriggerAutomationResponse
+ */
+export interface TriggerAutomationResponse {
+    /**
+     * @generated from protobuf field: bool ok = 1
+     */
+    ok: boolean;
+    /**
+     * @generated from protobuf field: string message = 2
+     */
+    message: string;
+}
+/**
  * @generated from protobuf enum remote_control.home.AdapterKind
  */
 export enum AdapterKind {
@@ -1178,6 +1451,1040 @@ class InvokeActionResponse$Type extends MessageType<InvokeActionResponse> {
  * @generated MessageType for protobuf message remote_control.home.InvokeActionResponse
  */
 export const InvokeActionResponse = new InvokeActionResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class LogEntry$Type extends MessageType<LogEntry> {
+    constructor() {
+        super("remote_control.home.LogEntry", [
+            { no: 1, name: "id", kind: "scalar", T: 3 /*ScalarType.INT64*/ },
+            { no: 2, name: "ts", kind: "scalar", T: 3 /*ScalarType.INT64*/ },
+            { no: 3, name: "kind", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "subject", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "actor", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 6, name: "data", kind: "message", T: () => Struct }
+        ]);
+    }
+    create(value?: PartialMessage<LogEntry>): LogEntry {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        message.id = "0";
+        message.ts = "0";
+        message.kind = "";
+        message.subject = "";
+        message.actor = "";
+        if (value !== undefined)
+            reflectionMergePartial<LogEntry>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: LogEntry): LogEntry {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* int64 id */ 1:
+                    message.id = reader.int64().toString();
+                    break;
+                case /* int64 ts */ 2:
+                    message.ts = reader.int64().toString();
+                    break;
+                case /* string kind */ 3:
+                    message.kind = reader.string();
+                    break;
+                case /* string subject */ 4:
+                    message.subject = reader.string();
+                    break;
+                case /* string actor */ 5:
+                    message.actor = reader.string();
+                    break;
+                case /* google.protobuf.Struct data */ 6:
+                    message.data = Struct.internalBinaryRead(reader, reader.uint32(), options, message.data);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: LogEntry, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* int64 id = 1; */
+        if (message.id !== "0")
+            writer.tag(1, WireType.Varint).int64(message.id);
+        /* int64 ts = 2; */
+        if (message.ts !== "0")
+            writer.tag(2, WireType.Varint).int64(message.ts);
+        /* string kind = 3; */
+        if (message.kind !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.kind);
+        /* string subject = 4; */
+        if (message.subject !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.subject);
+        /* string actor = 5; */
+        if (message.actor !== "")
+            writer.tag(5, WireType.LengthDelimited).string(message.actor);
+        /* google.protobuf.Struct data = 6; */
+        if (message.data)
+            Struct.internalBinaryWrite(message.data, writer.tag(6, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message remote_control.home.LogEntry
+ */
+export const LogEntry = new LogEntry$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ListLogsRequest$Type extends MessageType<ListLogsRequest> {
+    constructor() {
+        super("remote_control.home.ListLogsRequest", [
+            { no: 1, name: "kind", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "subject", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "page_size", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
+            { no: 4, name: "page_token", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<ListLogsRequest>): ListLogsRequest {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        message.kind = "";
+        message.subject = "";
+        message.pageSize = 0;
+        message.pageToken = "";
+        if (value !== undefined)
+            reflectionMergePartial<ListLogsRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ListLogsRequest): ListLogsRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string kind */ 1:
+                    message.kind = reader.string();
+                    break;
+                case /* string subject */ 2:
+                    message.subject = reader.string();
+                    break;
+                case /* int32 page_size */ 3:
+                    message.pageSize = reader.int32();
+                    break;
+                case /* string page_token */ 4:
+                    message.pageToken = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ListLogsRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string kind = 1; */
+        if (message.kind !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.kind);
+        /* string subject = 2; */
+        if (message.subject !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.subject);
+        /* int32 page_size = 3; */
+        if (message.pageSize !== 0)
+            writer.tag(3, WireType.Varint).int32(message.pageSize);
+        /* string page_token = 4; */
+        if (message.pageToken !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.pageToken);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message remote_control.home.ListLogsRequest
+ */
+export const ListLogsRequest = new ListLogsRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ListLogsResponse$Type extends MessageType<ListLogsResponse> {
+    constructor() {
+        super("remote_control.home.ListLogsResponse", [
+            { no: 1, name: "entries", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => LogEntry },
+            { no: 2, name: "next_page_token", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<ListLogsResponse>): ListLogsResponse {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        message.entries = [];
+        message.nextPageToken = "";
+        if (value !== undefined)
+            reflectionMergePartial<ListLogsResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ListLogsResponse): ListLogsResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* repeated remote_control.home.LogEntry entries */ 1:
+                    message.entries.push(LogEntry.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                case /* string next_page_token */ 2:
+                    message.nextPageToken = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ListLogsResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated remote_control.home.LogEntry entries = 1; */
+        for (let i = 0; i < message.entries.length; i++)
+            LogEntry.internalBinaryWrite(message.entries[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* string next_page_token = 2; */
+        if (message.nextPageToken !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.nextPageToken);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message remote_control.home.ListLogsResponse
+ */
+export const ListLogsResponse = new ListLogsResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class CleanupLogsRequest$Type extends MessageType<CleanupLogsRequest> {
+    constructor() {
+        super("remote_control.home.CleanupLogsRequest", [
+            { no: 1, name: "before_ts", kind: "scalar", T: 3 /*ScalarType.INT64*/ },
+            { no: 2, name: "limit", kind: "scalar", T: 5 /*ScalarType.INT32*/ }
+        ]);
+    }
+    create(value?: PartialMessage<CleanupLogsRequest>): CleanupLogsRequest {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        message.beforeTs = "0";
+        message.limit = 0;
+        if (value !== undefined)
+            reflectionMergePartial<CleanupLogsRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CleanupLogsRequest): CleanupLogsRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* int64 before_ts */ 1:
+                    message.beforeTs = reader.int64().toString();
+                    break;
+                case /* int32 limit */ 2:
+                    message.limit = reader.int32();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: CleanupLogsRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* int64 before_ts = 1; */
+        if (message.beforeTs !== "0")
+            writer.tag(1, WireType.Varint).int64(message.beforeTs);
+        /* int32 limit = 2; */
+        if (message.limit !== 0)
+            writer.tag(2, WireType.Varint).int32(message.limit);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message remote_control.home.CleanupLogsRequest
+ */
+export const CleanupLogsRequest = new CleanupLogsRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class CleanupLogsResponse$Type extends MessageType<CleanupLogsResponse> {
+    constructor() {
+        super("remote_control.home.CleanupLogsResponse", [
+            { no: 1, name: "deleted", kind: "scalar", T: 5 /*ScalarType.INT32*/ }
+        ]);
+    }
+    create(value?: PartialMessage<CleanupLogsResponse>): CleanupLogsResponse {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        message.deleted = 0;
+        if (value !== undefined)
+            reflectionMergePartial<CleanupLogsResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CleanupLogsResponse): CleanupLogsResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* int32 deleted */ 1:
+                    message.deleted = reader.int32();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: CleanupLogsResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* int32 deleted = 1; */
+        if (message.deleted !== 0)
+            writer.tag(1, WireType.Varint).int32(message.deleted);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message remote_control.home.CleanupLogsResponse
+ */
+export const CleanupLogsResponse = new CleanupLogsResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class AutomationAction$Type extends MessageType<AutomationAction> {
+    constructor() {
+        super("remote_control.home.AutomationAction", [
+            { no: 1, name: "device_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "action", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "args", kind: "message", T: () => Struct }
+        ]);
+    }
+    create(value?: PartialMessage<AutomationAction>): AutomationAction {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        message.deviceId = "";
+        message.action = "";
+        if (value !== undefined)
+            reflectionMergePartial<AutomationAction>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: AutomationAction): AutomationAction {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string device_id */ 1:
+                    message.deviceId = reader.string();
+                    break;
+                case /* string action */ 2:
+                    message.action = reader.string();
+                    break;
+                case /* google.protobuf.Struct args */ 3:
+                    message.args = Struct.internalBinaryRead(reader, reader.uint32(), options, message.args);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: AutomationAction, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string device_id = 1; */
+        if (message.deviceId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.deviceId);
+        /* string action = 2; */
+        if (message.action !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.action);
+        /* google.protobuf.Struct args = 3; */
+        if (message.args)
+            Struct.internalBinaryWrite(message.args, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message remote_control.home.AutomationAction
+ */
+export const AutomationAction = new AutomationAction$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class Automation$Type extends MessageType<Automation> {
+    constructor() {
+        super("remote_control.home.Automation", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "tags", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "enabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 5, name: "when", kind: "message", T: () => Struct },
+            { no: 6, name: "then", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => AutomationAction },
+            { no: 7, name: "updated_at", kind: "scalar", T: 3 /*ScalarType.INT64*/ }
+        ]);
+    }
+    create(value?: PartialMessage<Automation>): Automation {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        message.id = "";
+        message.name = "";
+        message.tags = [];
+        message.enabled = false;
+        message.then = [];
+        message.updatedAt = "0";
+        if (value !== undefined)
+            reflectionMergePartial<Automation>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Automation): Automation {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                case /* string name */ 2:
+                    message.name = reader.string();
+                    break;
+                case /* repeated string tags */ 3:
+                    message.tags.push(reader.string());
+                    break;
+                case /* bool enabled */ 4:
+                    message.enabled = reader.bool();
+                    break;
+                case /* google.protobuf.Struct when */ 5:
+                    message.when = Struct.internalBinaryRead(reader, reader.uint32(), options, message.when);
+                    break;
+                case /* repeated remote_control.home.AutomationAction then */ 6:
+                    message.then.push(AutomationAction.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                case /* int64 updated_at */ 7:
+                    message.updatedAt = reader.int64().toString();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: Automation, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        /* string name = 2; */
+        if (message.name !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.name);
+        /* repeated string tags = 3; */
+        for (let i = 0; i < message.tags.length; i++)
+            writer.tag(3, WireType.LengthDelimited).string(message.tags[i]);
+        /* bool enabled = 4; */
+        if (message.enabled !== false)
+            writer.tag(4, WireType.Varint).bool(message.enabled);
+        /* google.protobuf.Struct when = 5; */
+        if (message.when)
+            Struct.internalBinaryWrite(message.when, writer.tag(5, WireType.LengthDelimited).fork(), options).join();
+        /* repeated remote_control.home.AutomationAction then = 6; */
+        for (let i = 0; i < message.then.length; i++)
+            AutomationAction.internalBinaryWrite(message.then[i], writer.tag(6, WireType.LengthDelimited).fork(), options).join();
+        /* int64 updated_at = 7; */
+        if (message.updatedAt !== "0")
+            writer.tag(7, WireType.Varint).int64(message.updatedAt);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message remote_control.home.Automation
+ */
+export const Automation = new Automation$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ListAutomationsRequest$Type extends MessageType<ListAutomationsRequest> {
+    constructor() {
+        super("remote_control.home.ListAutomationsRequest", [
+            { no: 1, name: "include_disabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 2, name: "page_size", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
+            { no: 3, name: "page_token", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "tag", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "name_contains", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<ListAutomationsRequest>): ListAutomationsRequest {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        message.includeDisabled = false;
+        message.pageSize = 0;
+        message.pageToken = "";
+        message.tag = "";
+        message.nameContains = "";
+        if (value !== undefined)
+            reflectionMergePartial<ListAutomationsRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ListAutomationsRequest): ListAutomationsRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* bool include_disabled */ 1:
+                    message.includeDisabled = reader.bool();
+                    break;
+                case /* int32 page_size */ 2:
+                    message.pageSize = reader.int32();
+                    break;
+                case /* string page_token */ 3:
+                    message.pageToken = reader.string();
+                    break;
+                case /* string tag */ 4:
+                    message.tag = reader.string();
+                    break;
+                case /* string name_contains */ 5:
+                    message.nameContains = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ListAutomationsRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* bool include_disabled = 1; */
+        if (message.includeDisabled !== false)
+            writer.tag(1, WireType.Varint).bool(message.includeDisabled);
+        /* int32 page_size = 2; */
+        if (message.pageSize !== 0)
+            writer.tag(2, WireType.Varint).int32(message.pageSize);
+        /* string page_token = 3; */
+        if (message.pageToken !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.pageToken);
+        /* string tag = 4; */
+        if (message.tag !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.tag);
+        /* string name_contains = 5; */
+        if (message.nameContains !== "")
+            writer.tag(5, WireType.LengthDelimited).string(message.nameContains);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message remote_control.home.ListAutomationsRequest
+ */
+export const ListAutomationsRequest = new ListAutomationsRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ListAutomationsResponse$Type extends MessageType<ListAutomationsResponse> {
+    constructor() {
+        super("remote_control.home.ListAutomationsResponse", [
+            { no: 1, name: "automations", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => Automation },
+            { no: 2, name: "next_page_token", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<ListAutomationsResponse>): ListAutomationsResponse {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        message.automations = [];
+        message.nextPageToken = "";
+        if (value !== undefined)
+            reflectionMergePartial<ListAutomationsResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ListAutomationsResponse): ListAutomationsResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* repeated remote_control.home.Automation automations */ 1:
+                    message.automations.push(Automation.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                case /* string next_page_token */ 2:
+                    message.nextPageToken = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ListAutomationsResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated remote_control.home.Automation automations = 1; */
+        for (let i = 0; i < message.automations.length; i++)
+            Automation.internalBinaryWrite(message.automations[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* string next_page_token = 2; */
+        if (message.nextPageToken !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.nextPageToken);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message remote_control.home.ListAutomationsResponse
+ */
+export const ListAutomationsResponse = new ListAutomationsResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class UpsertAutomationRequest$Type extends MessageType<UpsertAutomationRequest> {
+    constructor() {
+        super("remote_control.home.UpsertAutomationRequest", [
+            { no: 1, name: "automation", kind: "message", T: () => Automation }
+        ]);
+    }
+    create(value?: PartialMessage<UpsertAutomationRequest>): UpsertAutomationRequest {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        if (value !== undefined)
+            reflectionMergePartial<UpsertAutomationRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: UpsertAutomationRequest): UpsertAutomationRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* remote_control.home.Automation automation */ 1:
+                    message.automation = Automation.internalBinaryRead(reader, reader.uint32(), options, message.automation);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: UpsertAutomationRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* remote_control.home.Automation automation = 1; */
+        if (message.automation)
+            Automation.internalBinaryWrite(message.automation, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message remote_control.home.UpsertAutomationRequest
+ */
+export const UpsertAutomationRequest = new UpsertAutomationRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class UpsertAutomationResponse$Type extends MessageType<UpsertAutomationResponse> {
+    constructor() {
+        super("remote_control.home.UpsertAutomationResponse", [
+            { no: 1, name: "ok", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 2, name: "message", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "automation_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<UpsertAutomationResponse>): UpsertAutomationResponse {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        message.ok = false;
+        message.message = "";
+        message.automationId = "";
+        if (value !== undefined)
+            reflectionMergePartial<UpsertAutomationResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: UpsertAutomationResponse): UpsertAutomationResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* bool ok */ 1:
+                    message.ok = reader.bool();
+                    break;
+                case /* string message */ 2:
+                    message.message = reader.string();
+                    break;
+                case /* string automation_id */ 3:
+                    message.automationId = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: UpsertAutomationResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* bool ok = 1; */
+        if (message.ok !== false)
+            writer.tag(1, WireType.Varint).bool(message.ok);
+        /* string message = 2; */
+        if (message.message !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.message);
+        /* string automation_id = 3; */
+        if (message.automationId !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.automationId);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message remote_control.home.UpsertAutomationResponse
+ */
+export const UpsertAutomationResponse = new UpsertAutomationResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class DeleteAutomationRequest$Type extends MessageType<DeleteAutomationRequest> {
+    constructor() {
+        super("remote_control.home.DeleteAutomationRequest", [
+            { no: 1, name: "automation_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<DeleteAutomationRequest>): DeleteAutomationRequest {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        message.automationId = "";
+        if (value !== undefined)
+            reflectionMergePartial<DeleteAutomationRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: DeleteAutomationRequest): DeleteAutomationRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string automation_id */ 1:
+                    message.automationId = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: DeleteAutomationRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string automation_id = 1; */
+        if (message.automationId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.automationId);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message remote_control.home.DeleteAutomationRequest
+ */
+export const DeleteAutomationRequest = new DeleteAutomationRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class DeleteAutomationResponse$Type extends MessageType<DeleteAutomationResponse> {
+    constructor() {
+        super("remote_control.home.DeleteAutomationResponse", [
+            { no: 1, name: "ok", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 2, name: "message", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<DeleteAutomationResponse>): DeleteAutomationResponse {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        message.ok = false;
+        message.message = "";
+        if (value !== undefined)
+            reflectionMergePartial<DeleteAutomationResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: DeleteAutomationResponse): DeleteAutomationResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* bool ok */ 1:
+                    message.ok = reader.bool();
+                    break;
+                case /* string message */ 2:
+                    message.message = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: DeleteAutomationResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* bool ok = 1; */
+        if (message.ok !== false)
+            writer.tag(1, WireType.Varint).bool(message.ok);
+        /* string message = 2; */
+        if (message.message !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.message);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message remote_control.home.DeleteAutomationResponse
+ */
+export const DeleteAutomationResponse = new DeleteAutomationResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class SetAutomationEnabledRequest$Type extends MessageType<SetAutomationEnabledRequest> {
+    constructor() {
+        super("remote_control.home.SetAutomationEnabledRequest", [
+            { no: 1, name: "automation_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "enabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
+        ]);
+    }
+    create(value?: PartialMessage<SetAutomationEnabledRequest>): SetAutomationEnabledRequest {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        message.automationId = "";
+        message.enabled = false;
+        if (value !== undefined)
+            reflectionMergePartial<SetAutomationEnabledRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: SetAutomationEnabledRequest): SetAutomationEnabledRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string automation_id */ 1:
+                    message.automationId = reader.string();
+                    break;
+                case /* bool enabled */ 2:
+                    message.enabled = reader.bool();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: SetAutomationEnabledRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string automation_id = 1; */
+        if (message.automationId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.automationId);
+        /* bool enabled = 2; */
+        if (message.enabled !== false)
+            writer.tag(2, WireType.Varint).bool(message.enabled);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message remote_control.home.SetAutomationEnabledRequest
+ */
+export const SetAutomationEnabledRequest = new SetAutomationEnabledRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class SetAutomationEnabledResponse$Type extends MessageType<SetAutomationEnabledResponse> {
+    constructor() {
+        super("remote_control.home.SetAutomationEnabledResponse", [
+            { no: 1, name: "ok", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 2, name: "message", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<SetAutomationEnabledResponse>): SetAutomationEnabledResponse {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        message.ok = false;
+        message.message = "";
+        if (value !== undefined)
+            reflectionMergePartial<SetAutomationEnabledResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: SetAutomationEnabledResponse): SetAutomationEnabledResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* bool ok */ 1:
+                    message.ok = reader.bool();
+                    break;
+                case /* string message */ 2:
+                    message.message = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: SetAutomationEnabledResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* bool ok = 1; */
+        if (message.ok !== false)
+            writer.tag(1, WireType.Varint).bool(message.ok);
+        /* string message = 2; */
+        if (message.message !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.message);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message remote_control.home.SetAutomationEnabledResponse
+ */
+export const SetAutomationEnabledResponse = new SetAutomationEnabledResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class TriggerAutomationRequest$Type extends MessageType<TriggerAutomationRequest> {
+    constructor() {
+        super("remote_control.home.TriggerAutomationRequest", [
+            { no: 1, name: "automation_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "payload", kind: "message", T: () => Struct }
+        ]);
+    }
+    create(value?: PartialMessage<TriggerAutomationRequest>): TriggerAutomationRequest {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        message.automationId = "";
+        if (value !== undefined)
+            reflectionMergePartial<TriggerAutomationRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: TriggerAutomationRequest): TriggerAutomationRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string automation_id */ 1:
+                    message.automationId = reader.string();
+                    break;
+                case /* google.protobuf.Struct payload */ 2:
+                    message.payload = Struct.internalBinaryRead(reader, reader.uint32(), options, message.payload);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: TriggerAutomationRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string automation_id = 1; */
+        if (message.automationId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.automationId);
+        /* google.protobuf.Struct payload = 2; */
+        if (message.payload)
+            Struct.internalBinaryWrite(message.payload, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message remote_control.home.TriggerAutomationRequest
+ */
+export const TriggerAutomationRequest = new TriggerAutomationRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class TriggerAutomationResponse$Type extends MessageType<TriggerAutomationResponse> {
+    constructor() {
+        super("remote_control.home.TriggerAutomationResponse", [
+            { no: 1, name: "ok", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 2, name: "message", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<TriggerAutomationResponse>): TriggerAutomationResponse {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        message.ok = false;
+        message.message = "";
+        if (value !== undefined)
+            reflectionMergePartial<TriggerAutomationResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: TriggerAutomationResponse): TriggerAutomationResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* bool ok */ 1:
+                    message.ok = reader.bool();
+                    break;
+                case /* string message */ 2:
+                    message.message = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: TriggerAutomationResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* bool ok = 1; */
+        if (message.ok !== false)
+            writer.tag(1, WireType.Varint).bool(message.ok);
+        /* string message = 2; */
+        if (message.message !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.message);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message remote_control.home.TriggerAutomationResponse
+ */
+export const TriggerAutomationResponse = new TriggerAutomationResponse$Type();
 /**
  * @generated ServiceType for protobuf service remote_control.home.HomeService
  */
@@ -1187,4 +2494,21 @@ export const HomeService = new ServiceType("remote_control.home.HomeService", [
     { name: "UpsertDevice", options: {}, I: UpsertDeviceRequest, O: UpsertDeviceResponse },
     { name: "DeleteDevice", options: {}, I: DeleteDeviceRequest, O: DeleteDeviceResponse },
     { name: "InvokeAction", options: {}, I: InvokeActionRequest, O: InvokeActionResponse }
+]);
+/**
+ * @generated ServiceType for protobuf service remote_control.home.AuditService
+ */
+export const AuditService = new ServiceType("remote_control.home.AuditService", [
+    { name: "ListLogs", options: {}, I: ListLogsRequest, O: ListLogsResponse },
+    { name: "CleanupLogs", options: {}, I: CleanupLogsRequest, O: CleanupLogsResponse }
+]);
+/**
+ * @generated ServiceType for protobuf service remote_control.home.AutomationService
+ */
+export const AutomationService = new ServiceType("remote_control.home.AutomationService", [
+    { name: "ListAutomations", options: {}, I: ListAutomationsRequest, O: ListAutomationsResponse },
+    { name: "UpsertAutomation", options: {}, I: UpsertAutomationRequest, O: UpsertAutomationResponse },
+    { name: "DeleteAutomation", options: {}, I: DeleteAutomationRequest, O: DeleteAutomationResponse },
+    { name: "SetAutomationEnabled", options: {}, I: SetAutomationEnabledRequest, O: SetAutomationEnabledResponse },
+    { name: "TriggerAutomation", options: {}, I: TriggerAutomationRequest, O: TriggerAutomationResponse }
 ]);

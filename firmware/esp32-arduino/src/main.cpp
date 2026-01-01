@@ -88,7 +88,7 @@ static void onMqttMessage(char* topic, uint8_t* payload, unsigned int length) {
   if (!err) {
     if (doc["corr_id"].is<String>()) corrId = (const char*)doc["corr_id"];
   }
-  // Delegate to user handler
+  // 传递
   bool ok = false; String message;
   StaticJsonDocument<512> resultData;
   JsonVariantConst args = doc.containsKey("args") ? doc["args"].as<JsonVariantConst>() : JsonVariantConst();

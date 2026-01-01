@@ -14,7 +14,7 @@ dist-ssr
 
 # Build outputs
 bin/
-backend/.gocache/
+backend/.gocache/ 
 vendor/
 backend/data/*.json
 
@@ -52,3 +52,5 @@ cloud-middleware/server
 .env.*
 frontend/.env
 frontend/.env.*
+# pio
+.venv

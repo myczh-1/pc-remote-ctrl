@@ -23,6 +23,13 @@ service GatewayService {
 
   // 调用设备动作（转发到 HomeService）
   rpc InvokeAction(InvokeActionRequest) returns (remote_control.home.InvokeActionResponse);
+
+  // 自动化：查询/管理/触发（转发到 AutomationService）
+  rpc ListAutomations(ListAutomationsRequest) returns (remote_control.home.ListAutomationsResponse);
+  rpc UpsertAutomation(UpsertAutomationRequest) returns (remote_control.home.UpsertAutomationResponse);
+  rpc DeleteAutomation(DeleteAutomationRequest) returns (remote_control.home.DeleteAutomationResponse);
+  rpc SetAutomationEnabled(SetAutomationEnabledRequest) returns (remote_control.home.SetAutomationEnabledResponse);
+  rpc TriggerAutomation(TriggerAutomationRequest) returns (remote_control.home.TriggerAutomationResponse);
 }
 
 message ListDevicesRequest {
@@ -48,4 +55,29 @@ message DeleteDeviceRequest {
 message InvokeActionRequest {
   string device_id = 1; // 目标设备/网关ID
   remote_control.home.InvokeActionRequest request = 2;
+}
+
+message ListAutomationsRequest {
+  string device_id = 1; // 目标设备/网关ID
+  remote_control.home.ListAutomationsRequest request = 2;
+}
+
+message UpsertAutomationRequest {
+  string device_id = 1; // 目标设备/网关ID
+  remote_control.home.UpsertAutomationRequest request = 2;
+}
+
+message DeleteAutomationRequest {
+  string device_id = 1; // 目标设备/网关ID
+  remote_control.home.DeleteAutomationRequest request = 2;
+}
+
+message SetAutomationEnabledRequest {
+  string device_id = 1; // 目标设备/网关ID
+  remote_control.home.SetAutomationEnabledRequest request = 2;
+}
+
+message TriggerAutomationRequest {
+  string device_id = 1; // 目标设备/网关ID
+  remote_control.home.TriggerAutomationRequest request = 2;
 }

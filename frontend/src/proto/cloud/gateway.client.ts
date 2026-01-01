@@ -4,6 +4,16 @@
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { GatewayService } from "./gateway";
+import type { TriggerAutomationResponse } from "../home/service";
+import type { TriggerAutomationRequest } from "./gateway";
+import type { SetAutomationEnabledResponse } from "../home/service";
+import type { SetAutomationEnabledRequest } from "./gateway";
+import type { DeleteAutomationResponse } from "../home/service";
+import type { DeleteAutomationRequest } from "./gateway";
+import type { UpsertAutomationResponse } from "../home/service";
+import type { UpsertAutomationRequest } from "./gateway";
+import type { ListAutomationsResponse } from "../home/service";
+import type { ListAutomationsRequest } from "./gateway";
 import type { InvokeActionResponse } from "../home/service";
 import type { InvokeActionRequest } from "./gateway";
 import type { DeleteDeviceResponse } from "../home/service";
@@ -54,6 +64,28 @@ export interface IGatewayServiceClient {
      * @generated from protobuf rpc: InvokeAction
      */
     invokeAction(input: InvokeActionRequest, options?: RpcOptions): UnaryCall<InvokeActionRequest, InvokeActionResponse>;
+    /**
+     * 自动化：查询/管理/触发（转发到 AutomationService）
+     *
+     * @generated from protobuf rpc: ListAutomations
+     */
+    listAutomations(input: ListAutomationsRequest, options?: RpcOptions): UnaryCall<ListAutomationsRequest, ListAutomationsResponse>;
+    /**
+     * @generated from protobuf rpc: UpsertAutomation
+     */
+    upsertAutomation(input: UpsertAutomationRequest, options?: RpcOptions): UnaryCall<UpsertAutomationRequest, UpsertAutomationResponse>;
+    /**
+     * @generated from protobuf rpc: DeleteAutomation
+     */
+    deleteAutomation(input: DeleteAutomationRequest, options?: RpcOptions): UnaryCall<DeleteAutomationRequest, DeleteAutomationResponse>;
+    /**
+     * @generated from protobuf rpc: SetAutomationEnabled
+     */
+    setAutomationEnabled(input: SetAutomationEnabledRequest, options?: RpcOptions): UnaryCall<SetAutomationEnabledRequest, SetAutomationEnabledResponse>;
+    /**
+     * @generated from protobuf rpc: TriggerAutomation
+     */
+    triggerAutomation(input: TriggerAutomationRequest, options?: RpcOptions): UnaryCall<TriggerAutomationRequest, TriggerAutomationResponse>;
 }
 /**
  * 云端网关服务：前端调用此服务，由云端转发到具体设备上的 HomeService
@@ -110,5 +142,42 @@ export class GatewayServiceClient implements IGatewayServiceClient, ServiceInfo 
     invokeAction(input: InvokeActionRequest, options?: RpcOptions): UnaryCall<InvokeActionRequest, InvokeActionResponse> {
         const method = this.methods[4], opt = this._transport.mergeOptions(options);
         return stackIntercept<InvokeActionRequest, InvokeActionResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * 自动化：查询/管理/触发（转发到 AutomationService）
+     *
+     * @generated from protobuf rpc: ListAutomations
+     */
+    listAutomations(input: ListAutomationsRequest, options?: RpcOptions): UnaryCall<ListAutomationsRequest, ListAutomationsResponse> {
+        const method = this.methods[5], opt = this._transport.mergeOptions(options);
+        return stackIntercept<ListAutomationsRequest, ListAutomationsResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: UpsertAutomation
+     */
+    upsertAutomation(input: UpsertAutomationRequest, options?: RpcOptions): UnaryCall<UpsertAutomationRequest, UpsertAutomationResponse> {
+        const method = this.methods[6], opt = this._transport.mergeOptions(options);
+        return stackIntercept<UpsertAutomationRequest, UpsertAutomationResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: DeleteAutomation
+     */
+    deleteAutomation(input: DeleteAutomationRequest, options?: RpcOptions): UnaryCall<DeleteAutomationRequest, DeleteAutomationResponse> {
+        const method = this.methods[7], opt = this._transport.mergeOptions(options);
+        return stackIntercept<DeleteAutomationRequest, DeleteAutomationResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: SetAutomationEnabled
+     */
+    setAutomationEnabled(input: SetAutomationEnabledRequest, options?: RpcOptions): UnaryCall<SetAutomationEnabledRequest, SetAutomationEnabledResponse> {
+        const method = this.methods[8], opt = this._transport.mergeOptions(options);
+        return stackIntercept<SetAutomationEnabledRequest, SetAutomationEnabledResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: TriggerAutomation
+     */
+    triggerAutomation(input: TriggerAutomationRequest, options?: RpcOptions): UnaryCall<TriggerAutomationRequest, TriggerAutomationResponse> {
+        const method = this.methods[9], opt = this._transport.mergeOptions(options);
+        return stackIntercept<TriggerAutomationRequest, TriggerAutomationResponse>("unary", this._transport, method, opt, input);
     }
 }

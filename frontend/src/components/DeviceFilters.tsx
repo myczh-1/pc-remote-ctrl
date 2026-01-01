@@ -1,8 +1,6 @@
 import React from 'react'
 
-interface DeviceFiltersProps {
-  // 预留：仅 UI，不做实际过滤逻辑
-}
+type DeviceFiltersProps = Record<string, never>
 
 export function DeviceFilters(_props: DeviceFiltersProps) {
   return (

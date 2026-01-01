@@ -101,6 +101,104 @@ message InvokeActionResponse {
   google.protobuf.Struct data = 4;
 }
 
+message LogEntry {
+  int64 id = 1;
+  int64 ts = 2;
+  string kind = 3;
+  string subject = 4;
+  string actor = 5;
+  google.protobuf.Struct data = 6;
+}
+
+message ListLogsRequest {
+  string kind = 1;
+  string subject = 2;
+  int32 page_size = 3;
+  string page_token = 4; // last seen id for keyset pagination
+}
+
+message ListLogsResponse {
+  repeated LogEntry entries = 1;
+  string next_page_token = 2;
+}
+
+message CleanupLogsRequest {
+  int64 before_ts = 1; // delete logs with ts < before_ts; 0 => all
+  int32 limit = 2;     // optional safety cap; 0 => no cap
+}
+
+message CleanupLogsResponse {
+  int32 deleted = 1;
+}
+
+message AutomationAction {
+  string device_id = 1;
+  string action = 2;
+  google.protobuf.Struct args = 3;
+}
+
+message Automation {
+  string id = 1;
+  string name = 2;
+  repeated string tags = 3;
+  bool enabled = 4;
+  google.protobuf.Struct when = 5;
+  repeated AutomationAction then = 6;
+  int64 updated_at = 7;
+}
+
+message ListAutomationsRequest {
+  bool include_disabled = 1;
+  int32 page_size = 2;
+  string page_token = 3;
+  string tag = 4;
+  string name_contains = 5;
+}
+
+message ListAutomationsResponse {
+  repeated Automation automations = 1;
+  string next_page_token = 2;
+}
+
+message UpsertAutomationRequest {
+  Automation automation = 1;
+}
+
+message UpsertAutomationResponse {
+  bool ok = 1;
+  string message = 2;
+  string automation_id = 3;
+}
+
+message DeleteAutomationRequest {
+  string automation_id = 1;
+}
+
+message DeleteAutomationResponse {
+  bool ok = 1;
+  string message = 2;
+}
+
+message SetAutomationEnabledRequest {
+  string automation_id = 1;
+  bool enabled = 2;
+}
+
+message SetAutomationEnabledResponse {
+  bool ok = 1;
+  string message = 2;
+}
+
+message TriggerAutomationRequest {
+  string automation_id = 1;
+  google.protobuf.Struct payload = 2; // optional context for audit
+}
+
+message TriggerAutomationResponse {
+  bool ok = 1;
+  string message = 2;
+}
+
 service HomeService {
   rpc ListDevices(ListDevicesRequest) returns (ListDevicesResponse);
   rpc WatchDevices(WatchDevicesRequest) returns (stream DeviceEvent);
@@ -109,3 +207,15 @@ service HomeService {
   rpc InvokeAction(InvokeActionRequest) returns (InvokeActionResponse);
 }
 
+service AuditService {
+  rpc ListLogs(ListLogsRequest) returns (ListLogsResponse);
+  rpc CleanupLogs(CleanupLogsRequest) returns (CleanupLogsResponse);
+}
+
+service AutomationService {
+  rpc ListAutomations(ListAutomationsRequest) returns (ListAutomationsResponse);
+  rpc UpsertAutomation(UpsertAutomationRequest) returns (UpsertAutomationResponse);
+  rpc DeleteAutomation(DeleteAutomationRequest) returns (DeleteAutomationResponse);
+  rpc SetAutomationEnabled(SetAutomationEnabledRequest) returns (SetAutomationEnabledResponse);
+  rpc TriggerAutomation(TriggerAutomationRequest) returns (TriggerAutomationResponse);
+}

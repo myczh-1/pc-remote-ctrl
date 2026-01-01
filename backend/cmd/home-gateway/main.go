@@ -27,10 +27,10 @@ import (
 )
 
 type Config struct {
-	Port            string
-	DevicesFile     string
-	ScenesFile      string
-	AutomationsFile string
+	Port          string
+	DevicesFile   string
+	LogsFile      string
+	AutomationsDB string
 	// MQTT broker settings
 	MqttURL      string
 	MqttUser     string
@@ -90,15 +90,21 @@ func loadDotEnv() {
 }
 
 func loadConfig() *Config {
+	if legacy := os.Getenv("HOME_DEVICES_FILE"); legacy != "" {
+		log.Printf("[config] HOME_DEVICES_FILE is no longer supported; use HOME_DEVICES_DB (sqlite path). Ignoring %q", legacy)
+	}
+	if legacyScene := os.Getenv("HOME_SCENES_FILE"); legacyScene != "" {
+		log.Printf("[config] HOME_SCENES_FILE is removed (scenes are deprecated); ignoring %q", legacyScene)
+	}
 	return &Config{
-		Port:            getenv("LOCAL_PORT", "7071"),
-		DevicesFile:     getenv("HOME_DEVICES_FILE", "backend/data/devices.json"),
-		ScenesFile:      getenv("HOME_SCENES_FILE", "backend/data/scenes.json"),
-		AutomationsFile: getenv("HOME_AUTOMATIONS_FILE", "backend/data/automations.json"),
-		MqttURL:         getenv("MQTT_URL", "tcp://192.168.30.64:1883"),
-		MqttUser:        getenv("MQTT_USER", ""),
-		MqttPass:        getenv("MQTT_PASS", ""),
-		MqttClientID:    getenv("MQTT_CLIENT_ID", ""),
+		Port:          getenv("LOCAL_PORT", "7071"),
+		DevicesFile:   getenv("HOME_DEVICES_DB", "backend/data/home.db"),
+		LogsFile:      getenv("HOME_LOGS_DB", "backend/data/logs.db"),
+		AutomationsDB: getenv("HOME_AUTOMATIONS_DB", "backend/data/home.db"),
+		MqttURL:       getenv("MQTT_URL", "tcp://192.168.30.64:1883"),
+		MqttUser:      getenv("MQTT_USER", ""),
+		MqttPass:      getenv("MQTT_PASS", ""),
+		MqttClientID:  getenv("MQTT_CLIENT_ID", ""),
 
 		DeviceOfflineAfter: parseDurationEnv(getenv("DEVICE_OFFLINE_AFTER", ""), 2*time.Minute),
 
@@ -196,28 +202,22 @@ func main() {
 		log.Fatalf("FATAL: cannot create data directory: %v", err)
 	}
 
-	// initialize new storages (devices/scenes/automations)
+	// initialize new storages (devices/automations)
 	devices := devstore.NewDevices(cfg.DevicesFile)
 	if err := devices.Load(); err != nil {
-		// It's OK if file doesn't exist on first run
-		if !os.IsNotExist(err) {
-			log.Fatalf("FATAL: corrupted devices storage: %v", err)
-		}
-		log.Printf("info: starting with empty devices (first run?)")
+		log.Fatalf("FATAL: load devices db %s failed: %v", cfg.DevicesFile, err)
 	}
 	log.Printf("[storage] devices loaded: %d from %s", len(devices.List()), cfg.DevicesFile)
-	scenes := devstore.NewScenes(cfg.ScenesFile)
-	if err := scenes.Load(); err != nil {
-		if !os.IsNotExist(err) {
-			log.Fatalf("FATAL: corrupted scenes storage: %v", err)
-		}
-		log.Printf("info: starting with empty scenes")
+	auditLogs := devstore.NewAuditLogs(cfg.LogsFile)
+	if err := auditLogs.Load(); err != nil {
+		log.Fatalf("FATAL: load audit db %s failed: %v", cfg.LogsFile, err)
 	}
-	// TODO: automation rules will be added later
-	// automations := devstore.NewAutomations(cfg.AutomationsFile)
-	// if err := automations.Load(); err != nil { log.Printf("warn: load automations failed: %v", err) }
-	_ = devices
-	_ = scenes
+	log.Printf("[storage] audit logs ready: %s", cfg.LogsFile)
+	automations := devstore.NewAutomations(cfg.AutomationsDB)
+	if err := automations.Load(); err != nil {
+		log.Fatalf("FATAL: load automations db %s failed: %v", cfg.AutomationsDB, err)
+	}
+	log.Printf("[storage] automations ready: %s", cfg.AutomationsDB)
 
 	// MQTT is optional - system can work without it
 	// For development: use docker-compose with mosquitto
@@ -250,9 +250,12 @@ func main() {
 	reflection.Register(grpcServer)
 	// ops via MQTT
 	ops := ops.NewMQTTOps(mqttClient)
-	homesvc := home.New(devices, scenes, ops)
+	homesvc := home.New(devices, auditLogs, ops)
+	engine := home.NewAutomationEngine(automations, devices, ops, auditLogs)
 	homesvc.InitSubscriptions(mqttClient)
 	homepb.RegisterHomeServiceServer(grpcServer, homesvc)
+	homepb.RegisterAuditServiceServer(grpcServer, home.NewAuditService(auditLogs))
+	homepb.RegisterAutomationServiceServer(grpcServer, home.NewAutomationService(automations, auditLogs, engine))
 
 	wrapped := grpcweb.WrapServer(
 		grpcServer,
@@ -287,6 +290,8 @@ func main() {
 
 	// background device offline detection
 	homesvc.StartOfflineWatcher(ctx, cfg.DeviceOfflineAfter)
+	// automation engine consuming device events
+	homesvc.AttachAutomationEngine(ctx, engine)
 
 	// cloud registration (optional)
 	tryCloudRegister(ctx, cfg)

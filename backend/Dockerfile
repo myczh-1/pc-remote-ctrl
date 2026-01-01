@@ -28,7 +28,8 @@ COPY --from=builder /out/home-gateway /usr/local/bin/home-gateway
 COPY backend/data ./data
 
 ENV LOCAL_PORT=7071 \
-    HOME_DEVICES_FILE=/data/devices.json \
+    HOME_DEVICES_DB=/data/home.db \
+    HOME_DEVICES_FILE=/data/home.db \
     HOME_SCENES_FILE=/data/scenes.json \
     HOME_AUTOMATIONS_FILE=/data/automations.json
 

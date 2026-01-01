@@ -20,7 +20,7 @@ pc-remote-ctrl/
 │   │   ├── ops/                  # Device operation handlers
 │   │   └── broker/               # Embedded MQTT broker
 │   ├── proto/                    # Generated Go stubs (do not edit)
-│   └── data/                     # Storage files (devices.json, scenes.json, etc.)
+│   └── data/                     # Storage files (home.db for devices, scenes.json, etc.)
 ├── cloud-middleware/             # Cloud registry & tunnel proxy
 │   ├── cmd/server/main.go        # Unified gRPC + gRPC-Web entry (7073)
 │   ├── internal/{device,proxy,grpcserver}
