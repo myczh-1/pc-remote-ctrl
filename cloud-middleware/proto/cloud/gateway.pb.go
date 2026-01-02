@@ -542,6 +542,110 @@ func (x *TriggerAutomationRequest) GetRequest() *home.TriggerAutomationRequest {
 	return nil
 }
 
+type ListAuditLogsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	DeviceId      string                 `protobuf:"bytes,1,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty"`
+	Request       *home.ListLogsRequest  `protobuf:"bytes,2,opt,name=request,proto3" json:"request,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListAuditLogsRequest) Reset() {
+	*x = ListAuditLogsRequest{}
+	mi := &file_cloud_gateway_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListAuditLogsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListAuditLogsRequest) ProtoMessage() {}
+
+func (x *ListAuditLogsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_cloud_gateway_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListAuditLogsRequest.ProtoReflect.Descriptor instead.
+func (*ListAuditLogsRequest) Descriptor() ([]byte, []int) {
+	return file_cloud_gateway_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *ListAuditLogsRequest) GetDeviceId() string {
+	if x != nil {
+		return x.DeviceId
+	}
+	return ""
+}
+
+func (x *ListAuditLogsRequest) GetRequest() *home.ListLogsRequest {
+	if x != nil {
+		return x.Request
+	}
+	return nil
+}
+
+type CleanupAuditLogsRequest struct {
+	state         protoimpl.MessageState   `protogen:"open.v1"`
+	DeviceId      string                   `protobuf:"bytes,1,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty"`
+	Request       *home.CleanupLogsRequest `protobuf:"bytes,2,opt,name=request,proto3" json:"request,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CleanupAuditLogsRequest) Reset() {
+	*x = CleanupAuditLogsRequest{}
+	mi := &file_cloud_gateway_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CleanupAuditLogsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CleanupAuditLogsRequest) ProtoMessage() {}
+
+func (x *CleanupAuditLogsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_cloud_gateway_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CleanupAuditLogsRequest.ProtoReflect.Descriptor instead.
+func (*CleanupAuditLogsRequest) Descriptor() ([]byte, []int) {
+	return file_cloud_gateway_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *CleanupAuditLogsRequest) GetDeviceId() string {
+	if x != nil {
+		return x.DeviceId
+	}
+	return ""
+}
+
+func (x *CleanupAuditLogsRequest) GetRequest() *home.CleanupLogsRequest {
+	if x != nil {
+		return x.Request
+	}
+	return nil
+}
+
 var File_cloud_gateway_proto protoreflect.FileDescriptor
 
 const file_cloud_gateway_proto_rawDesc = "" +
@@ -576,7 +680,13 @@ const file_cloud_gateway_proto_rawDesc = "" +
 	"\arequest\x18\x02 \x01(\v20.remote_control.home.SetAutomationEnabledRequestR\arequest\"\x80\x01\n" +
 	"\x18TriggerAutomationRequest\x12\x1b\n" +
 	"\tdevice_id\x18\x01 \x01(\tR\bdeviceId\x12G\n" +
-	"\arequest\x18\x02 \x01(\v2-.remote_control.home.TriggerAutomationRequestR\arequest2\xe8\b\n" +
+	"\arequest\x18\x02 \x01(\v2-.remote_control.home.TriggerAutomationRequestR\arequest\"s\n" +
+	"\x14ListAuditLogsRequest\x12\x1b\n" +
+	"\tdevice_id\x18\x01 \x01(\tR\bdeviceId\x12>\n" +
+	"\arequest\x18\x02 \x01(\v2$.remote_control.home.ListLogsRequestR\arequest\"y\n" +
+	"\x17CleanupAuditLogsRequest\x12\x1b\n" +
+	"\tdevice_id\x18\x01 \x01(\tR\bdeviceId\x12A\n" +
+	"\arequest\x18\x02 \x01(\v2'.remote_control.home.CleanupLogsRequestR\arequest2\xe8\b\n" +
 	"\x0eGatewayService\x12d\n" +
 	"\vListDevices\x12+.remote_control.cloud.v1.ListDevicesRequest\x1a(.remote_control.home.ListDevicesResponse\x12`\n" +
 	"\fWatchDevices\x12,.remote_control.cloud.v1.WatchDevicesRequest\x1a .remote_control.home.DeviceEvent0\x01\x12g\n" +
@@ -587,7 +697,10 @@ const file_cloud_gateway_proto_rawDesc = "" +
 	"\x10UpsertAutomation\x120.remote_control.cloud.v1.UpsertAutomationRequest\x1a-.remote_control.home.UpsertAutomationResponse\x12s\n" +
 	"\x10DeleteAutomation\x120.remote_control.cloud.v1.DeleteAutomationRequest\x1a-.remote_control.home.DeleteAutomationResponse\x12\x7f\n" +
 	"\x14SetAutomationEnabled\x124.remote_control.cloud.v1.SetAutomationEnabledRequest\x1a1.remote_control.home.SetAutomationEnabledResponse\x12v\n" +
-	"\x11TriggerAutomation\x121.remote_control.cloud.v1.TriggerAutomationRequest\x1a..remote_control.home.TriggerAutomationResponseB5Z3pc-remote-ctrl/cloud-middleware/proto/cloud;cloudpbb\x06proto3"
+	"\x11TriggerAutomation\x121.remote_control.cloud.v1.TriggerAutomationRequest\x1a..remote_control.home.TriggerAutomationResponse2\xdb\x01\n" +
+	"\fAuditService\x12`\n" +
+	"\bListLogs\x12-.remote_control.cloud.v1.ListAuditLogsRequest\x1a%.remote_control.home.ListLogsResponse\x12i\n" +
+	"\vCleanupLogs\x120.remote_control.cloud.v1.CleanupAuditLogsRequest\x1a(.remote_control.home.CleanupLogsResponseB5Z3pc-remote-ctrl/cloud-middleware/proto/cloud;cloudpbb\x06proto3"
 
 var (
 	file_cloud_gateway_proto_rawDescOnce sync.Once
@@ -601,7 +714,7 @@ func file_cloud_gateway_proto_rawDescGZIP() []byte {
 	return file_cloud_gateway_proto_rawDescData
 }
 
-var file_cloud_gateway_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_cloud_gateway_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_cloud_gateway_proto_goTypes = []any{
 	(*ListDevicesRequest)(nil),                // 0: remote_control.cloud.v1.ListDevicesRequest
 	(*WatchDevicesRequest)(nil),               // 1: remote_control.cloud.v1.WatchDevicesRequest
@@ -613,63 +726,75 @@ var file_cloud_gateway_proto_goTypes = []any{
 	(*DeleteAutomationRequest)(nil),           // 7: remote_control.cloud.v1.DeleteAutomationRequest
 	(*SetAutomationEnabledRequest)(nil),       // 8: remote_control.cloud.v1.SetAutomationEnabledRequest
 	(*TriggerAutomationRequest)(nil),          // 9: remote_control.cloud.v1.TriggerAutomationRequest
-	(*home.ListDevicesRequest)(nil),           // 10: remote_control.home.ListDevicesRequest
-	(*home.WatchDevicesRequest)(nil),          // 11: remote_control.home.WatchDevicesRequest
-	(*home.UpsertDeviceRequest)(nil),          // 12: remote_control.home.UpsertDeviceRequest
-	(*home.DeleteDeviceRequest)(nil),          // 13: remote_control.home.DeleteDeviceRequest
-	(*home.InvokeActionRequest)(nil),          // 14: remote_control.home.InvokeActionRequest
-	(*home.ListAutomationsRequest)(nil),       // 15: remote_control.home.ListAutomationsRequest
-	(*home.UpsertAutomationRequest)(nil),      // 16: remote_control.home.UpsertAutomationRequest
-	(*home.DeleteAutomationRequest)(nil),      // 17: remote_control.home.DeleteAutomationRequest
-	(*home.SetAutomationEnabledRequest)(nil),  // 18: remote_control.home.SetAutomationEnabledRequest
-	(*home.TriggerAutomationRequest)(nil),     // 19: remote_control.home.TriggerAutomationRequest
-	(*home.ListDevicesResponse)(nil),          // 20: remote_control.home.ListDevicesResponse
-	(*home.DeviceEvent)(nil),                  // 21: remote_control.home.DeviceEvent
-	(*home.UpsertDeviceResponse)(nil),         // 22: remote_control.home.UpsertDeviceResponse
-	(*home.DeleteDeviceResponse)(nil),         // 23: remote_control.home.DeleteDeviceResponse
-	(*home.InvokeActionResponse)(nil),         // 24: remote_control.home.InvokeActionResponse
-	(*home.ListAutomationsResponse)(nil),      // 25: remote_control.home.ListAutomationsResponse
-	(*home.UpsertAutomationResponse)(nil),     // 26: remote_control.home.UpsertAutomationResponse
-	(*home.DeleteAutomationResponse)(nil),     // 27: remote_control.home.DeleteAutomationResponse
-	(*home.SetAutomationEnabledResponse)(nil), // 28: remote_control.home.SetAutomationEnabledResponse
-	(*home.TriggerAutomationResponse)(nil),    // 29: remote_control.home.TriggerAutomationResponse
+	(*ListAuditLogsRequest)(nil),              // 10: remote_control.cloud.v1.ListAuditLogsRequest
+	(*CleanupAuditLogsRequest)(nil),           // 11: remote_control.cloud.v1.CleanupAuditLogsRequest
+	(*home.ListDevicesRequest)(nil),           // 12: remote_control.home.ListDevicesRequest
+	(*home.WatchDevicesRequest)(nil),          // 13: remote_control.home.WatchDevicesRequest
+	(*home.UpsertDeviceRequest)(nil),          // 14: remote_control.home.UpsertDeviceRequest
+	(*home.DeleteDeviceRequest)(nil),          // 15: remote_control.home.DeleteDeviceRequest
+	(*home.InvokeActionRequest)(nil),          // 16: remote_control.home.InvokeActionRequest
+	(*home.ListAutomationsRequest)(nil),       // 17: remote_control.home.ListAutomationsRequest
+	(*home.UpsertAutomationRequest)(nil),      // 18: remote_control.home.UpsertAutomationRequest
+	(*home.DeleteAutomationRequest)(nil),      // 19: remote_control.home.DeleteAutomationRequest
+	(*home.SetAutomationEnabledRequest)(nil),  // 20: remote_control.home.SetAutomationEnabledRequest
+	(*home.TriggerAutomationRequest)(nil),     // 21: remote_control.home.TriggerAutomationRequest
+	(*home.ListLogsRequest)(nil),              // 22: remote_control.home.ListLogsRequest
+	(*home.CleanupLogsRequest)(nil),           // 23: remote_control.home.CleanupLogsRequest
+	(*home.ListDevicesResponse)(nil),          // 24: remote_control.home.ListDevicesResponse
+	(*home.DeviceEvent)(nil),                  // 25: remote_control.home.DeviceEvent
+	(*home.UpsertDeviceResponse)(nil),         // 26: remote_control.home.UpsertDeviceResponse
+	(*home.DeleteDeviceResponse)(nil),         // 27: remote_control.home.DeleteDeviceResponse
+	(*home.InvokeActionResponse)(nil),         // 28: remote_control.home.InvokeActionResponse
+	(*home.ListAutomationsResponse)(nil),      // 29: remote_control.home.ListAutomationsResponse
+	(*home.UpsertAutomationResponse)(nil),     // 30: remote_control.home.UpsertAutomationResponse
+	(*home.DeleteAutomationResponse)(nil),     // 31: remote_control.home.DeleteAutomationResponse
+	(*home.SetAutomationEnabledResponse)(nil), // 32: remote_control.home.SetAutomationEnabledResponse
+	(*home.TriggerAutomationResponse)(nil),    // 33: remote_control.home.TriggerAutomationResponse
+	(*home.ListLogsResponse)(nil),             // 34: remote_control.home.ListLogsResponse
+	(*home.CleanupLogsResponse)(nil),          // 35: remote_control.home.CleanupLogsResponse
 }
 var file_cloud_gateway_proto_depIdxs = []int32{
-	10, // 0: remote_control.cloud.v1.ListDevicesRequest.request:type_name -> remote_control.home.ListDevicesRequest
-	11, // 1: remote_control.cloud.v1.WatchDevicesRequest.request:type_name -> remote_control.home.WatchDevicesRequest
-	12, // 2: remote_control.cloud.v1.UpsertDeviceRequest.request:type_name -> remote_control.home.UpsertDeviceRequest
-	13, // 3: remote_control.cloud.v1.DeleteDeviceRequest.request:type_name -> remote_control.home.DeleteDeviceRequest
-	14, // 4: remote_control.cloud.v1.InvokeActionRequest.request:type_name -> remote_control.home.InvokeActionRequest
-	15, // 5: remote_control.cloud.v1.ListAutomationsRequest.request:type_name -> remote_control.home.ListAutomationsRequest
-	16, // 6: remote_control.cloud.v1.UpsertAutomationRequest.request:type_name -> remote_control.home.UpsertAutomationRequest
-	17, // 7: remote_control.cloud.v1.DeleteAutomationRequest.request:type_name -> remote_control.home.DeleteAutomationRequest
-	18, // 8: remote_control.cloud.v1.SetAutomationEnabledRequest.request:type_name -> remote_control.home.SetAutomationEnabledRequest
-	19, // 9: remote_control.cloud.v1.TriggerAutomationRequest.request:type_name -> remote_control.home.TriggerAutomationRequest
-	0,  // 10: remote_control.cloud.v1.GatewayService.ListDevices:input_type -> remote_control.cloud.v1.ListDevicesRequest
-	1,  // 11: remote_control.cloud.v1.GatewayService.WatchDevices:input_type -> remote_control.cloud.v1.WatchDevicesRequest
-	2,  // 12: remote_control.cloud.v1.GatewayService.UpsertDevice:input_type -> remote_control.cloud.v1.UpsertDeviceRequest
-	3,  // 13: remote_control.cloud.v1.GatewayService.DeleteDevice:input_type -> remote_control.cloud.v1.DeleteDeviceRequest
-	4,  // 14: remote_control.cloud.v1.GatewayService.InvokeAction:input_type -> remote_control.cloud.v1.InvokeActionRequest
-	5,  // 15: remote_control.cloud.v1.GatewayService.ListAutomations:input_type -> remote_control.cloud.v1.ListAutomationsRequest
-	6,  // 16: remote_control.cloud.v1.GatewayService.UpsertAutomation:input_type -> remote_control.cloud.v1.UpsertAutomationRequest
-	7,  // 17: remote_control.cloud.v1.GatewayService.DeleteAutomation:input_type -> remote_control.cloud.v1.DeleteAutomationRequest
-	8,  // 18: remote_control.cloud.v1.GatewayService.SetAutomationEnabled:input_type -> remote_control.cloud.v1.SetAutomationEnabledRequest
-	9,  // 19: remote_control.cloud.v1.GatewayService.TriggerAutomation:input_type -> remote_control.cloud.v1.TriggerAutomationRequest
-	20, // 20: remote_control.cloud.v1.GatewayService.ListDevices:output_type -> remote_control.home.ListDevicesResponse
-	21, // 21: remote_control.cloud.v1.GatewayService.WatchDevices:output_type -> remote_control.home.DeviceEvent
-	22, // 22: remote_control.cloud.v1.GatewayService.UpsertDevice:output_type -> remote_control.home.UpsertDeviceResponse
-	23, // 23: remote_control.cloud.v1.GatewayService.DeleteDevice:output_type -> remote_control.home.DeleteDeviceResponse
-	24, // 24: remote_control.cloud.v1.GatewayService.InvokeAction:output_type -> remote_control.home.InvokeActionResponse
-	25, // 25: remote_control.cloud.v1.GatewayService.ListAutomations:output_type -> remote_control.home.ListAutomationsResponse
-	26, // 26: remote_control.cloud.v1.GatewayService.UpsertAutomation:output_type -> remote_control.home.UpsertAutomationResponse
-	27, // 27: remote_control.cloud.v1.GatewayService.DeleteAutomation:output_type -> remote_control.home.DeleteAutomationResponse
-	28, // 28: remote_control.cloud.v1.GatewayService.SetAutomationEnabled:output_type -> remote_control.home.SetAutomationEnabledResponse
-	29, // 29: remote_control.cloud.v1.GatewayService.TriggerAutomation:output_type -> remote_control.home.TriggerAutomationResponse
-	20, // [20:30] is the sub-list for method output_type
-	10, // [10:20] is the sub-list for method input_type
-	10, // [10:10] is the sub-list for extension type_name
-	10, // [10:10] is the sub-list for extension extendee
-	0,  // [0:10] is the sub-list for field type_name
+	12, // 0: remote_control.cloud.v1.ListDevicesRequest.request:type_name -> remote_control.home.ListDevicesRequest
+	13, // 1: remote_control.cloud.v1.WatchDevicesRequest.request:type_name -> remote_control.home.WatchDevicesRequest
+	14, // 2: remote_control.cloud.v1.UpsertDeviceRequest.request:type_name -> remote_control.home.UpsertDeviceRequest
+	15, // 3: remote_control.cloud.v1.DeleteDeviceRequest.request:type_name -> remote_control.home.DeleteDeviceRequest
+	16, // 4: remote_control.cloud.v1.InvokeActionRequest.request:type_name -> remote_control.home.InvokeActionRequest
+	17, // 5: remote_control.cloud.v1.ListAutomationsRequest.request:type_name -> remote_control.home.ListAutomationsRequest
+	18, // 6: remote_control.cloud.v1.UpsertAutomationRequest.request:type_name -> remote_control.home.UpsertAutomationRequest
+	19, // 7: remote_control.cloud.v1.DeleteAutomationRequest.request:type_name -> remote_control.home.DeleteAutomationRequest
+	20, // 8: remote_control.cloud.v1.SetAutomationEnabledRequest.request:type_name -> remote_control.home.SetAutomationEnabledRequest
+	21, // 9: remote_control.cloud.v1.TriggerAutomationRequest.request:type_name -> remote_control.home.TriggerAutomationRequest
+	22, // 10: remote_control.cloud.v1.ListAuditLogsRequest.request:type_name -> remote_control.home.ListLogsRequest
+	23, // 11: remote_control.cloud.v1.CleanupAuditLogsRequest.request:type_name -> remote_control.home.CleanupLogsRequest
+	0,  // 12: remote_control.cloud.v1.GatewayService.ListDevices:input_type -> remote_control.cloud.v1.ListDevicesRequest
+	1,  // 13: remote_control.cloud.v1.GatewayService.WatchDevices:input_type -> remote_control.cloud.v1.WatchDevicesRequest
+	2,  // 14: remote_control.cloud.v1.GatewayService.UpsertDevice:input_type -> remote_control.cloud.v1.UpsertDeviceRequest
+	3,  // 15: remote_control.cloud.v1.GatewayService.DeleteDevice:input_type -> remote_control.cloud.v1.DeleteDeviceRequest
+	4,  // 16: remote_control.cloud.v1.GatewayService.InvokeAction:input_type -> remote_control.cloud.v1.InvokeActionRequest
+	5,  // 17: remote_control.cloud.v1.GatewayService.ListAutomations:input_type -> remote_control.cloud.v1.ListAutomationsRequest
+	6,  // 18: remote_control.cloud.v1.GatewayService.UpsertAutomation:input_type -> remote_control.cloud.v1.UpsertAutomationRequest
+	7,  // 19: remote_control.cloud.v1.GatewayService.DeleteAutomation:input_type -> remote_control.cloud.v1.DeleteAutomationRequest
+	8,  // 20: remote_control.cloud.v1.GatewayService.SetAutomationEnabled:input_type -> remote_control.cloud.v1.SetAutomationEnabledRequest
+	9,  // 21: remote_control.cloud.v1.GatewayService.TriggerAutomation:input_type -> remote_control.cloud.v1.TriggerAutomationRequest
+	10, // 22: remote_control.cloud.v1.AuditService.ListLogs:input_type -> remote_control.cloud.v1.ListAuditLogsRequest
+	11, // 23: remote_control.cloud.v1.AuditService.CleanupLogs:input_type -> remote_control.cloud.v1.CleanupAuditLogsRequest
+	24, // 24: remote_control.cloud.v1.GatewayService.ListDevices:output_type -> remote_control.home.ListDevicesResponse
+	25, // 25: remote_control.cloud.v1.GatewayService.WatchDevices:output_type -> remote_control.home.DeviceEvent
+	26, // 26: remote_control.cloud.v1.GatewayService.UpsertDevice:output_type -> remote_control.home.UpsertDeviceResponse
+	27, // 27: remote_control.cloud.v1.GatewayService.DeleteDevice:output_type -> remote_control.home.DeleteDeviceResponse
+	28, // 28: remote_control.cloud.v1.GatewayService.InvokeAction:output_type -> remote_control.home.InvokeActionResponse
+	29, // 29: remote_control.cloud.v1.GatewayService.ListAutomations:output_type -> remote_control.home.ListAutomationsResponse
+	30, // 30: remote_control.cloud.v1.GatewayService.UpsertAutomation:output_type -> remote_control.home.UpsertAutomationResponse
+	31, // 31: remote_control.cloud.v1.GatewayService.DeleteAutomation:output_type -> remote_control.home.DeleteAutomationResponse
+	32, // 32: remote_control.cloud.v1.GatewayService.SetAutomationEnabled:output_type -> remote_control.home.SetAutomationEnabledResponse
+	33, // 33: remote_control.cloud.v1.GatewayService.TriggerAutomation:output_type -> remote_control.home.TriggerAutomationResponse
+	34, // 34: remote_control.cloud.v1.AuditService.ListLogs:output_type -> remote_control.home.ListLogsResponse
+	35, // 35: remote_control.cloud.v1.AuditService.CleanupLogs:output_type -> remote_control.home.CleanupLogsResponse
+	24, // [24:36] is the sub-list for method output_type
+	12, // [12:24] is the sub-list for method input_type
+	12, // [12:12] is the sub-list for extension type_name
+	12, // [12:12] is the sub-list for extension extendee
+	0,  // [0:12] is the sub-list for field type_name
 }
 
 func init() { file_cloud_gateway_proto_init() }
@@ -683,9 +808,9 @@ func file_cloud_gateway_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_cloud_gateway_proto_rawDesc), len(file_cloud_gateway_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   10,
+			NumMessages:   12,
 			NumExtensions: 0,
-			NumServices:   1,
+			NumServices:   2,
 		},
 		GoTypes:           file_cloud_gateway_proto_goTypes,
 		DependencyIndexes: file_cloud_gateway_proto_depIdxs,

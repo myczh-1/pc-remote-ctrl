@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { GrpcWebFetchTransport } from '@protobuf-ts/grpcweb-transport'
-import { GatewayServiceClient } from '../proto/cloud/gateway.client'
-import type { Device, ListDevicesResponse, InvokeActionResponse, DeviceEvent, UpsertDeviceResponse, Automation, ListAutomationsResponse } from '../proto/home/service'
+import { GatewayServiceClient, AuditServiceClient } from '../proto/cloud/gateway.client'
+import type { Device, ListDevicesResponse, InvokeActionResponse, DeviceEvent, UpsertDeviceResponse, Automation, ListAutomationsResponse, ListLogsResponse, LogEntry } from '../proto/home/service'
 import { TelemetryEventKind } from '../proto/home/service'
 import type { Struct } from '../proto/google/protobuf/struct'
 import type { ServerStreamingCall } from '@protobuf-ts/runtime-rpc'
@@ -17,10 +17,13 @@ export function useCloudApi(config?: Partial<CloudConfig>) {
   const agentId = config?.agentId ?? (typeof localStorage !== 'undefined' ? (localStorage.getItem('cloud.agentId') || '') : '')
   const transport = useMemo(() => new GrpcWebFetchTransport({ baseUrl }), [baseUrl])
   const clientRef = useRef(new GatewayServiceClient(transport))
+  const auditClientRef = useRef(new AuditServiceClient(transport))
   const onEventRef = useRef<CloudConfig['onEvent']>(config?.onEvent)
 
   useEffect(() => {
-    clientRef.current = new GatewayServiceClient(new GrpcWebFetchTransport({ baseUrl }))
+    const nextTransport = new GrpcWebFetchTransport({ baseUrl })
+    clientRef.current = new GatewayServiceClient(nextTransport)
+    auditClientRef.current = new AuditServiceClient(nextTransport)
   }, [baseUrl])
   useEffect(() => { onEventRef.current = config?.onEvent }, [config?.onEvent])
 
@@ -119,6 +122,23 @@ export function useCloudApi(config?: Partial<CloudConfig>) {
     try {
       const res = await clientRef.current.upsertAutomation({ deviceId: agentId, request: { automation } }).response
       return { ok: (res as any).ok, message: (res as any).message, automationId: (res as any).automationId }
+    } catch (e: any) {
+      return { ok: false, error: String(e?.message ?? e) }
+    }
+  }, [agentId])
+
+  const listAuditLogs = useCallback(async (opts: { kind?: string; subject?: string; pageSize?: number; pageToken?: string }) => {
+    try {
+      const res = await auditClientRef.current.listLogs({
+        deviceId: agentId,
+        request: {
+          kind: opts.kind ?? '',
+          subject: opts.subject ?? '',
+          pageSize: opts.pageSize ?? 20,
+          pageToken: opts.pageToken ?? '',
+        },
+      }).response as ListLogsResponse
+      return { ok: true, entries: (res.entries as LogEntry[]) || [], nextPageToken: res.nextPageToken ?? '' }
     } catch (e: any) {
       return { ok: false, error: String(e?.message ?? e) }
     }
@@ -292,7 +312,7 @@ export function useCloudApi(config?: Partial<CloudConfig>) {
     stopWatch,
     upsertDevice,
     deleteDevice,
-    listAuditLogs: (_opts: any) => ({ ok: false, error: '云端暂未支持查询审计日志' }),
+    listAuditLogs,
     listAutomations,
     setAutomationEnabled,
     triggerAutomation,

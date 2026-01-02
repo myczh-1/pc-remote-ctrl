@@ -32,6 +32,12 @@ service GatewayService {
   rpc TriggerAutomation(TriggerAutomationRequest) returns (remote_control.home.TriggerAutomationResponse);
 }
 
+// 审计日志：代理 HomeService.AuditService
+service AuditService {
+  rpc ListLogs(ListAuditLogsRequest) returns (remote_control.home.ListLogsResponse);
+  rpc CleanupLogs(CleanupAuditLogsRequest) returns (remote_control.home.CleanupLogsResponse);
+}
+
 message ListDevicesRequest {
   string device_id = 1; // 目标设备/网关ID
   remote_control.home.ListDevicesRequest request = 2;
@@ -80,4 +86,14 @@ message SetAutomationEnabledRequest {
 message TriggerAutomationRequest {
   string device_id = 1; // 目标设备/网关ID
   remote_control.home.TriggerAutomationRequest request = 2;
+}
+
+message ListAuditLogsRequest {
+  string device_id = 1;
+  remote_control.home.ListLogsRequest request = 2;
+}
+
+message CleanupAuditLogsRequest {
+  string device_id = 1;
+  remote_control.home.CleanupLogsRequest request = 2;
 }

@@ -163,17 +163,7 @@ export default function App() {
   }
 
   const fetchAuditLogs = React.useCallback(async (reset?: boolean) => {
-    console.log('[audit] fetch start reset=', reset, 'mode=', mode, 'loading=', auditLoading, 'logs=', auditLogs.length)
-    if (mode === 'cloud') {
-      setAuditLogs([])
-      setAuditError('云端模式暂未支持查询审计日志')
-      auditNextRef.current = ''
-      setAuditNext('')
-      setAuditLoading(false)
-      return
-    }
     if (auditLoading && !reset) {
-      console.log('[audit] skip: already loading')
       return
     }
     setAuditLoading(true)
@@ -208,19 +198,14 @@ export default function App() {
       }
     } finally {
       setAuditLoading(false)
-      console.log('[audit] fetch end next=', auditNextRef.current)
     }
-  }, [api, mode, auditLoading, auditLogs.length])
+  }, [api, auditLoading])
 
   const ensureAuditLogsLoaded = React.useCallback(() => {
-    if (mode === 'cloud') {
-      setAuditError('云端模式暂未支持查询审计日志')
-      return
-    }
     if (!auditLogs.length && !auditLoading) {
       fetchAuditLogs(true)
     }
-  }, [auditLoading, auditLogs.length, fetchAuditLogs, mode])
+  }, [auditLoading, auditLogs.length, fetchAuditLogs])
 
   React.useEffect(() => {
     if (logPanelVisible && !logPanelSeenRef.current) {
@@ -231,7 +216,7 @@ export default function App() {
     if (!logPanelVisible && logPanelSeenRef.current) {
       logPanelSeenRef.current = false
     }
-  }, [logPanelVisible])
+  }, [ensureAuditLogsLoaded, logPanelVisible])
 
   const handleAuditFilterChange = (next: Partial<{ kind: string; subject: string }>) => {
     setAuditFilters(prev => ({ ...prev, ...next }))
