@@ -123,7 +123,7 @@ export function useBleProvisioning() {
       }
       statusChar!.addEventListener('characteristicvaluechanged', handler as any)
       service!.getCharacteristic(CONTROL_CHAR as any)
-        .then((ch: any) => ch.writeValue(te.encode('PROVISION')))
+        .then((ch: BluetoothRemoteGATTCharacteristic) => ch.writeValue(te.encode('PROVISION')))
         .catch(reject)
     })
     return result

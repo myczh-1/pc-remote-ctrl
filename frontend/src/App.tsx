@@ -92,6 +92,7 @@ export default function App() {
     }
     return true
   })
+  const [logsFullscreen, setLogsFullscreen] = useState(false)
   React.useEffect(() => {
     try { localStorage.setItem('ui.showLogs', showLogs ? '1' : '0') } catch { }
   }, [showLogs])
@@ -108,6 +109,7 @@ export default function App() {
     }
   }, [mode, activeView])
 
+
   // automation state
   const [automations, setAutomations] = useState<Automation[]>([])
   const [autoLoading, setAutoLoading] = useState(false)
@@ -119,6 +121,15 @@ export default function App() {
   const [editingAuto, setEditingAuto] = useState<Automation | undefined>(undefined)
   const [autoLogs, setAutoLogs] = useState<Record<string, { entries: LogEntry[]; loading: boolean; error?: string; next?: string }>>({})
   const [logsOpen, setLogsOpen] = useState<Record<string, boolean>>({})
+  const [auditLogs, setAuditLogs] = useState<LogEntry[]>([])
+  const [auditLoading, setAuditLoading] = useState(false)
+  const [auditError, setAuditError] = useState('')
+  const [auditFilters, setAuditFilters] = useState({ kind: '', subject: '' })
+  const [auditNext, setAuditNext] = useState('')
+  const auditNextRef = React.useRef('')
+  const auditQueryRef = React.useRef({ kind: '', subject: '' })
+  const logPanelSeenRef = React.useRef(false)
+  const logPanelVisible = (!isMobile && showLogs) || logsFullscreen
   const tryStringify = (obj: any) => {
     try { return JSON.stringify(obj) } catch { return String(obj) }
   }
@@ -149,6 +160,97 @@ export default function App() {
     } finally {
       setAutoLoading(false)
     }
+  }
+
+  const fetchAuditLogs = React.useCallback(async (reset?: boolean) => {
+    console.log('[audit] fetch start reset=', reset, 'mode=', mode, 'loading=', auditLoading, 'logs=', auditLogs.length)
+    if (mode === 'cloud') {
+      setAuditLogs([])
+      setAuditError('云端模式暂未支持查询审计日志')
+      auditNextRef.current = ''
+      setAuditNext('')
+      setAuditLoading(false)
+      return
+    }
+    if (auditLoading && !reset) {
+      console.log('[audit] skip: already loading')
+      return
+    }
+    setAuditLoading(true)
+    setAuditError('')
+    try {
+      const res = await api.listAuditLogs({
+        kind: auditQueryRef.current.kind,
+        subject: auditQueryRef.current.subject,
+        pageSize: 30,
+        pageToken: reset ? '' : auditNextRef.current,
+      })
+      if (!res.ok) {
+        setAuditError(res.error || '加载日志失败')
+        if (reset) {
+          setAuditLogs([])
+          auditNextRef.current = ''
+          setAuditNext('')
+        }
+        return
+      }
+      const batch = (res.entries as LogEntry[]) || []
+      setAuditLogs(prev => reset ? batch : [...prev, ...batch])
+      const nextToken = res.nextPageToken || ''
+      auditNextRef.current = nextToken
+      setAuditNext(nextToken)
+    } catch (e: any) {
+      setAuditError(String(e?.message ?? e))
+      if (reset) {
+        setAuditLogs([])
+        auditNextRef.current = ''
+        setAuditNext('')
+      }
+    } finally {
+      setAuditLoading(false)
+      console.log('[audit] fetch end next=', auditNextRef.current)
+    }
+  }, [api, mode, auditLoading, auditLogs.length])
+
+  const ensureAuditLogsLoaded = React.useCallback(() => {
+    if (mode === 'cloud') {
+      setAuditError('云端模式暂未支持查询审计日志')
+      return
+    }
+    if (!auditLogs.length && !auditLoading) {
+      fetchAuditLogs(true)
+    }
+  }, [auditLoading, auditLogs.length, fetchAuditLogs, mode])
+
+  React.useEffect(() => {
+    if (logPanelVisible && !logPanelSeenRef.current) {
+      logPanelSeenRef.current = true
+      ensureAuditLogsLoaded()
+      return
+    }
+    if (!logPanelVisible && logPanelSeenRef.current) {
+      logPanelSeenRef.current = false
+    }
+  }, [logPanelVisible])
+
+  const handleAuditFilterChange = (next: Partial<{ kind: string; subject: string }>) => {
+    setAuditFilters(prev => ({ ...prev, ...next }))
+  }
+
+  const applyAuditFilters = () => {
+    const next = {
+      kind: auditFilters.kind.trim(),
+      subject: auditFilters.subject.trim(),
+    }
+    auditQueryRef.current = next
+    fetchAuditLogs(true)
+  }
+
+  const resetAuditFilters = () => {
+    const next = { kind: '', subject: '' }
+    setAuditFilters(next)
+    auditQueryRef.current = next
+    fetchAuditLogs(true)
   }
 
   React.useEffect(() => {
@@ -198,6 +300,38 @@ export default function App() {
     } else {
       logError(`执行失败: ${r.error || r.message}`, 'execution_error', { commandSetName: action })
     }
+  }
+
+  const handleToggleLogsPanel = () => {
+    setShowLogs(prev => {
+      const next = !prev
+      if (next) {
+        setLogsFullscreen(false)
+        ensureAuditLogsLoaded()
+      } else {
+        setLogsFullscreen(false)
+      }
+      return next
+    })
+  }
+
+  const handleEnterLogFullscreen = () => {
+    setLogsFullscreen(true)
+    ensureAuditLogsLoaded()
+  }
+
+  const handleExitLogFullscreen = () => {
+    setLogsFullscreen(false)
+  }
+
+  const handleRefreshAuditLogs = () => {
+    fetchAuditLogs(true)
+  }
+
+  const handleLoadMoreAuditLogs = () => {
+    if (auditLoading) return
+    if (!auditNextRef.current) return
+    fetchAuditLogs(false)
   }
 
   // Apply theme class to <html>
@@ -282,9 +416,30 @@ export default function App() {
               <DeviceFilters />
             </div>
           )}
-
-          <motion.main layout className="flex-1 flex flex-col overflow-hidden">
-            <div className={`p-4 md:p-6 flex-1 overflow-hidden bg-transparent`}>
+        <motion.main layout className="flex-1 flex flex-col overflow-hidden">
+          {logsFullscreen ? (
+            <div className="p-4 md:p-6 flex-1 overflow-hidden">
+              <Console
+                auditLogs={auditLogs}
+                liveLogs={entries}
+                loading={auditLoading}
+                error={auditError}
+                hasMore={Boolean(auditNext)}
+                filters={auditFilters}
+                onChangeFilters={handleAuditFilterChange}
+                onApplyFilters={applyAuditFilters}
+                onResetFilters={resetAuditFilters}
+                onRefresh={handleRefreshAuditLogs}
+                onLoadMore={handleLoadMoreAuditLogs}
+                fullHeight
+                fullScreen
+                isDarkMode={theme === 'dark'}
+                supported={mode === 'local'}
+                onCloseFull={handleExitLogFullscreen}
+              />
+            </div>
+          ) : (
+          <div className={`p-4 md:p-6 flex-1 overflow-hidden bg-transparent`}>
               <div className="h-full min-h-0 flex gap-4">
                 <motion.section
                   layout
@@ -497,19 +652,32 @@ export default function App() {
                   </motion.div>
 
                   {/* 日志开关：移动端隐藏不参与布局；平板/桌面可控 */}
-                  {!isMobile && showLogs && (
-                    <motion.div layout transition={layoutTransition}>
-                      <Console
-                        logs={entries}
-                        fullHeight={false}
-                        isDarkMode={theme === 'dark'}
-                      />
-                    </motion.div>
-                  )}
+                    {!isMobile && showLogs && (
+                      <motion.div layout="position" transition={{ duration: prefersReduced ? 0 : 0.18, ease: [0.22, 1, 0.36, 1] as any }}>
+                        <Console
+                          auditLogs={auditLogs}
+                          liveLogs={entries}
+                          loading={auditLoading}
+                          error={auditError}
+                          hasMore={Boolean(auditNext)}
+                          filters={auditFilters}
+                          onChangeFilters={handleAuditFilterChange}
+                          onApplyFilters={applyAuditFilters}
+                          onResetFilters={resetAuditFilters}
+                          onRefresh={handleRefreshAuditLogs}
+                          onLoadMore={handleLoadMoreAuditLogs}
+                          fullHeight={false}
+                          isDarkMode={theme === 'dark'}
+                          supported={mode === 'local'}
+                          onExpand={handleEnterLogFullscreen}
+                        />
+                      </motion.div>
+                    )}
                 </motion.section>
               </div>
             </div>
-          </motion.main>
+          )}
+        </motion.main>
         </div>
       </div>
 
@@ -525,7 +693,7 @@ export default function App() {
             try { localStorage.setItem('mode', next) } catch { }
           }}
           onConfigCloud={() => setCloudSettingsOpen(true)}
-          onToggleLogs={() => setShowLogs(v => !v)}
+          onToggleLogs={handleToggleLogsPanel}
           onAddDevice={() => setCreateOpen(true)}
         />
       )}
@@ -544,11 +712,15 @@ export default function App() {
       <BottomTabBar
         visible={isMobile}
         mode={mode}
-        active={activeView}
+        logsActive={logsFullscreen}
         onChange={(tab) => {
           switch (tab) {
-            case 'automations':
-              setActiveView('automations')
+            case 'logs':
+              setLogsFullscreen(prev => {
+                const next = !prev
+                if (next) ensureAuditLogsLoaded()
+                return next
+              })
               break
             case 'refresh':
               if (activeView === 'automations') {
@@ -593,6 +765,7 @@ export default function App() {
       <DeviceCreateModal
         open={createOpen}
         initialDevice={editing}
+        api={api}
         onCancel={() => { setCreateOpen(false); setEditing(undefined) }}
         onCreate={async (device) => {
           const r = await api.upsertDevice(device)

@@ -6,7 +6,6 @@ toolchain go1.24.7
 
 require (
 	github.com/eclipse/paho.mqtt.golang v1.4.3
-	github.com/golang/protobuf v1.5.4
 	github.com/improbable-eng/grpc-web v0.15.0
 	github.com/mochi-mqtt/server/v2 v2.4.0
 	golang.org/x/net v0.43.0
@@ -20,6 +19,7 @@ require (
 	github.com/cenkalti/backoff/v4 v4.1.1 // indirect
 	github.com/desertbit/timer v0.0.0-20180107155436-c41aec40b27f // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
+	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect

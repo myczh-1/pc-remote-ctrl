@@ -2,13 +2,19 @@ import { useState, useEffect, useMemo } from 'react'
 import type { Device } from '../proto/home/service'
 import { AdapterKind } from '../proto/home/service'
 import { useBleProvisioning } from '../hooks/useBleProvisioning'
-import { useHomeApi } from '../hooks/useHomeApi'
+
+interface DeviceApi {
+  listDevices: () => Promise<{ ok: boolean; devices?: Device[]; count?: number; error?: string }>
+  upsertDevice: (device: Device) => Promise<{ ok: boolean; message?: string; error?: string }>
+  deleteDevice: (deviceId: string) => Promise<{ ok: boolean; message?: string; error?: string }>
+}
 
 interface DeviceCreateModalProps {
   open: boolean
   onCancel?: () => void
   onCreate?: (device: Device) => Promise<void> | void
   initialDevice?: Device
+  api: DeviceApi
 }
 
 function parseArgsSchema(input: string): Record<string, string> {
@@ -26,7 +32,7 @@ function parseArgsSchema(input: string): Record<string, string> {
   return out
 }
 
-export function DeviceCreateModal({ open, onCancel, onCreate, initialDevice }: DeviceCreateModalProps) {
+export function DeviceCreateModal({ open, onCancel, onCreate, initialDevice, api }: DeviceCreateModalProps) {
   const [id, setId] = useState(initialDevice?.id ?? '')
   const [name, setName] = useState(initialDevice?.name ?? '')
   const [type, setType] = useState(initialDevice?.type ?? '')
@@ -49,7 +55,6 @@ export function DeviceCreateModal({ open, onCancel, onCreate, initialDevice }: D
   const [bleRunning, setBleRunning] = useState(false)
   const [bleLogs, setBleLogs] = useState<Array<{ t: number; msg: string; ok?: boolean }>>([])
   const { provision, disconnect } = useBleProvisioning()
-  const home = useHomeApi()
   const [step, setStep] = useState<'init' | 'ble' | 'waiting' | 'done'>('init')
   const [allocated, setAllocated] = useState(false)
 
@@ -91,7 +96,7 @@ export function DeviceCreateModal({ open, onCancel, onCreate, initialDevice }: D
       if (open) {
         (async () => {
           try {
-            const r = await home.upsertDevice({
+            const r = await api.upsertDevice({
               id: '' as any,
               name: '', type: '', room: '', tags: [],
               online: false, lastSeen: 0 as any, topics: {},
@@ -224,7 +229,7 @@ export function DeviceCreateModal({ open, onCancel, onCreate, initialDevice }: D
                 try {
                   // 1) 分配设备ID（仅当尚未分配）
                   if (!allocated) {
-                    const r = await home.upsertDevice({
+                    const r = await api.upsertDevice({
                       id: '' as any,
                       name: '', type: '', room: '', tags: [],
                       online: false, lastSeen: 0 as any, topics: {},
@@ -250,7 +255,7 @@ export function DeviceCreateModal({ open, onCancel, onCreate, initialDevice }: D
                     // 轮询等待设备上线（最多 30 秒）
                     let onlineOk = false
                     for (let i = 0; i < 30; i++) {
-                      const r = await home.listDevices()
+                      const r = await api.listDevices()
                       if (r.ok && Array.isArray((r as any).devices)) {
                         const found = (r as any).devices.find((d: any) => d.id === id)
                         if (found && (found.online as any)) { onlineOk = true; break }
@@ -263,21 +268,21 @@ export function DeviceCreateModal({ open, onCancel, onCreate, initialDevice }: D
                       setStep('done')
                     } else {
                       setBleLogs(prev => [...prev, { t: Date.now(), msg: '等待上线超时', ok: false }])
-                      try { if (allocated && id) { await home.deleteDevice(id) } } catch {}
+                      try { if (allocated && id) { await api.deleteDevice(id) } } catch {}
                       setAllocated(false)
                       setId('')
                       setStep('ble')
                     }
                   } else {
                     setBleLogs(prev => [...prev, { t: Date.now(), msg: res.message || '配网失败', ok: false }])
-                    try { if (allocated && id) { await home.deleteDevice(id) } } catch {}
+                    try { if (allocated && id) { await api.deleteDevice(id) } } catch {}
                     setAllocated(false)
                     setId('')
                     setStep('ble')
                   }
                 } catch (err: any) {
                   setBleLogs(prev => [...prev, { t: Date.now(), msg: String(err?.message ?? err), ok: false }])
-                  try { if (allocated && id) { await home.deleteDevice(id) } } catch {}
+                  try { if (allocated && id) { await api.deleteDevice(id) } } catch {}
                   setAllocated(false)
                   setId('')
                   setStep('ble')
@@ -327,7 +332,7 @@ export function DeviceCreateModal({ open, onCancel, onCreate, initialDevice }: D
 
         <div className="mt-4 flex justify-end gap-2">
           <button className="px-3 py-2 rounded-lg border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5" onClick={async () => {
-            if (allocated && step !== 'done' && id) { try { await home.deleteDevice(id) } catch {} }
+            if (allocated && step !== 'done' && id) { try { await api.deleteDevice(id) } catch {} }
             onCancel?.()
           }}>取消</button>
           <button disabled={submitting} className="px-3 py-2 rounded-xl bg-gradient-to-r from-prime-500 to-prime-600 text-white hover:from-prime-600 hover:to-prime-700 disabled:opacity-50" onClick={submit}>{initialDevice ? '保存' : '创建'}</button>

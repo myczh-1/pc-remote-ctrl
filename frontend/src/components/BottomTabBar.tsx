@@ -3,11 +3,11 @@ import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 interface BottomTabBarProps {
   visible: boolean
   mode: 'local' | 'cloud'
-  onChange?: (tab: 'refresh' | 'mode' | 'add' | 'settings' | 'automations') => void
-  active?: 'devices' | 'automations'
+  onChange?: (tab: 'refresh' | 'mode' | 'add' | 'settings' | 'logs') => void
+  logsActive?: boolean
 }
 
-export function BottomTabBar({ visible, mode, onChange, active }: BottomTabBarProps) {
+export function BottomTabBar({ visible, mode, onChange, logsActive }: BottomTabBarProps) {
   const prefersReduced = useReducedMotion()
   return (
     <AnimatePresence initial={false}>
@@ -27,9 +27,9 @@ export function BottomTabBar({ visible, mode, onChange, active }: BottomTabBarPr
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                   </svg>
                 )},
-                { key: 'automations', label: '自动化', icon: (
+                { key: 'logs', label: '日志', icon: (
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-3-3v6m9-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                   </svg>
                 )},
                 { key: 'mode', label: (mode === 'cloud' ? '云端' : '本地'), icon: (
@@ -53,14 +53,14 @@ export function BottomTabBar({ visible, mode, onChange, active }: BottomTabBarPr
                   key={t.key}
                   onClick={() => onChange?.(t.key as any)}
                   className={`flex items-center justify-center p-1 transition-transform active:scale-95 ${
-                    (t.key === 'mode' && mode === 'cloud') || (t.key === 'automations' && active === 'automations')
+                    (t.key === 'mode' && mode === 'cloud') || (t.key === 'logs' && logsActive)
                       ? 'text-prime-600 dark:text-prime-400'
                       : 'text-slate-700 dark:text-slate-300'
                   }`}
                 >
                   <div
                     className={`grid place-items-center rounded-lg w-10 h-10 transition-colors hover:bg-black/5 dark:hover:bg-white/10 ${
-                      (t.key === 'mode' && mode === 'cloud') || (t.key === 'automations' && active === 'automations')
+                      (t.key === 'mode' && mode === 'cloud') || (t.key === 'logs' && logsActive)
                         ? 'bg-prime-500/10'
                         : ''
                     }`}
