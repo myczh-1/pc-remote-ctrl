@@ -5,7 +5,7 @@ import { useBleProvisioning } from '../hooks/useBleProvisioning'
 
 interface DeviceApi {
   listDevices: () => Promise<{ ok: boolean; devices?: Device[]; count?: number; error?: string }>
-  upsertDevice: (device: Device) => Promise<{ ok: boolean; message?: string; error?: string }>
+  upsertDevice: (device: Device) => Promise<{ ok: boolean; message?: string; error?: string; deviceId?: string }>
   deleteDevice: (deviceId: string) => Promise<{ ok: boolean; message?: string; error?: string }>
 }
 
@@ -30,6 +30,12 @@ function parseArgsSchema(input: string): Record<string, string> {
     }
   })
   return out
+}
+
+function parseDeviceIdFromMessage(msg?: string): string {
+  if (!msg) return ''
+  const m = msg.match(/^(?:created|updated):(.+)$/)
+  return m ? m[1].trim() : ''
 }
 
 export function DeviceCreateModal({ open, onCancel, onCreate, initialDevice, api }: DeviceCreateModalProps) {
@@ -104,15 +110,14 @@ export function DeviceCreateModal({ open, onCancel, onCreate, initialDevice, api
               actions: [], state: { fields: {} } as any,
             } as any)
             if (r.ok) {
-              const msg = String(r.message || '')
-              const m = msg.match(/^created:(.+)$/)
-              if (m) {
-                setId(m[1])
+              const newId = r.deviceId || parseDeviceIdFromMessage(r.message)
+              if (newId) {
+                setId(newId)
                 setAllocated(true)
                 setStep('ble')
-                setBleLogs(prev => [...prev, { t: Date.now(), msg: `已分配设备ID: ${m[1]}`, ok: true }])
+                setBleLogs(prev => [...prev, { t: Date.now(), msg: `已分配设备ID: ${newId}`, ok: true }])
               } else {
-                setBleLogs(prev => [...prev, { t: Date.now(), msg: `分配设备ID失败: ${msg}`, ok: false }])
+                setBleLogs(prev => [...prev, { t: Date.now(), msg: `分配设备ID失败: ${String(r.message || 'unknown')}`, ok: false }])
               }
             } else {
               setBleLogs(prev => [...prev, { t: Date.now(), msg: `分配设备ID失败: ${r.error}`, ok: false }])
@@ -130,9 +135,10 @@ export function DeviceCreateModal({ open, onCancel, onCreate, initialDevice, api
   const submit = async () => {
     if (!name && !id) return
     setSubmitting(true)
+    const trimmedName = name.trim()
     const device: Device = {
       id: id,
-      name,
+      name: trimmedName,
       type,
       room,
       tags: tags.split(/[;,]/).map(s => s.trim()).filter(Boolean),
@@ -237,13 +243,12 @@ export function DeviceCreateModal({ open, onCancel, onCreate, initialDevice, api
                       actions: [], state: { fields: {} } as any,
                     } as any)
                     if (!r.ok) throw new Error(`分配设备ID失败: ${r.error}`)
-                    const msg = String(r.message || '')
-                    const m = msg.match(/^created:(.+)$/)
-                    if (!m) throw new Error(`分配设备ID失败: ${msg}`)
-                    setId(m[1])
+                    const newId = r.deviceId || parseDeviceIdFromMessage(r.message)
+                    if (!newId) throw new Error(`分配设备ID失败: ${String(r.message || 'unknown')}`)
+                    setId(newId)
                     setAllocated(true)
                     setStep('ble')
-                    setBleLogs(prev => [...prev, { t: Date.now(), msg: `已分配设备ID: ${m[1]}`, ok: true }])
+                    setBleLogs(prev => [...prev, { t: Date.now(), msg: `已分配设备ID: ${newId}`, ok: true }])
                   }
 
                   const res = await provision({ ssid, password: wifiPass, mqttUrl, deviceId: id, mqttUser, mqttPass }, (e) => {

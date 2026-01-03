@@ -219,47 +219,118 @@ export function getStateLabel(key: string, type: StateType): string {
   }
 }
 
+interface FlattenedEntry {
+  path: string
+  leafKey: string
+  parent?: string
+  value: any
+}
+
+function isPlainObject(value: any): value is Record<string, any> {
+  return Object.prototype.toString.call(value) === '[object Object]'
+}
+
+function unwrapProtoValue(value: any): any {
+  if (!value || typeof value !== 'object') {
+    return value
+  }
+  const kind = (value as any).kind
+  if (kind && typeof kind === 'object') {
+    switch (kind.oneofKind) {
+      case 'stringValue':
+        return kind.stringValue
+      case 'numberValue':
+        return kind.numberValue
+      case 'boolValue':
+        return kind.boolValue
+      case 'listValue':
+        return (kind.listValue?.values ?? []).map((v: any) => unwrapProtoValue(v))
+      case 'structValue': {
+        const fields = kind.structValue?.fields ?? {}
+        const out: Record<string, any> = {}
+        for (const [k, v] of Object.entries(fields)) {
+          out[k] = unwrapProtoValue(v)
+        }
+        return out
+      }
+      default:
+        return null
+    }
+  }
+  if ('fields' in value && isPlainObject(value.fields)) {
+    const out: Record<string, any> = {}
+    for (const [k, v] of Object.entries(value.fields)) {
+      out[k] = unwrapProtoValue(v)
+    }
+    return out
+  }
+  return value
+}
+
+function flattenStateEntries(state: any): FlattenedEntry[] {
+  const entries: FlattenedEntry[] = []
+  const root = state && typeof state === 'object' && 'fields' in state ? state.fields : state
+
+  const visit = (obj: any, prefix = '', depth = 0) => {
+    if (!obj || typeof obj !== 'object') return
+    const safeEntries = Object.entries(obj as Record<string, any>)
+    for (const [key, raw] of safeEntries) {
+      const path = prefix ? `${prefix}.${key}` : key
+      const parent = prefix ? prefix.split('.').pop() : undefined
+      const kind = (raw as any)?.kind
+      if (kind?.oneofKind === 'structValue' && kind.structValue?.fields) {
+        if (depth > 6) {
+          entries.push({ path, leafKey: key, parent, value: {} })
+        } else {
+          visit(kind.structValue.fields, path, depth + 1)
+        }
+        continue
+      }
+      const actual = unwrapProtoValue(raw)
+      if (isPlainObject(actual) && Object.keys(actual).length > 0 && depth <= 6) {
+        visit(actual, path, depth + 1)
+        continue
+      }
+      entries.push({ path, leafKey: key, parent, value: actual })
+    }
+  }
+
+  if (isPlainObject(root)) {
+    visit(root)
+  }
+  return entries
+}
+
 // 解析设备状态数据
 export function parseDeviceState(state: any): StateItem[] {
   if (!state || typeof state !== 'object') {
     return []
   }
 
-  const items: StateItem[] = []
+  const flattened = flattenStateEntries(state)
+  if (!flattened.length) {
+    return []
+  }
 
-  // 处理protobuf Struct格式
-  const stateData = state.fields ? state.fields : state
-
-  Object.entries(stateData).forEach(([key, value]) => {
-    // 提取实际值（处理protobuf Value包装）
-    let actualValue = value
-    if (value && typeof value === 'object' && 'stringValue' in value) {
-      actualValue = value.stringValue
-    } else if (value && typeof value === 'object' && 'numberValue' in value) {
-      actualValue = value.numberValue
-    } else if (value && typeof value === 'object' && 'boolValue' in value) {
-      actualValue = value.boolValue
-    }
-
-    const type = detectStateType(key, actualValue)
-    const label = getStateLabel(key, type)
-    const formattedValue = formatStateValue(type, actualValue)
+  const items = flattened.map(entry => {
+    const type = detectStateType(entry.leafKey, entry.value)
+    const baseLabel = getStateLabel(entry.leafKey, type)
+    const label = entry.parent ? `${entry.parent} · ${baseLabel}` : baseLabel
+    const formattedValue = formatStateValue(type, entry.value)
     const icon = getStateIcon(type)
-    const color = getStateColor(type, actualValue)
-
-    items.push({
-      key,
-      value: actualValue,
+    const color = getStateColor(type, entry.value)
+    return {
+      key: entry.path,
+      value: entry.value,
       type,
       label,
       formattedValue,
       icon,
-      color
-    })
+      color,
+    }
   })
 
   return items.sort((a, b) => {
-    // 重要状态项排在前面
     const priority: Record<string, number> = { power: 1, temperature: 2, humidity: 3, brightness: 4, battery: 5, signal: 6 }
     const aPriority = priority[a.type] || 99
     const bPriority = priority[b.type] || 99

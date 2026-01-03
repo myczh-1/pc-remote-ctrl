@@ -5,32 +5,28 @@ import { parseDeviceState } from '../utils/stateRenderer'
 interface StateItemProps {
   item: StateItemType
   compact?: boolean
-  showIcon?: boolean
   className?: string
 }
 
-export function StateItem({ item, compact = false, showIcon = true, className = '' }: StateItemProps) {
+export function StateItem({ item, compact = false, className = '' }: StateItemProps) {
   if (compact) {
     // 紧凑模式：用于卡片显示
     return (
-      <span className={`inline-flex items-center gap-1 ${className}`}>
-        {showIcon && <span className="text-sm">{item.icon}</span>}
+      <div className={`flex flex-col ${className}`}>
+        <span className="text-xs text-slate-500 dark:text-slate-400">{item.label}</span>
         <span className={`text-sm font-medium ${item.color}`}>
           {item.formattedValue}
         </span>
-      </span>
+      </div>
     )
   }
 
   // 完整模式：用于详情页显示
   return (
     <div className={`flex items-center justify-between py-2 ${className}`}>
-      <div className="flex items-center gap-2">
-        {showIcon && <span className="text-base">{item.icon}</span>}
-        <span className="text-sm text-slate-600 dark:text-slate-400">
-          {item.label}
-        </span>
-      </div>
+      <span className="text-sm text-slate-600 dark:text-slate-400">
+        {item.label}
+      </span>
       <span className={`text-sm font-medium ${item.color}`}>
         {item.formattedValue}
       </span>

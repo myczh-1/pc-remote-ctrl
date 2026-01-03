@@ -55,6 +55,12 @@ export function useCloudApi(config?: Partial<CloudConfig>) {
     return out
   }
 
+  function extractDeviceId(message?: string): string {
+    if (!message) return ''
+    const match = message.match(/^(?:created|updated):(.+)$/)
+    return match ? match[1].trim() : ''
+  }
+
   const listDevices = useCallback(async () => {
     setLoading(true)
     setError('')
@@ -281,8 +287,32 @@ export function useCloudApi(config?: Partial<CloudConfig>) {
 
   const upsertDevice = useCallback(async (device: Device) => {
     try {
-      const res = await clientRef.current.upsertDevice({ deviceId: agentId, request: { device } }).response
-      return { ok: (res as UpsertDeviceResponse).ok, message: (res as UpsertDeviceResponse).message }
+      const res = await clientRef.current.upsertDevice({ deviceId: agentId, request: { device } }).response as UpsertDeviceResponse
+      if (res.ok) {
+        const idFromMsg = extractDeviceId(res.message)
+        const targetId = (device.id && device.id.trim()) || idFromMsg
+        if (targetId) {
+          setDevices(prev => {
+            let updated = false
+            const next = prev.map(d => {
+              if (d.id !== targetId) return d
+              updated = true
+              return {
+                ...d,
+                name: device.name?.trim() || d.name,
+                type: device.type || d.type,
+                room: device.room || d.room,
+                tags: device.tags?.length ? [...device.tags] : d.tags,
+              }
+            })
+            if (!updated) {
+              return prev
+            }
+            return next
+          })
+        }
+      }
+      return { ok: res.ok, message: res.message, deviceId: (device.id && device.id.trim()) || extractDeviceId(res.message) }
     } catch (e: any) {
       return { ok: false, error: String(e?.message ?? e) }
     }
