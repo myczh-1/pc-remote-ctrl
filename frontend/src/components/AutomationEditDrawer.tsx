@@ -174,7 +174,8 @@ export function AutomationEditDrawer({ open, initial, onClose, onSubmit }: Props
               />
             </div>
             <div className="text-xs text-slate-500 dark:text-slate-400">
-              说明：payload 来自设备事件的 JSON 顶层字段，例如 state 上报 {{"temperature":28}}，则 path=temperature，equals=28 时才会触发。
+              说明：payload 来自设备事件的 JSON 顶层字段，例如 state 上报 {`{"temperature":28}`}
+              ，则 path=temperature，equals=28 时才会触发。
             </div>
           </div>
 

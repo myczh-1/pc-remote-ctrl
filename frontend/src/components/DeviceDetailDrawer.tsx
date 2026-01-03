@@ -10,9 +10,10 @@ interface DeviceDetailDrawerProps {
   onClose?: () => void
   onInvoke?: (deviceId: string, action: string, args: Record<string, any>) => void
   onEdit?: (device: Device) => void
+  onDelete?: (device: Device) => void
 }
 
-export function DeviceDetailDrawer({ open, device, onClose, onInvoke, onEdit }: DeviceDetailDrawerProps) {
+export function DeviceDetailDrawer({ open, device, onClose, onInvoke, onEdit, onDelete }: DeviceDetailDrawerProps) {
   const [form, setForm] = useState<Record<string, any>>({})
   const actions = device?.actions ?? []
   const [selected, setSelected] = useState<ActionSpec | null>(actions[0] ?? null)
@@ -42,7 +43,12 @@ export function DeviceDetailDrawer({ open, device, onClose, onInvoke, onEdit }: 
         <div className="flex items-center gap-2">
           <div className="text-lg font-semibold text-slate-900 dark:text-slate-100 " title={device.name || device.id}>{device.name || device.id}</div>
           <button className="shrink-0 rounded-lg px-3 py-1 text-xs border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5" onClick={() => device && onEdit?.(device)}>编辑</button>
-       
+          <button
+            className="shrink-0 rounded-lg px-3 py-1 text-xs border border-red-200 text-red-600 hover:bg-red-50 dark:border-red-500/40 dark:text-red-200 dark:hover:bg-red-500/10"
+            onClick={() => device && onDelete?.(device)}
+          >
+            删除
+          </button>
         </div>
     
       </div>

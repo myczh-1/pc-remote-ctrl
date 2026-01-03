@@ -59,7 +59,10 @@ export function Console({
   onCloseFull,
 }: ConsoleProps) {
   const outerBorder = fullHeight ? 'border-l' : 'border-t'
-  const baseLayout = fullHeight ? 'h-full flex flex-col min-h-0' : ''
+  const baseLayout = fullHeight
+    ? 'h-full min-h-0 flex flex-col w-full'
+    : 'flex flex-col w-full min-h-[280px] max-h-[25vh]'
+  const contentLayout = 'flex-1 min-h-0 flex flex-col gap-3'
 
   return (
     <section className={`${outerBorder} border border-black/10 bg-white/60 px-4 py-3 backdrop-blur-md backdrop-saturate-[1.4] transition-colors dark:border-white/10 dark:bg-white/[0.08] ${baseLayout}`}>
@@ -97,7 +100,7 @@ export function Console({
         </div>
       </div>
 
-      <div className={`${fullHeight ? 'flex-1 min-h-0 flex flex-col gap-3' : 'space-y-3'}`}>
+      <div className={contentLayout}>
         <div className="grid gap-2 sm:grid-cols-3">
           <input
             value={filters.kind}
@@ -133,7 +136,7 @@ export function Console({
           </div>
         )}
 
-        <div className={`${fullHeight ? 'flex-1 min-h-0' : ''} overflow-auto rounded-xl bg-white/70 dark:bg-slate-950/70 border border-black/10 dark:border-white/5 p-3 text-sm leading-6`}>
+        <div className={`flex-1 min-h-0 overflow-auto rounded-xl bg-white/70 dark:bg-slate-950/70 border border-black/10 dark:border-white/5 p-3 text-sm leading-6`}>
           {supported ? (
             auditLogs.length === 0 && !loading ? (
               <div className="text-slate-400 dark:text-slate-500 text-center py-8">暂无审计日志</div>

@@ -739,6 +739,20 @@ export default function App() {
         device={api.devices.find(d => d.id === detailDeviceId)}
         onClose={() => setDetailOpen(false)}
         onEdit={(dev) => { setDetailOpen(false); setEditing(dev as any); setCreateOpen(true) }}
+        onDelete={async (dev) => {
+          if (!dev) return
+          const confirmed = window.confirm(`确认删除设备：${dev.name || dev.id}？`)
+          if (!confirmed) return
+          const res = await api.deleteDevice(dev.id)
+          if (res.ok) {
+            logSuccess(`设备已删除：${dev.name || dev.id}`)
+            setDetailOpen(false)
+            setDetailDeviceId('')
+            await api.listDevices()
+          } else {
+            logError(res.error || res.message || '删除失败')
+          }
+        }}
         onInvoke={async (id, action, args) => {
           logInfo(`执行: ${action} @ ${id}`, 'execution_start', { commandSetName: action })
           const r = await api.invokeAction(id, action, args)
