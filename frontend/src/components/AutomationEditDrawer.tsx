@@ -160,8 +160,21 @@ export function AutomationEditDrawer({ open, initial, onClose, onSubmit }: Props
               <input value={whenDevice} onChange={e => setWhenDevice(e.target.value)} placeholder="设备ID" className="px-3 py-2 rounded-lg bg-white/80 dark:bg-white/10 border border-slate-200/60 dark:border-white/10" />
             </div>
             <div className="grid grid-cols-2 gap-2">
-              <input value={whenPath} onChange={e => setWhenPath(e.target.value)} placeholder="payload路径 (可选)" className="px-3 py-2 rounded-lg bg-white/80 dark:bg-white/10 border border-slate-200/60 dark:border-white/10" />
-              <input value={whenEquals} onChange={e => setWhenEquals(e.target.value)} placeholder="equals (可选)" className="px-3 py-2 rounded-lg bg-white/80 dark:bg-white/10 border border-slate-200/60 dark:border-white/10" />
+              <input
+                value={whenPath}
+                onChange={e => setWhenPath(e.target.value)}
+                placeholder="设备上报字段名，如 temperature"
+                className="px-3 py-2 rounded-lg bg-white/80 dark:bg-white/10 border border-slate-200/60 dark:border-white/10"
+              />
+              <input
+                value={whenEquals}
+                onChange={e => setWhenEquals(e.target.value)}
+                placeholder="期望值，可填 JSON 字符串/数值"
+                className="px-3 py-2 rounded-lg bg-white/80 dark:bg-white/10 border border-slate-200/60 dark:border-white/10"
+              />
+            </div>
+            <div className="text-xs text-slate-500 dark:text-slate-400">
+              说明：payload 来自设备事件的 JSON 顶层字段，例如 state 上报 {{"temperature":28}}，则 path=temperature，equals=28 时才会触发。
             </div>
           </div>
 
