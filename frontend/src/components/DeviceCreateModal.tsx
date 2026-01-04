@@ -9,10 +9,12 @@ interface DeviceApi {
   deleteDevice: (deviceId: string) => Promise<{ ok: boolean; message?: string; error?: string }>
 }
 
+interface SaveResult { ok: boolean; error?: string }
+
 interface DeviceCreateModalProps {
   open: boolean
   onCancel?: () => void
-  onCreate?: (device: Device) => Promise<void> | void
+  onCreate?: (device: Device) => Promise<SaveResult> | SaveResult
   initialDevice?: Device
   api: DeviceApi
 }
@@ -51,6 +53,7 @@ export function DeviceCreateModal({ open, onCancel, onCreate, initialDevice, api
       : [{ name: '', args: '', timeout: 2000 }]
   )
   const [submitting, setSubmitting] = useState(false)
+  const [formError, setFormError] = useState('')
   // BLE provisioning inputs
   const [ssid, setSsid] = useState('')
   const [wifiPass, setWifiPass] = useState('')
@@ -97,6 +100,7 @@ export function DeviceCreateModal({ open, onCancel, onCreate, initialDevice, api
       setMqttUser('')
       setMqttPass('')
       setBleLogs([])
+      setFormError('')
       setAllocated(false)
       setStep('init')
       if (open) {
@@ -132,25 +136,40 @@ export function DeviceCreateModal({ open, onCancel, onCreate, initialDevice, api
 
   if (!open) return null
 
+  const handleCancel = async () => {
+    if (allocated && step !== 'done' && id) { try { await api.deleteDevice(id) } catch {} }
+    onCancel?.()
+  }
+
   const submit = async () => {
     if (!name && !id) return
     setSubmitting(true)
+    setFormError('')
     const trimmedName = name.trim()
+    const baseTopics = initialDevice?.topics ?? {}
+    const baseAdapterConfig = initialDevice?.adapter?.config ?? {}
     const device: Device = {
       id: id,
       name: trimmedName,
       type,
       room,
       tags: tags.split(/[;,]/).map(s => s.trim()).filter(Boolean),
-      online: false,
-      lastSeen: 0 as any,
-      topics: {},
-      adapter: { kind: adapterKind, config: {} },
+      online: initialDevice?.online ?? false,
+      lastSeen: initialDevice?.lastSeen ?? (0 as any),
+      topics: { ...baseTopics },
+      adapter: { kind: adapterKind, config: { ...baseAdapterConfig } },
       actions: actions.filter(a => a.name.trim()).map(a => ({ name: a.name.trim(), argsSchema: parseArgsSchema(a.args), timeoutMs: a.timeout as any })),
-      state: { fields: {} } as any,
+      state: initialDevice?.state ?? ({ fields: {} } as any),
     }
     try {
-      await onCreate?.(device)
+      const res = await onCreate?.(device)
+      if (res && !res.ok) {
+        setFormError(res.error || '保存失败')
+        return
+      }
+    } catch (err: any) {
+      setFormError(String(err?.message ?? err))
+      return
     } finally {
       setSubmitting(false)
     }
@@ -167,6 +186,7 @@ export function DeviceCreateModal({ open, onCancel, onCreate, initialDevice, api
           <button className="rounded-lg p-2 hover:bg-black/5 dark:hover:bg-white/5" onClick={onCancel}>✕</button>
         </div>
 
+        {formError && <div className="mb-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">{formError}</div>}
         <div className="grid grid-cols-2 gap-3">
           {initialDevice && (
           <div className="col-span-1">
@@ -336,10 +356,7 @@ export function DeviceCreateModal({ open, onCancel, onCreate, initialDevice, api
         </div>
 
         <div className="mt-4 flex justify-end gap-2">
-          <button className="px-3 py-2 rounded-lg border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5" onClick={async () => {
-            if (allocated && step !== 'done' && id) { try { await api.deleteDevice(id) } catch {} }
-            onCancel?.()
-          }}>取消</button>
+          <button className="px-3 py-2 rounded-lg border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5" onClick={handleCancel}>取消</button>
           <button disabled={submitting} className="px-3 py-2 rounded-xl bg-gradient-to-r from-prime-500 to-prime-600 text-white hover:from-prime-600 hover:to-prime-700 disabled:opacity-50" onClick={submit}>{initialDevice ? '保存' : '创建'}</button>
         </div>
       </div>

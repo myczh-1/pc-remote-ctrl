@@ -1,5 +1,5 @@
 import type { Device, ActionSpec } from '../proto/home/service'
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react'
 import { DeviceStatus } from './StatusIndicator'
 import { StateRenderer } from './StateItem'
@@ -7,13 +7,14 @@ import { StateRenderer } from './StateItem'
 interface DeviceDetailDrawerProps {
   open: boolean
   device?: Device
+  initialActionName?: string
   onClose?: () => void
   onInvoke?: (deviceId: string, action: string, args: Record<string, any>) => void
   onEdit?: (device: Device) => void
   onDelete?: (device: Device) => void
 }
 
-export function DeviceDetailDrawer({ open, device, onClose, onInvoke, onEdit, onDelete }: DeviceDetailDrawerProps) {
+export function DeviceDetailDrawer({ open, device, initialActionName, onClose, onInvoke, onEdit, onDelete }: DeviceDetailDrawerProps) {
   const [form, setForm] = useState<Record<string, any>>({})
   const actions = device?.actions ?? []
   const [selected, setSelected] = useState<ActionSpec | null>(actions[0] ?? null)
@@ -23,6 +24,20 @@ export function DeviceDetailDrawer({ open, device, onClose, onInvoke, onEdit, on
   ), [prefersReduced])
 
   const fields = useMemo(() => Object.entries(selected?.argsSchema ?? {}), [selected?.argsSchema])
+
+  useEffect(() => {
+    if (!device) {
+      setSelected(null)
+      setForm({})
+      return
+    }
+    const preferred = initialActionName
+      ? actions.find(a => a.name === initialActionName) || null
+      : null
+    const next = preferred ?? actions[0] ?? null
+    setSelected(next)
+    setForm({})
+  }, [device?.id, initialActionName])
 
   return (
     <AnimatePresence initial={false}>

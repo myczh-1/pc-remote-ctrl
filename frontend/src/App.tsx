@@ -6,7 +6,7 @@ import { Console } from './components/Console'
 import { DeviceCard } from './components/DeviceCard'
 import { DeviceDetailDrawer } from './components/DeviceDetailDrawer'
 import { DeviceCreateModal } from './components/DeviceCreateModal'
-import type { Device } from './proto/home/service'
+import type { Device, ActionSpec } from './proto/home/service'
 import { useHomeApi } from './hooks/useHomeApi'
 import { useCloudApi } from './hooks/useCloudApi'
 import { CloudSettings } from './components/CloudSettings'
@@ -77,6 +77,7 @@ export default function App() {
   const [activeView, setActiveView] = useState<'devices' | 'automations'>('devices')
   const [detailOpen, setDetailOpen] = useState(false)
   const [detailDeviceId, setDetailDeviceId] = useState('')
+  const [detailInitialAction, setDetailInitialAction] = useState('')
   const [createOpen, setCreateOpen] = useState(false)
   const [editing, setEditing] = useState<Device | undefined>(undefined)
   const isMobile = useMediaQuery('(max-width: 767px)')
@@ -277,13 +278,21 @@ export default function App() {
 
   }
 
-  const handleQuickAction = async (deviceId: string, action: string) => {
-    logInfo(`执行: ${action} @ ${deviceId}`, 'execution_start', { commandSetName: action })
-    const r = await api.invokeAction(deviceId, action)
+  const handleQuickAction = async (device: Device, action: ActionSpec) => {
+    const requiresArgs = action?.argsSchema && Object.keys(action.argsSchema).length > 0
+    if (requiresArgs) {
+      logInfo(`动作 ${action.name} 需要参数，请在详情中填写`)
+      setDetailDeviceId(device.id)
+      setDetailInitialAction(action.name)
+      setDetailOpen(true)
+      return
+    }
+    logInfo(`执行: ${action.name} @ ${device.id}`, 'execution_start', { commandSetName: action.name })
+    const r = await api.invokeAction(device.id, action.name)
     if (r.ok) {
-      logSuccess(`执行完成: ${action}`, 'execution_complete', { commandSetName: action })
+      logSuccess(`执行完成: ${action.name}`, 'execution_complete', { commandSetName: action.name })
     } else {
-      logError(`执行失败: ${r.error || r.message}`, 'execution_error', { commandSetName: action })
+      logError(`执行失败: ${r.error || r.message}`, 'execution_error', { commandSetName: action.name })
     }
   }
 
@@ -474,8 +483,8 @@ export default function App() {
                           <motion.div key={d.id} layout transition={layoutTransition}>
                             <DeviceCard
                               device={d}
-                              onQuickAction={(dev, act) => handleQuickAction(dev.id, act)}
-                              onOpenDetail={(dev) => { setDetailDeviceId(dev.id); setDetailOpen(true) }}
+                              onQuickAction={(dev, act) => handleQuickAction(dev, act)}
+                              onOpenDetail={(dev) => { setDetailDeviceId(dev.id); setDetailInitialAction(''); setDetailOpen(true) }}
                               onEdit={(dev) => { setEditing(dev as any); setCreateOpen(true) }}
                             />
                           </motion.div>
@@ -737,7 +746,8 @@ export default function App() {
       <DeviceDetailDrawer
         open={detailOpen}
         device={api.devices.find(d => d.id === detailDeviceId)}
-        onClose={() => setDetailOpen(false)}
+        initialActionName={detailInitialAction}
+        onClose={() => { setDetailOpen(false); setDetailInitialAction('') }}
         onEdit={(dev) => { setDetailOpen(false); setEditing(dev as any); setCreateOpen(true) }}
         onDelete={async (dev) => {
           if (!dev) return
@@ -775,6 +785,7 @@ export default function App() {
           } else {
             logError(`创建设备失败: ${r.error || r.message}`)
           }
+          return { ok: r.ok, error: r.error || r.message }
         }}
       />
 

@@ -1,18 +1,18 @@
 //
-import type { Device } from '../proto/home/service'
+import type { Device, ActionSpec } from '../proto/home/service'
 import { StatusIndicator, DeviceStatus } from './StatusIndicator'
 import { StateRenderer } from './StateItem'
 
 interface DeviceCardProps {
   device: Device
   onOpenDetail?: (device: Device) => void
-  onQuickAction?: (device: Device, action: string) => void
+  onQuickAction?: (device: Device, action: ActionSpec) => void
   onEdit?: (device: Device) => void
 }
 
 export function DeviceCard({ device, onOpenDetail, onQuickAction, onEdit: _onEdit }: DeviceCardProps) {
   const online = device.online
-  const quick = device.actions?.[0]?.name
+  const quickAction = device.actions?.[0]
   // no emoji placeholder
 
   return (
@@ -74,13 +74,13 @@ export function DeviceCard({ device, onOpenDetail, onQuickAction, onEdit: _onEdi
         )}
       </div>
 
-      {quick && (
+      {quickAction && (
         <div className="mt-auto pt-2 border-t border-black/5 dark:border-white/5 flex items-center gap-2">
           <button
             disabled={!online}
             className="px-3 py-2 text-sm rounded-xl bg-gradient-to-r from-prime-500 to-prime-600 text-white hover:from-prime-600 hover:to-prime-700 disabled:opacity-50"
-            onClick={() => onQuickAction?.(device, quick)}
-          >{quick}</button>
+            onClick={() => onQuickAction?.(device, quickAction)}
+          >{quickAction.name}</button>
         </div>
       )}
     </div>
