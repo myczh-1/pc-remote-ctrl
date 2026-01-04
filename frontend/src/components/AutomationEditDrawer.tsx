@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import type { Automation } from '../proto/home/service'
+import { Struct } from '../proto/google/protobuf/struct'
 
 interface Props {
   open: boolean
@@ -73,10 +74,15 @@ export function AutomationEditDrawer({ open, initial, onClose, onSubmit }: Props
       parsedActions = validActions.map((a, idx) => {
         try {
           const argsParsed = parseJSONOrEmpty(a.args)
+          if (argsParsed !== undefined) {
+            if (argsParsed === null || typeof argsParsed !== 'object' || Array.isArray(argsParsed)) {
+              throw new Error('JSON 必须是对象')
+            }
+          }
           return {
             deviceId: a.deviceId.trim(),
             action: a.action.trim(),
-            args: argsParsed,
+            args: argsParsed ? Struct.fromJson(argsParsed) : undefined,
           }
         } catch (err: any) {
           newActionErrors[idx] = String(err?.message ?? err)
@@ -85,7 +91,7 @@ export function AutomationEditDrawer({ open, initial, onClose, onSubmit }: Props
       })
     } catch (e: any) {
       setActionErrors(newActionErrors)
-      setError(`动作参数需为 JSON：${e?.message || e}`)
+      setError(`动作参数需为 JSON 对象：${e?.message || e}`)
       return
     }
     setActionErrors({})
@@ -102,12 +108,13 @@ export function AutomationEditDrawer({ open, initial, onClose, onSubmit }: Props
         when.equals = whenEquals
       }
     }
+    const whenStruct = Struct.fromJson(when)
     const automation: Automation = {
       id: initial?.id || '',
       name: name.trim(),
       enabled,
       tags: tags.split(',').map(t => t.trim()).filter(Boolean),
-      when,
+      when: whenStruct,
       then: parsedActions,
       updatedAt: initial?.updatedAt ?? '0',
     }
@@ -124,7 +131,7 @@ export function AutomationEditDrawer({ open, initial, onClose, onSubmit }: Props
   return (
     <div className={`fixed inset-0 z-40 ${open ? 'pointer-events-auto' : 'pointer-events-none'}`}>
       <div className={`absolute inset-0 bg-black/40 transition-opacity ${open ? 'opacity-100' : 'opacity-0'}`} onClick={onClose}></div>
-      <div className={`absolute right-0 top-0 h-full w-full max-w-md bg-white dark:bg-[#0b1220] shadow-2xl transition-transform duration-300 ${open ? 'translate-x-0' : 'translate-x-full'}`}>
+      <div className={`absolute right-0 top-0 h-full w-full max-w-md bg-white dark:bg-[#0b1220] shadow-2xl transition-transform duration-300 flex flex-col overflow-hidden ${open ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="p-4 border-b border-slate-200/70 dark:border-white/10 flex items-center justify-between">
           <div>
             <div className="text-lg font-semibold">{initial ? '编辑自动化' : '新建自动化'}</div>
@@ -132,7 +139,7 @@ export function AutomationEditDrawer({ open, initial, onClose, onSubmit }: Props
           </div>
           <button onClick={onClose} className="text-slate-500 hover:text-slate-800 dark:text-slate-300 dark:hover:text-white">✕</button>
         </div>
-        <div className="p-4 space-y-4 overflow-auto h-[calc(100%-4rem)]">
+        <div className="flex-1 overflow-auto p-4 space-y-4">
           {error && <div className="text-sm text-red-500">{error}</div>}
           <div className="space-y-2">
             <label className="text-sm text-slate-600 dark:text-slate-300">名称</label>
@@ -220,7 +227,7 @@ export function AutomationEditDrawer({ open, initial, onClose, onSubmit }: Props
 }
 
 function parseJSONOrEmpty(txt: string): any {
-  if (!txt.trim()) return {}
+  if (!txt.trim()) return undefined
   return JSON.parse(txt)
 }
 
