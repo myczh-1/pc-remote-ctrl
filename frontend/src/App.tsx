@@ -20,6 +20,44 @@ import { MobileFiltersDrawer } from './components/MobileFiltersDrawer'
 import type { Automation, LogEntry } from './proto/home/service'
 import { AutomationEditDrawer } from './components/AutomationEditDrawer'
 
+function buildTinyAuthFromHost(protocol: string, hostname: string, port?: string): string {
+  if (!protocol || !hostname) return ''
+  const portPart = port ? `:${port}` : ''
+  const lowerHost = hostname.toLowerCase()
+  if (lowerHost === 'localhost' || lowerHost.startsWith('127.') || lowerHost === '::1') {
+    return `${protocol}//${hostname}${portPart}`
+  }
+  const parts = hostname.split('.')
+  if (parts.length > 1) {
+    parts[0] = 'tinyauth'
+    return `${protocol}//${parts.join('.')}${portPart}`
+  }
+  return `${protocol}//tinyauth.${hostname}${portPart}`
+}
+
+function deriveTinyAuthOrigin(cloudBase?: string): string {
+  const envVal = ((import.meta as any)?.env?.VITE_TINYAUTH_URL as string | undefined)?.trim()
+  if (envVal) {
+    return envVal.replace(/\/+$/, '')
+  }
+  const loc = typeof window !== 'undefined' ? window.location : undefined
+  const fallbackOrigin = loc ? `${loc.protocol}//${loc.host}` : 'http://localhost'
+  const candidates = [cloudBase, fallbackOrigin]
+  for (const raw of candidates) {
+    if (!raw) continue
+    try {
+      const base = new URL(raw, fallbackOrigin)
+      const derived = buildTinyAuthFromHost(base.protocol, base.hostname, base.port)
+      if (derived) {
+        return derived.replace(/\/+$/, '')
+      }
+    } catch {
+      continue
+    }
+  }
+  return ''
+}
+
 export default function App() {
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     if (typeof window !== 'undefined') {
@@ -79,6 +117,7 @@ export default function App() {
   const layoutTransition = useMemo(() => (
     prefersReduced ? { duration: 0 } : { duration: 0.32, ease: [0.22, 1, 0.36, 1] as any }
   ), [prefersReduced])
+  const tinyAuthOrigin = React.useMemo(() => deriveTinyAuthOrigin(cloudCfg.baseUrl), [cloudCfg.baseUrl])
 
   const activeTags = React.useMemo(() => deviceFilters.tags.filter(Boolean), [deviceFilters.tags])
   const normalizedRoom = deviceFilters.room.trim()
@@ -123,6 +162,25 @@ export default function App() {
       tags: activeTags,
     })
   }, [api.listDevices, normalizedRoom, activeTags])
+
+  const handleCloudLogout = React.useCallback(() => {
+    if (mode !== 'cloud') return
+    if (!tinyAuthOrigin) {
+      logError('TinyAuth URL 未配置，无法退出')
+      return
+    }
+    if (typeof window === 'undefined') {
+      return
+    }
+    try {
+      const base = tinyAuthOrigin.endsWith('/') ? tinyAuthOrigin : `${tinyAuthOrigin}/`
+      const logoutUrl = new URL('/logout', base)
+      logoutUrl.searchParams.set('redirect_uri', window.location.origin)
+      window.location.href = logoutUrl.toString()
+    } catch (err: any) {
+      logError(`TinyAuth 退出失败: ${String(err?.message ?? err)}`)
+    }
+  }, [mode, tinyAuthOrigin, logError])
 
   const [activeView, setActiveView] = useState<'devices' | 'automations'>('devices')
   const [detailOpen, setDetailOpen] = useState(false)
@@ -475,7 +533,7 @@ export default function App() {
                 (el.requestFullscreen || el.webkitRequestFullscreen)?.call(el)
               }
             }}
-            onExit={() => { /* 留空：按需接入 */ }}
+            onExit={mode === 'cloud' ? handleCloudLogout : undefined}
           />
         </div>
 

@@ -5,7 +5,7 @@ interface TopbarProps {
   theme: 'light' | 'dark'
   onToggleTheme?: (e: MouseEvent) => void
   onToggleFullscreen?: () => void // 全屏/退出全屏
-  onExit?: () => void // 退出按钮（按需占位）
+  onExit?: () => void // 退出按钮（云端模式使用）
   onOpenFilters?: () => void // 移动端：打开筛选抽屉
 }
 
@@ -45,17 +45,18 @@ export function Topbar({ mode, theme, onToggleTheme, onToggleFullscreen, onExit,
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V5a1 1 0 011-1h3M20 8V5a1 1 0 00-1-1h-3M4 16v3a1 1 0 001 1h3M20 16v3a1 1 0 01-1 1h-3" />
           </svg>
         </button>
-        {/* 退出按钮（功能留空） */}
+        {onExit && (
         <button
           onClick={onExit}
           className="rounded-lg p-2 hover:bg-white/5 border border-white/10"
-          title="退出"
+          title="退出登录"
         >
           <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7" />
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6a2 2 0 012-2h6a2 2 0 012 2v2" />
           </svg>
         </button>
+        )}
         <button 
           onClick={(e) => {
             onToggleTheme?.(e.nativeEvent)
