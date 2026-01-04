@@ -15,7 +15,7 @@ import { TelemetryEventKind } from './proto/home/service'
 import { BottomTabBar } from './components/BottomTabBar'
 import { useMediaQuery } from './hooks/useMediaQuery'
 import { RightToolbar } from './components/RightToolbar'
-import { DeviceFilters } from './components/DeviceFilters'
+import { DeviceFilters, type DeviceStatusFilter } from './components/DeviceFilters'
 import { MobileFiltersDrawer } from './components/MobileFiltersDrawer'
 import type { Automation, LogEntry } from './proto/home/service'
 import { AutomationEditDrawer } from './components/AutomationEditDrawer'
@@ -40,6 +40,12 @@ export default function App() {
     agentId: (typeof localStorage !== 'undefined' ? (localStorage.getItem('cloud.agentId') || '') : ''),
   }))
   const [cloudSettingsOpen, setCloudSettingsOpen] = useState(false)
+  const [deviceFilters, setDeviceFilters] = useState<{ search: string; status: DeviceStatusFilter; room: string; tags: string[] }>(() => ({
+    search: '',
+    status: 'all',
+    room: '',
+    tags: [],
+  }))
 
   function onEvent(ev: any, data?: Record<string, any>) {
     if (!ev) return
@@ -74,6 +80,50 @@ export default function App() {
     prefersReduced ? { duration: 0 } : { duration: 0.32, ease: [0.22, 1, 0.36, 1] as any }
   ), [prefersReduced])
 
+  const activeTags = React.useMemo(() => deviceFilters.tags.filter(Boolean), [deviceFilters.tags])
+  const normalizedRoom = deviceFilters.room.trim()
+  const availableRooms = React.useMemo(() => {
+    const set = new Set<string>()
+    for (const d of api.devices ?? []) {
+      const room = (d.room ?? '').trim()
+      if (room) set.add(room)
+    }
+    return Array.from(set).sort()
+  }, [api.devices])
+  const availableTags = React.useMemo(() => {
+    const set = new Set<string>()
+    for (const d of api.devices ?? []) {
+      for (const tag of d.tags ?? []) {
+        const trimmed = tag.trim()
+        if (trimmed) set.add(trimmed)
+      }
+    }
+    return Array.from(set).sort()
+  }, [api.devices])
+  const totalDevices = api.devices?.length ?? 0
+  const visibleDevices = React.useMemo(() => {
+    const query = deviceFilters.search.trim().toLowerCase()
+    return (api.devices ?? []).filter(d => {
+      if (deviceFilters.status === 'online' && !d.online) return false
+      if (deviceFilters.status === 'offline' && d.online) return false
+      if (normalizedRoom && (d.room ?? '') !== normalizedRoom) return false
+      if (activeTags.length && !activeTags.every(tag => (d.tags ?? []).includes(tag))) return false
+      if (!query) return true
+      const haystack = [d.name, d.id, d.type, d.room]
+        .concat(d.tags ?? [])
+        .map(v => (v || '').toString().toLowerCase())
+        .join(' ')
+      return haystack.includes(query)
+    })
+  }, [api.devices, deviceFilters.search, deviceFilters.status, normalizedRoom, activeTags])
+
+  const requestDevicesWithRemoteFilters = React.useCallback(() => {
+    return api.listDevices({
+      room: normalizedRoom || undefined,
+      tags: activeTags,
+    })
+  }, [api.listDevices, normalizedRoom, activeTags])
+
   const [activeView, setActiveView] = useState<'devices' | 'automations'>('devices')
   const [detailOpen, setDetailOpen] = useState(false)
   const [detailDeviceId, setDetailDeviceId] = useState('')
@@ -99,10 +149,13 @@ export default function App() {
   }, [showLogs])
   // 侧边栏已改造为右侧固定工具栏，移除展开状态
   React.useEffect(() => {
-    api.listDevices()
     api.startWatch()
     return () => { try { api.stopWatch() } catch { } }
-  }, [mode, cloudCfg.baseUrl, cloudCfg.agentId])
+  }, [mode, cloudCfg.baseUrl, cloudCfg.agentId, api.startWatch, api.stopWatch])
+
+  React.useEffect(() => {
+    requestDevicesWithRemoteFilters()
+  }, [requestDevicesWithRemoteFilters])
 
   React.useEffect(() => {
     if (mode === 'cloud' && activeView === 'automations') {
@@ -270,8 +323,32 @@ export default function App() {
     }
   }
 
+  const handleDeviceSearchChange = (search: string) => {
+    setDeviceFilters(prev => ({ ...prev, search }))
+  }
+
+  const handleDeviceStatusChange = (status: DeviceStatusFilter) => {
+    setDeviceFilters(prev => ({ ...prev, status }))
+  }
+
+  const handleDeviceRoomChange = (room: string) => {
+    setDeviceFilters(prev => ({ ...prev, room }))
+  }
+
+  const handleToggleDeviceTag = (tag: string) => {
+    setDeviceFilters(prev => {
+      const exists = prev.tags.includes(tag)
+      const nextTags = exists ? prev.tags.filter(t => t !== tag) : [...prev.tags, tag]
+      return { ...prev, tags: nextTags }
+    })
+  }
+
+  const handleResetDeviceFilters = () => {
+    setDeviceFilters({ search: '', status: 'all', room: '', tags: [] })
+  }
+
   const handleRefreshDevices = async () => {
-    const r = await api.listDevices()
+    const r = await requestDevicesWithRemoteFilters()
     if (r.ok) logInfo(`设备: ${r.count} 台`)
     else logError(`刷新设备失败: ${r.error}`)
     console.log(r)
@@ -407,7 +484,19 @@ export default function App() {
           {/* 左侧：设备快捷筛选（桌面可见），无外边距，顶天立地 */}
           {!isMobile && (
             <div className="hidden lg:flex w-64 shrink-0">
-              <DeviceFilters />
+              <DeviceFilters
+                search={deviceFilters.search}
+                status={deviceFilters.status}
+                room={deviceFilters.room}
+                rooms={availableRooms}
+                availableTags={availableTags}
+                selectedTags={deviceFilters.tags}
+                onSearchChange={handleDeviceSearchChange}
+                onStatusChange={handleDeviceStatusChange}
+                onRoomChange={handleDeviceRoomChange}
+                onToggleTag={handleToggleDeviceTag}
+                onReset={handleResetDeviceFilters}
+              />
             </div>
           )}
         <motion.main layout className="flex-1 flex flex-col overflow-hidden">
@@ -462,7 +551,9 @@ export default function App() {
                       </div>
                       {activeView === 'devices' && (
                         <div className="text-sm text-slate-500 dark:text-slate-400">
-                          {api.loading ? '加载设备中...' : `共 ${(Array.isArray(api.devices) ? api.devices.length : 0)} 台设备`}
+                          {api.loading
+                            ? '加载设备中...'
+                            : `已筛选 ${visibleDevices.length} 台${totalDevices !== visibleDevices.length ? `（全部 ${totalDevices} 台）` : ''}`}
                         </div>
                       )}
                       {activeView === 'automations' && (
@@ -479,7 +570,7 @@ export default function App() {
                     </div>
                     {activeView === 'devices' && (
                       <div className="grid gap-3 justify-center content-start grid-cols-[repeat(auto-fit,minmax(320px,420px))]">
-                        {(api.devices ?? []).map(d => (
+                        {visibleDevices.map(d => (
                           <motion.div key={d.id} layout transition={layoutTransition}>
                             <DeviceCard
                               device={d}
@@ -698,7 +789,19 @@ export default function App() {
           open={mobileFiltersOpen}
           onClose={() => setMobileFiltersOpen(false)}
         >
-          <DeviceFilters />
+          <DeviceFilters
+            search={deviceFilters.search}
+            status={deviceFilters.status}
+            room={deviceFilters.room}
+            rooms={availableRooms}
+            availableTags={availableTags}
+            selectedTags={deviceFilters.tags}
+            onSearchChange={handleDeviceSearchChange}
+            onStatusChange={handleDeviceStatusChange}
+            onRoomChange={handleDeviceRoomChange}
+            onToggleTag={handleToggleDeviceTag}
+            onReset={() => { handleResetDeviceFilters(); setMobileFiltersOpen(false) }}
+          />
         </MobileFiltersDrawer>
       )}
 

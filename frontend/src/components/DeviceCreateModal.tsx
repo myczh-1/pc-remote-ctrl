@@ -2,9 +2,10 @@ import { useState, useEffect, useMemo } from 'react'
 import type { Device } from '../proto/home/service'
 import { AdapterKind } from '../proto/home/service'
 import { useBleProvisioning } from '../hooks/useBleProvisioning'
+import type { DeviceListParams } from '../hooks/useHomeApi'
 
 interface DeviceApi {
-  listDevices: () => Promise<{ ok: boolean; devices?: Device[]; count?: number; error?: string }>
+  listDevices: (opts?: DeviceListParams) => Promise<{ ok: boolean; devices?: Device[]; count?: number; error?: string }>
   upsertDevice: (device: Device) => Promise<{ ok: boolean; message?: string; error?: string; deviceId?: string }>
   deleteDevice: (deviceId: string) => Promise<{ ok: boolean; message?: string; error?: string }>
 }

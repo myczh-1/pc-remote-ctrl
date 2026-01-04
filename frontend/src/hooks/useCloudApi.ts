@@ -5,6 +5,7 @@ import type { Device, ListDevicesResponse, InvokeActionResponse, DeviceEvent, Up
 import { TelemetryEventKind } from '../proto/home/service'
 import type { Struct } from '../proto/google/protobuf/struct'
 import type { ServerStreamingCall } from '@protobuf-ts/runtime-rpc'
+import type { DeviceListParams } from './useHomeApi'
 
 export interface CloudConfig {
   baseUrl: string
@@ -61,11 +62,34 @@ export function useCloudApi(config?: Partial<CloudConfig>) {
     return match ? match[1].trim() : ''
   }
 
-  const listDevices = useCallback(async () => {
+  const listParamsRef = useRef<Required<DeviceListParams>>({ ids: [], type: '', room: '', tags: [], includeState: true })
+
+  const listDevices = useCallback(async (opts?: DeviceListParams) => {
+    const current = listParamsRef.current
+    const next: Required<DeviceListParams> = {
+      ids: opts?.ids ? [...opts.ids] : current.ids,
+      type: opts?.type ?? current.type,
+      room: opts?.room ?? current.room,
+      tags: opts?.tags ? [...opts.tags] : current.tags,
+      includeState: opts?.includeState ?? current.includeState,
+    }
+    if (opts) {
+      listParamsRef.current = { ...next, ids: [...next.ids], tags: [...next.tags] }
+    }
+
     setLoading(true)
     setError('')
     try {
-      const res = await clientRef.current.listDevices({ deviceId: agentId, request: { ids: [], type: '', room: '', tags: [], includeState: true } }).response
+      const res = await clientRef.current.listDevices({
+        deviceId: agentId,
+        request: {
+          ids: next.ids,
+          type: next.type,
+          room: next.room,
+          tags: next.tags,
+          includeState: next.includeState,
+        }
+      }).response
       const devs = ((res as ListDevicesResponse)?.devices ?? []) as Device[]
       setDevices(devs)
       return { ok: true, count: devs.length, devices: devs }

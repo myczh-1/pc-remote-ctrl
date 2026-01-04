@@ -11,6 +11,14 @@ export interface HomeConfig {
   onEvent?: (ev: DeviceEvent, data?: Record<string, any>) => void
 }
 
+export interface DeviceListParams {
+  ids?: string[]
+  type?: string
+  room?: string
+  tags?: string[]
+  includeState?: boolean
+}
+
 export function useHomeApi(config?: Partial<HomeConfig>) {
   const baseUrl = config?.baseUrl ?? ((import.meta as any).env?.VITE_HOME_GRPCWEB_URL as string ?? '/api')
   const transport = useMemo(() => new GrpcWebFetchTransport({ baseUrl }), [baseUrl])
@@ -54,11 +62,31 @@ export function useHomeApi(config?: Partial<HomeConfig>) {
     return out
   }
 
-  const listDevices = useCallback(async () => {
+  const listParamsRef = useRef<Required<DeviceListParams>>({ ids: [], type: '', room: '', tags: [], includeState: true })
+
+  const listDevices = useCallback(async (opts?: DeviceListParams) => {
+    const current = listParamsRef.current
+    const next: Required<DeviceListParams> = {
+      ids: opts?.ids ? [...opts.ids] : current.ids,
+      type: opts?.type ?? current.type,
+      room: opts?.room ?? current.room,
+      tags: opts?.tags ? [...opts.tags] : current.tags,
+      includeState: opts?.includeState ?? current.includeState,
+    }
+    if (opts) {
+      listParamsRef.current = { ...next, ids: [...next.ids], tags: [...next.tags] }
+    }
+
     setLoading(true)
     setError('')
     try {
-      const res = await clientRef.current.listDevices({ ids: [], type: '', room: '', tags: [], includeState: true }).response
+      const res = await clientRef.current.listDevices({
+        ids: next.ids,
+        type: next.type,
+        room: next.room,
+        tags: next.tags,
+        includeState: next.includeState,
+      }).response
       const devs = ((res as ListDevicesResponse)?.devices ?? []) as Device[]
       setDevices(devs)
       return { ok: true, count: devs.length, devices: devs }
