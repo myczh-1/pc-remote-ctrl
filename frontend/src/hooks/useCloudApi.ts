@@ -212,7 +212,12 @@ export function useCloudApi(config?: Partial<CloudConfig>) {
           timeoutMs: timeoutMs ?? 5000,
         }
       }).response
-      return { ok: (res as InvokeActionResponse).ok, response: res as InvokeActionResponse, message: (res as InvokeActionResponse).message }
+      return {
+        ok: (res as InvokeActionResponse).ok,
+        response: res as InvokeActionResponse,
+        message: (res as InvokeActionResponse).message,
+        corrId: (res as InvokeActionResponse).corrId || '',
+      }
     } catch (e: any) {
       return { ok: false, error: String(e?.message ?? e) }
     }

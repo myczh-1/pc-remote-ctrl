@@ -136,7 +136,12 @@ export function useHomeApi(config?: Partial<HomeConfig>) {
         args: { fields: Object.entries(args ?? {}).reduce<any>((acc, [k, v]) => { acc[k] = toValue(v); return acc }, {}) },
         timeoutMs: timeoutMs ?? 5000,
       }).response
-      return { ok: (res as InvokeActionResponse).ok, response: res as InvokeActionResponse, message: (res as InvokeActionResponse).message }
+      return {
+        ok: (res as InvokeActionResponse).ok,
+        response: res as InvokeActionResponse,
+        message: (res as InvokeActionResponse).message,
+        corrId: (res as InvokeActionResponse).corrId || '',
+      }
     } catch (e: any) {
       return { ok: false, error: String(e?.message ?? e) }
     }

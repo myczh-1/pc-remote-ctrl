@@ -136,11 +136,13 @@ func (e *AutomationEngine) runAutomation(a storage.Automation, ev *homepb.Device
 		if args == nil {
 			args = map[string]any{}
 		}
-		_, err := e.ops.InvokeAction(ctx, act.DeviceID, act.Action, args)
+		corrID := newCorrID()
+		_, err := e.ops.InvokeAction(ctx, act.DeviceID, act.Action, args, corrID)
 		e.logAudit("automation_execute", a.ID, map[string]any{
 			"automation_name": a.Name,
 			"device_id":       act.DeviceID,
 			"action":          act.Action,
+			"corr_id":         corrID,
 			"ok":              err == nil,
 			"error":           errString(err),
 		})

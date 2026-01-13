@@ -164,21 +164,24 @@ func (s *Service) DeleteDevice(ctx context.Context, req *homepb.DeleteDeviceRequ
 // 接受前端调用
 func (s *Service) InvokeAction(ctx context.Context, req *homepb.InvokeActionRequest) (*homepb.InvokeActionResponse, error) {
 	args := mapFromStruct(req.GetArgs())
-	data, err := s.ops.InvokeAction(ctx, req.GetDeviceId(), req.GetAction(), args)
+	corrID := newCorrID()
+	data, err := s.ops.InvokeAction(ctx, req.GetDeviceId(), req.GetAction(), args, corrID)
 	if err != nil {
 		s.logAudit("action_invoke", req.GetDeviceId(), map[string]any{
-			"action": req.GetAction(),
-			"ok":     false,
-			"error":  err.Error(),
+			"action":  req.GetAction(),
+			"corr_id": corrID,
+			"ok":      false,
+			"error":   err.Error(),
 		})
 		return &homepb.InvokeActionResponse{Ok: false, Message: err.Error()}, nil
 	}
 	st, _ := structpb.NewStruct(mapStringAny(data))
 	s.logAudit("action_invoke", req.GetDeviceId(), map[string]any{
-		"action": req.GetAction(),
-		"ok":     true,
+		"action":  req.GetAction(),
+		"corr_id": corrID,
+		"ok":      true,
 	})
-	return &homepb.InvokeActionResponse{Ok: true, Message: "published", CorrId: "", Data: st}, nil
+	return &homepb.InvokeActionResponse{Ok: true, Message: "published", CorrId: corrID, Data: st}, nil
 }
 
 func toPBDevice(d *storage.Device, includeState bool) *homepb.Device {
@@ -249,6 +252,14 @@ func generateID() (string, error) {
 
 // randRead wraps crypto/rand.Read, split for testability
 var randRead = func(p []byte) (int, error) { return crand.Read(p) }
+
+func newCorrID() string {
+	id, err := generateID()
+	if err == nil && id != "" {
+		return "corr-" + id
+	}
+	return fmt.Sprintf("corr-%d", time.Now().UnixMilli())
+}
 
 func toPBAdapterKind(k storage.AdapterKind) homepb.AdapterKind {
 	switch strings.ToLower(string(k)) {

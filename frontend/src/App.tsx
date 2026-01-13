@@ -91,11 +91,12 @@ export default function App() {
     switch (ev.kind) {
       case TelemetryEventKind.ACTION_RESULT: {
         const ok = Boolean((data as any)?.ok ?? (data as any)?.success ?? (String((data as any)?.status ?? '').toLowerCase() === 'ok'))
+        const corrId = (data as any)?.corr_id ? String((data as any).corr_id) : ''
         if (ok) {
-          logSuccess(`动作回执成功 @ ${id}`)
+          logSuccess(`动作回执成功 @ ${id}${corrId ? ` (${corrId})` : ''}`)
         } else {
           const err = (data as any)?.error || (data as any)?.message || ''
-          logError(`动作回执失败 @ ${id} ${err ? '- ' + err : ''}`, 'execution_error')
+          logError(`动作回执失败 @ ${id}${corrId ? ` (${corrId})` : ''} ${err ? '- ' + err : ''}`, 'execution_error')
         }
         break
       }
@@ -425,7 +426,7 @@ export default function App() {
     logInfo(`执行: ${action.name} @ ${device.id}`, 'execution_start', { commandSetName: action.name })
     const r = await api.invokeAction(device.id, action.name)
     if (r.ok) {
-      logSuccess(`执行完成: ${action.name}`, 'execution_complete', { commandSetName: action.name })
+      logSuccess(`执行完成: ${action.name}${r.corrId ? ` (${r.corrId})` : ''}`, 'execution_complete', { commandSetName: action.name })
     } else {
       logError(`执行失败: ${r.error || r.message}`, 'execution_error', { commandSetName: action.name })
     }
@@ -927,7 +928,7 @@ export default function App() {
         onInvoke={async (id, action, args) => {
           logInfo(`执行: ${action} @ ${id}`, 'execution_start', { commandSetName: action })
           const r = await api.invokeAction(id, action, args)
-          if (r.ok) logSuccess(`执行完成: ${action}`, 'execution_complete', { commandSetName: action })
+          if (r.ok) logSuccess(`执行完成: ${action}${r.corrId ? ` (${r.corrId})` : ''}`, 'execution_complete', { commandSetName: action })
           else logError(`执行失败: ${r.error || r.message}`, 'execution_error', { commandSetName: action })
         }}
       />
