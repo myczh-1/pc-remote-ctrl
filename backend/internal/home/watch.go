@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"reflect"
 	"strings"
 	"sync"
 	"time"
@@ -93,17 +94,21 @@ func (m *subscriptionManager) subscribeDevice(ctx context.Context, d *storage.De
 	// state
 	m.ensureSub(ctx, topics.state, 1, func(topic string, payload []byte) {
 		st := toStruct(payload)
+		reported := st.AsMap()
 		// update state in storage (reported)
 		dev := m.devices.Get(id)
 		if dev != nil {
 			if dev.Shadow.Reported == nil {
 				dev.Shadow.Reported = map[string]any{}
 			}
-			for k, v := range st.AsMap() {
-				dev.Shadow.Reported[k] = v
-			}
+			mergeStringAnyMap(dev.Shadow.Reported, reported)
 			dev.LastSeen = time.Now().UnixMilli()
 			dev.Online = true
+			dev.Shadow.TSReported = dev.LastSeen
+			if desiredSatisfied(dev.Shadow.Desired, dev.Shadow.Reported) {
+				dev.Shadow.Desired = nil
+				dev.Shadow.TSDesired = 0
+			}
 			_ = m.devices.Upsert(*dev)
 		}
 		m.logAudit("device_state", id, st.AsMap())
@@ -112,6 +117,22 @@ func (m *subscriptionManager) subscribeDevice(ctx context.Context, d *storage.De
 	// action results wildcard
 	m.ensureSub(ctx, topics.actionResult, 1, func(topic string, payload []byte) {
 		st := toStruct(payload)
+		if dev := m.devices.Get(id); dev != nil {
+			if reported := extractReportedFromActionResult(st.AsMap()); len(reported) > 0 {
+				if dev.Shadow.Reported == nil {
+					dev.Shadow.Reported = map[string]any{}
+				}
+				mergeStringAnyMap(dev.Shadow.Reported, reported)
+				dev.LastSeen = time.Now().UnixMilli()
+				dev.Online = true
+				dev.Shadow.TSReported = dev.LastSeen
+				if desiredSatisfied(dev.Shadow.Desired, dev.Shadow.Reported) {
+					dev.Shadow.Desired = nil
+					dev.Shadow.TSDesired = 0
+				}
+				_ = m.devices.Upsert(*dev)
+			}
+		}
 		m.logAudit("action_result", id, st.AsMap())
 		m.hub.publish(&homepb.DeviceEvent{DeviceId: id, Ts: time.Now().UnixMilli(), Kind: homepb.TelemetryEventKind_ACTION_RESULT, Payload: st})
 	})
@@ -193,4 +214,49 @@ func (m *subscriptionManager) logAudit(kind, subject string, data map[string]any
 		return
 	}
 	_ = m.audit.Append(storage.AuditEntry{Kind: kind, Subject: subject, Data: data})
+}
+
+func desiredSatisfied(desired map[string]any, reported map[string]any) bool {
+	if len(desired) == 0 {
+		return true
+	}
+	for k, v := range desired {
+		rv, ok := reported[k]
+		if !ok {
+			return false
+		}
+		if !reflect.DeepEqual(rv, v) {
+			return false
+		}
+	}
+	return true
+}
+
+func extractReportedFromActionResult(payload map[string]any) map[string]any {
+	if st, ok := payload["state"].(map[string]any); ok {
+		return st
+	}
+	if st, ok := payload["reported"].(map[string]any); ok {
+		return st
+	}
+	if res, ok := payload["result"].(map[string]any); ok {
+		if st, ok := res["state"].(map[string]any); ok {
+			return st
+		}
+	}
+	return nil
+}
+
+func cloneStringAnyMap(in map[string]any) map[string]any {
+	out := make(map[string]any, len(in))
+	for k, v := range in {
+		out[k] = v
+	}
+	return out
+}
+
+func mergeStringAnyMap(dst map[string]any, src map[string]any) {
+	for k, v := range src {
+		dst[k] = v
+	}
 }

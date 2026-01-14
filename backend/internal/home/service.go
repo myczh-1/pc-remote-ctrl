@@ -165,6 +165,9 @@ func (s *Service) DeleteDevice(ctx context.Context, req *homepb.DeleteDeviceRequ
 func (s *Service) InvokeAction(ctx context.Context, req *homepb.InvokeActionRequest) (*homepb.InvokeActionResponse, error) {
 	args := mapFromStruct(req.GetArgs())
 	corrID := newCorrID()
+	if desired := extractDesiredFromArgs(args); len(desired) > 0 {
+		s.setDesired(ctx, req.GetDeviceId(), desired, corrID)
+	}
 	data, err := s.ops.InvokeAction(ctx, req.GetDeviceId(), req.GetAction(), args, corrID)
 	if err != nil {
 		s.logAudit("action_invoke", req.GetDeviceId(), map[string]any{
@@ -186,8 +189,19 @@ func (s *Service) InvokeAction(ctx context.Context, req *homepb.InvokeActionRequ
 
 func toPBDevice(d *storage.Device, includeState bool) *homepb.Device {
 	st := (*structpb.Struct)(nil)
-	if includeState && d.Shadow.Reported != nil {
-		st, _ = structpb.NewStruct(mapStringAny(d.Shadow.Reported))
+	if includeState {
+		if len(d.Shadow.Reported) > 0 && len(d.Shadow.Desired) > 0 {
+			st, _ = structpb.NewStruct(map[string]any{
+				"reported": d.Shadow.Reported,
+				"desired":  d.Shadow.Desired,
+			})
+		} else if len(d.Shadow.Reported) > 0 {
+			st, _ = structpb.NewStruct(mapStringAny(d.Shadow.Reported))
+		} else if len(d.Shadow.Desired) > 0 {
+			st, _ = structpb.NewStruct(map[string]any{
+				"desired": d.Shadow.Desired,
+			})
+		}
 	}
 	acts := make([]*homepb.ActionSpec, 0, len(d.Actions))
 	for _, a := range d.Actions {
@@ -226,7 +240,16 @@ func fromPBDevice(p *homepb.Device) (*storage.Device, error) {
 	}
 	// state maps to Shadow.Reported for now
 	if p.GetState() != nil {
-		d.Shadow.Reported = mapStringAny(p.GetState().AsMap())
+		stateMap := mapStringAny(p.GetState().AsMap())
+		if rep, ok := stateMap["reported"].(map[string]any); ok {
+			d.Shadow.Reported = rep
+		} else {
+			d.Shadow.Reported = stateMap
+		}
+		if desired, ok := stateMap["desired"].(map[string]any); ok {
+			d.Shadow.Desired = desired
+			d.Shadow.TSDesired = time.Now().UnixMilli()
+		}
 		d.Shadow.TSReported = time.Now().UnixMilli()
 	}
 	return d, nil
@@ -259,6 +282,51 @@ func newCorrID() string {
 		return "corr-" + id
 	}
 	return fmt.Sprintf("corr-%d", time.Now().UnixMilli())
+}
+
+func extractDesiredFromArgs(args map[string]any) map[string]any {
+	if len(args) == 0 {
+		return nil
+	}
+	if desired, ok := args["desired"].(map[string]any); ok {
+		return desired
+	}
+	if desired, ok := args["state"].(map[string]any); ok {
+		return desired
+	}
+	return args
+}
+
+func (s *Service) setDesired(ctx context.Context, deviceID string, desired map[string]any, corrID string) {
+	if len(desired) == 0 {
+		return
+	}
+	dev := s.devices.Get(deviceID)
+	if dev == nil {
+		return
+	}
+	dev.Shadow.Desired = cloneStringAnyMap(desired)
+	dev.Shadow.TSDesired = time.Now().UnixMilli()
+	dev.Shadow.Version++
+	if err := s.devices.Upsert(*dev); err != nil {
+		log.Printf("[home] set desired failed device=%s: %v", deviceID, err)
+		return
+	}
+	s.logAudit("shadow_desired", deviceID, map[string]any{
+		"corr_id": corrID,
+		"desired": desired,
+	})
+	if err := s.ops.UpdateDesired(ctx, deviceID, desired); err != nil {
+		log.Printf("[home] publish desired failed device=%s: %v", deviceID, err)
+	}
+}
+
+func cloneStringAnyMap(in map[string]any) map[string]any {
+	out := make(map[string]any, len(in))
+	for k, v := range in {
+		out[k] = v
+	}
+	return out
 }
 
 func toPBAdapterKind(k storage.AdapterKind) homepb.AdapterKind {

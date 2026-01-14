@@ -16,8 +16,22 @@ void user_on_action(const String& action,
   message = String("unknown action: ") + action;
 }
 
+void user_on_desired(JsonVariantConst desired,
+                     JsonDocument& reportedOut,
+                     bool& ok,
+                     String& message) {
+  if (desired.is<JsonObject>()) {
+    for (JsonPair kv : desired.as<JsonObject>()) {
+      reportedOut[kv.key()] = kv.value();
+    }
+  } else if (!desired.isNull()) {
+    reportedOut["value"] = desired;
+  }
+  ok = true;
+  message = String("applied");
+}
+
 void user_periodic_state(JsonDocument& stateOut, bool& hasUpdate) {
   (void)stateOut;
   hasUpdate = false;
 }
-

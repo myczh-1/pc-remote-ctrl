@@ -2,6 +2,7 @@
 import type { Device, ActionSpec } from '../proto/home/service'
 import { StatusIndicator, DeviceStatus } from './StatusIndicator'
 import { StateRenderer } from './StateItem'
+import { extractDesiredReported, isDesiredSatisfied } from '../utils/stateRenderer'
 
 interface DeviceCardProps {
   device: Device
@@ -13,6 +14,8 @@ interface DeviceCardProps {
 export function DeviceCard({ device, onOpenDetail, onQuickAction, onEdit: _onEdit }: DeviceCardProps) {
   const online = device.online
   const quickAction = device.actions?.[0]
+  const { reported, desired } = extractDesiredReported(device.state)
+  const desiredPending = desired && Object.keys(desired).length > 0 && !isDesiredSatisfied(desired, reported)
   // no emoji placeholder
 
   return (
@@ -36,6 +39,11 @@ export function DeviceCard({ device, onOpenDetail, onQuickAction, onEdit: _onEdi
               {device.room && (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/[0.06]">
                   {device.room}
+                </span>
+              )}
+              {desiredPending && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border border-amber-300/70 bg-amber-100/70 text-amber-700">
+                  目标未达成
                 </span>
               )}
             </div>

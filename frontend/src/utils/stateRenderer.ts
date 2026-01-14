@@ -267,6 +267,35 @@ function unwrapProtoValue(value: any): any {
   return value
 }
 
+export function extractDesiredReported(state: any): { reported?: Record<string, any>; desired?: Record<string, any> } {
+  const raw = unwrapProtoValue(state)
+  if (!raw || typeof raw !== 'object') {
+    return {}
+  }
+  const reported = isPlainObject((raw as any).reported) ? (raw as any).reported : (isPlainObject(raw) ? raw : undefined)
+  const desired = isPlainObject((raw as any).desired) ? (raw as any).desired : undefined
+  return { reported: reported as Record<string, any> | undefined, desired: desired as Record<string, any> | undefined }
+}
+
+export function isDesiredSatisfied(desired?: Record<string, any>, reported?: Record<string, any>): boolean {
+  if (!desired || Object.keys(desired).length === 0) {
+    return true
+  }
+  if (!reported) {
+    return false
+  }
+  for (const [k, v] of Object.entries(desired)) {
+    if (!(k in reported)) {
+      return false
+    }
+    const rv = (reported as any)[k]
+    if (JSON.stringify(rv) !== JSON.stringify(v)) {
+      return false
+    }
+  }
+  return true
+}
+
 function flattenStateEntries(state: any): FlattenedEntry[] {
   const entries: FlattenedEntry[] = []
   const root = state && typeof state === 'object' && 'fields' in state ? state.fields : state
