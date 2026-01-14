@@ -11,9 +11,14 @@ void user_on_action(const String& action,
                     JsonDocument& resultData,
                     bool& ok,
                     String& message) {
-  (void)args; (void)resultData;
-  ok = false;
-  message = String("unknown action: ") + action;
+  if (args.is<JsonObject>() && resultData.as<JsonObject>().size() == 0) {
+    JsonObject state = resultData.createNestedObject("state");
+    for (JsonPair kv : args.as<JsonObject>()) {
+      state[kv.key()] = kv.value();
+    }
+  }
+  ok = true;
+  message = String("applied");
 }
 
 void user_on_desired(JsonVariantConst desired,

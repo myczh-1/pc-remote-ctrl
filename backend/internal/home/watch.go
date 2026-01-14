@@ -72,11 +72,11 @@ type subscriptionManager struct {
 	hub     *eventHub
 	// track topics we already subscribed to
 	mu   sync.Mutex
-	subs map[string]bool
+	subs map[string]*subscriptionState
 }
 
 func newSubscriptionManager(c mqtt.Client, devs *storage.Devices, audit *storage.AuditLogs, hub *eventHub) *subscriptionManager {
-	return &subscriptionManager{mqtt: c, devices: devs, audit: audit, hub: hub, subs: make(map[string]bool)}
+	return &subscriptionManager{mqtt: c, devices: devs, audit: audit, hub: hub, subs: make(map[string]*subscriptionState)}
 }
 
 func (m *subscriptionManager) initAll(ctx context.Context) {
@@ -181,15 +181,14 @@ func deriveTopics(d *storage.Device) topicSet {
 
 func (m *subscriptionManager) ensureSub(ctx context.Context, topic string, qos byte, cb func(string, []byte)) {
 	m.mu.Lock()
-	if m.subs[topic] {
+	if _, ok := m.subs[topic]; ok {
 		m.mu.Unlock()
 		return
 	}
-	m.subs[topic] = true
+	st := &subscriptionState{topic: topic, qos: qos, cb: cb}
+	m.subs[topic] = st
 	m.mu.Unlock()
-	if err := m.mqtt.Subscribe(ctx, topic, qos, cb); err != nil {
-		log.Printf("[mqtt] subscribe failed topic=%s qos=%d err=%v", topic, qos, err)
-	}
+	go m.subscribeWithRetry(ctx, st)
 }
 
 func toStruct(payload []byte) *structpb.Struct {
@@ -214,6 +213,38 @@ func (m *subscriptionManager) logAudit(kind, subject string, data map[string]any
 		return
 	}
 	_ = m.audit.Append(storage.AuditEntry{Kind: kind, Subject: subject, Data: data})
+}
+
+type subscriptionState struct {
+	topic      string
+	qos        byte
+	cb         func(string, []byte)
+	subscribed bool
+	attempts   int
+}
+
+func (m *subscriptionManager) subscribeWithRetry(ctx context.Context, st *subscriptionState) {
+	backoff := time.Second
+	for {
+		if ctx.Err() != nil {
+			return
+		}
+		if err := m.mqtt.Subscribe(ctx, st.topic, st.qos, st.cb); err != nil {
+			m.mu.Lock()
+			st.attempts++
+			m.mu.Unlock()
+			log.Printf("[mqtt] subscribe failed topic=%s qos=%d attempt=%d err=%v", st.topic, st.qos, st.attempts, err)
+			time.Sleep(backoff)
+			if backoff < 30*time.Second {
+				backoff *= 2
+			}
+			continue
+		}
+		m.mu.Lock()
+		st.subscribed = true
+		m.mu.Unlock()
+		return
+	}
 }
 
 func desiredSatisfied(desired map[string]any, reported map[string]any) bool {
