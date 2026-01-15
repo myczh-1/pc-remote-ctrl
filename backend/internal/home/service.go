@@ -20,15 +20,16 @@ import (
 type Service struct {
 	homepb.UnimplementedHomeServiceServer
 	devices *storage.Devices
+	models  *storage.DeviceModels
 	audit   *storage.AuditLogs
 	ops     ops.DeviceOps
 	hub     *eventHub
 	submgr  *subscriptionManager
 }
 
-func New(devs *storage.Devices, audit *storage.AuditLogs, ops ops.DeviceOps) *Service {
+func New(devs *storage.Devices, models *storage.DeviceModels, audit *storage.AuditLogs, ops ops.DeviceOps) *Service {
 	// hub/submgr will be set by InitSubscriptions from main after mqtt client is ready
-	return &Service{devices: devs, audit: audit, ops: ops, hub: newEventHub()}
+	return &Service{devices: devs, models: models, audit: audit, ops: ops, hub: newEventHub()}
 }
 
 // InitSubscriptions wires MQTT subscriptions and starts listening for device topics.
@@ -128,6 +129,9 @@ func (s *Service) UpsertDevice(ctx context.Context, req *homepb.UpsertDeviceRequ
 	if err != nil {
 		return &homepb.UpsertDeviceResponse{Ok: false, Message: err.Error()}, nil
 	}
+	if err := s.applyModel(dev); err != nil {
+		return &homepb.UpsertDeviceResponse{Ok: false, Message: err.Error()}, nil
+	}
 	if err := s.devices.Upsert(*dev); err != nil {
 		return &homepb.UpsertDeviceResponse{Ok: false, Message: err.Error()}, nil
 	}
@@ -216,6 +220,7 @@ func toPBDevice(d *storage.Device, includeState bool) *homepb.Device {
 	return &homepb.Device{
 		Id: d.ID, Name: d.Name, Type: d.Type, Room: d.Room, Tags: d.Tags,
 		Online: d.Online, LastSeen: d.LastSeen, Topics: topics, Adapter: ad, Actions: acts, State: st,
+		ModelId: d.ModelID, ModelVersion: d.ModelVer,
 	}
 }
 
@@ -224,7 +229,9 @@ func fromPBDevice(p *homepb.Device) (*storage.Device, error) {
 		ID:   strings.TrimSpace(p.GetId()),
 		Name: p.GetName(), Type: p.GetType(), Room: p.GetRoom(), Tags: p.GetTags(),
 		Online: p.GetOnline(), LastSeen: p.GetLastSeen(),
-		Topics: map[string]string{},
+		Topics:   map[string]string{},
+		ModelID:  strings.TrimSpace(p.GetModelId()),
+		ModelVer: strings.TrimSpace(p.GetModelVersion()),
 	}
 	for k, v := range p.GetTopics() {
 		d.Topics[k] = v
@@ -327,6 +334,30 @@ func cloneStringAnyMap(in map[string]any) map[string]any {
 		out[k] = v
 	}
 	return out
+}
+
+func (s *Service) applyModel(dev *storage.Device) error {
+	if s.models == nil {
+		return fmt.Errorf("device models not available")
+	}
+	id := strings.TrimSpace(dev.ModelID)
+	ver := strings.TrimSpace(dev.ModelVer)
+	if id == "" || ver == "" {
+		return fmt.Errorf("model_id and model_version required")
+	}
+	model := s.models.Get(id, ver)
+	if model == nil {
+		return fmt.Errorf("device model not found")
+	}
+	dev.ModelID = model.ID
+	dev.ModelVer = model.Version
+	if model.Name != "" {
+		dev.Type = model.Name
+	} else {
+		dev.Type = model.ID
+	}
+	dev.Actions = append([]storage.ActionSpec(nil), model.Actions...)
+	return nil
 }
 
 func toPBAdapterKind(k storage.AdapterKind) homepb.AdapterKind {

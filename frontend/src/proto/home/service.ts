@@ -96,6 +96,14 @@ export interface Device {
      * @generated from protobuf field: google.protobuf.Struct state = 11
      */
     state?: Struct;
+    /**
+     * @generated from protobuf field: string model_id = 12
+     */
+    modelId: string;
+    /**
+     * @generated from protobuf field: string model_version = 13
+     */
+    modelVersion: string;
 }
 /**
  * @generated from protobuf message remote_control.home.ListDevicesRequest
@@ -521,6 +529,194 @@ export interface TriggerAutomationResponse {
     message: string;
 }
 /**
+ * @generated from protobuf message remote_control.home.DeviceModel
+ */
+export interface DeviceModel {
+    /**
+     * @generated from protobuf field: string id = 1
+     */
+    id: string;
+    /**
+     * @generated from protobuf field: string version = 2
+     */
+    version: string;
+    /**
+     * @generated from protobuf field: string name = 3
+     */
+    name: string;
+    /**
+     * @generated from protobuf field: string description = 4
+     */
+    description: string;
+    /**
+     * @generated from protobuf field: repeated string tags = 5
+     */
+    tags: string[];
+    /**
+     * @generated from protobuf field: repeated remote_control.home.ActionSpec actions = 6
+     */
+    actions: ActionSpec[];
+    /**
+     * @generated from protobuf field: map<string, string> state_schema = 7
+     */
+    stateSchema: {
+        [key: string]: string;
+    };
+    /**
+     * @generated from protobuf field: int64 updated_at = 8
+     */
+    updatedAt: string;
+}
+/**
+ * @generated from protobuf message remote_control.home.DeviceModelSpec
+ */
+export interface DeviceModelSpec {
+    /**
+     * @generated from protobuf field: string id = 1
+     */
+    id: string;
+    /**
+     * @generated from protobuf field: string version = 2
+     */
+    version: string;
+    /**
+     * @generated from protobuf field: string name = 3
+     */
+    name: string;
+    /**
+     * @generated from protobuf field: string description = 4
+     */
+    description: string;
+    /**
+     * @generated from protobuf field: repeated string tags = 5
+     */
+    tags: string[];
+    /**
+     * @generated from protobuf field: repeated remote_control.home.ActionSpec actions = 6
+     */
+    actions: ActionSpec[];
+    /**
+     * @generated from protobuf field: map<string, string> state_schema = 7
+     */
+    stateSchema: {
+        [key: string]: string;
+    };
+}
+/**
+ * @generated from protobuf message remote_control.home.ListDeviceModelsRequest
+ */
+export interface ListDeviceModelsRequest {
+    /**
+     * @generated from protobuf field: string id = 1
+     */
+    id: string;
+    /**
+     * @generated from protobuf field: string name_contains = 2
+     */
+    nameContains: string;
+}
+/**
+ * @generated from protobuf message remote_control.home.ListDeviceModelsResponse
+ */
+export interface ListDeviceModelsResponse {
+    /**
+     * @generated from protobuf field: repeated remote_control.home.DeviceModel models = 1
+     */
+    models: DeviceModel[];
+}
+/**
+ * @generated from protobuf message remote_control.home.GetDeviceModelRequest
+ */
+export interface GetDeviceModelRequest {
+    /**
+     * @generated from protobuf field: string id = 1
+     */
+    id: string;
+    /**
+     * @generated from protobuf field: string version = 2
+     */
+    version: string;
+}
+/**
+ * @generated from protobuf message remote_control.home.GetDeviceModelResponse
+ */
+export interface GetDeviceModelResponse {
+    /**
+     * @generated from protobuf field: remote_control.home.DeviceModel model = 1
+     */
+    model?: DeviceModel;
+}
+/**
+ * @generated from protobuf message remote_control.home.CreateDeviceModelRequest
+ */
+export interface CreateDeviceModelRequest {
+    /**
+     * @generated from protobuf field: remote_control.home.DeviceModelSpec model = 1
+     */
+    model?: DeviceModelSpec;
+}
+/**
+ * @generated from protobuf message remote_control.home.CreateDeviceModelResponse
+ */
+export interface CreateDeviceModelResponse {
+    /**
+     * @generated from protobuf field: bool ok = 1
+     */
+    ok: boolean;
+    /**
+     * @generated from protobuf field: string message = 2
+     */
+    message: string;
+}
+/**
+ * @generated from protobuf message remote_control.home.UpdateDeviceModelRequest
+ */
+export interface UpdateDeviceModelRequest {
+    /**
+     * @generated from protobuf field: remote_control.home.DeviceModelSpec model = 1
+     */
+    model?: DeviceModelSpec;
+}
+/**
+ * @generated from protobuf message remote_control.home.UpdateDeviceModelResponse
+ */
+export interface UpdateDeviceModelResponse {
+    /**
+     * @generated from protobuf field: bool ok = 1
+     */
+    ok: boolean;
+    /**
+     * @generated from protobuf field: string message = 2
+     */
+    message: string;
+}
+/**
+ * @generated from protobuf message remote_control.home.DeleteDeviceModelRequest
+ */
+export interface DeleteDeviceModelRequest {
+    /**
+     * @generated from protobuf field: string id = 1
+     */
+    id: string;
+    /**
+     * @generated from protobuf field: string version = 2
+     */
+    version: string;
+}
+/**
+ * @generated from protobuf message remote_control.home.DeleteDeviceModelResponse
+ */
+export interface DeleteDeviceModelResponse {
+    /**
+     * @generated from protobuf field: bool ok = 1
+     */
+    ok: boolean;
+    /**
+     * @generated from protobuf field: string message = 2
+     */
+    message: string;
+}
+/**
  * @generated from protobuf enum remote_control.home.AdapterKind
  */
 export enum AdapterKind {
@@ -738,7 +934,9 @@ class Device$Type extends MessageType<Device> {
             { no: 8, name: "topics", kind: "map", K: 9 /*ScalarType.STRING*/, V: { kind: "scalar", T: 9 /*ScalarType.STRING*/ } },
             { no: 9, name: "adapter", kind: "message", T: () => Adapter },
             { no: 10, name: "actions", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => ActionSpec },
-            { no: 11, name: "state", kind: "message", T: () => Struct }
+            { no: 11, name: "state", kind: "message", T: () => Struct },
+            { no: 12, name: "model_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 13, name: "model_version", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<Device>): Device {
@@ -752,6 +950,8 @@ class Device$Type extends MessageType<Device> {
         message.lastSeen = "0";
         message.topics = {};
         message.actions = [];
+        message.modelId = "";
+        message.modelVersion = "";
         if (value !== undefined)
             reflectionMergePartial<Device>(this, message, value);
         return message;
@@ -793,6 +993,12 @@ class Device$Type extends MessageType<Device> {
                     break;
                 case /* google.protobuf.Struct state */ 11:
                     message.state = Struct.internalBinaryRead(reader, reader.uint32(), options, message.state);
+                    break;
+                case /* string model_id */ 12:
+                    message.modelId = reader.string();
+                    break;
+                case /* string model_version */ 13:
+                    message.modelVersion = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -855,6 +1061,12 @@ class Device$Type extends MessageType<Device> {
         /* google.protobuf.Struct state = 11; */
         if (message.state)
             Struct.internalBinaryWrite(message.state, writer.tag(11, WireType.LengthDelimited).fork(), options).join();
+        /* string model_id = 12; */
+        if (message.modelId !== "")
+            writer.tag(12, WireType.LengthDelimited).string(message.modelId);
+        /* string model_version = 13; */
+        if (message.modelVersion !== "")
+            writer.tag(13, WireType.LengthDelimited).string(message.modelVersion);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -2485,6 +2697,751 @@ class TriggerAutomationResponse$Type extends MessageType<TriggerAutomationRespon
  * @generated MessageType for protobuf message remote_control.home.TriggerAutomationResponse
  */
 export const TriggerAutomationResponse = new TriggerAutomationResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class DeviceModel$Type extends MessageType<DeviceModel> {
+    constructor() {
+        super("remote_control.home.DeviceModel", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "version", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "description", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "tags", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
+            { no: 6, name: "actions", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => ActionSpec },
+            { no: 7, name: "state_schema", kind: "map", K: 9 /*ScalarType.STRING*/, V: { kind: "scalar", T: 9 /*ScalarType.STRING*/ } },
+            { no: 8, name: "updated_at", kind: "scalar", T: 3 /*ScalarType.INT64*/ }
+        ]);
+    }
+    create(value?: PartialMessage<DeviceModel>): DeviceModel {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        message.id = "";
+        message.version = "";
+        message.name = "";
+        message.description = "";
+        message.tags = [];
+        message.actions = [];
+        message.stateSchema = {};
+        message.updatedAt = "0";
+        if (value !== undefined)
+            reflectionMergePartial<DeviceModel>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: DeviceModel): DeviceModel {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                case /* string version */ 2:
+                    message.version = reader.string();
+                    break;
+                case /* string name */ 3:
+                    message.name = reader.string();
+                    break;
+                case /* string description */ 4:
+                    message.description = reader.string();
+                    break;
+                case /* repeated string tags */ 5:
+                    message.tags.push(reader.string());
+                    break;
+                case /* repeated remote_control.home.ActionSpec actions */ 6:
+                    message.actions.push(ActionSpec.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                case /* map<string, string> state_schema */ 7:
+                    this.binaryReadMap7(message.stateSchema, reader, options);
+                    break;
+                case /* int64 updated_at */ 8:
+                    message.updatedAt = reader.int64().toString();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    private binaryReadMap7(map: DeviceModel["stateSchema"], reader: IBinaryReader, options: BinaryReadOptions): void {
+        let len = reader.uint32(), end = reader.pos + len, key: keyof DeviceModel["stateSchema"] | undefined, val: DeviceModel["stateSchema"][any] | undefined;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case 1:
+                    key = reader.string();
+                    break;
+                case 2:
+                    val = reader.string();
+                    break;
+                default: throw new globalThis.Error("unknown map entry field for remote_control.home.DeviceModel.state_schema");
+            }
+        }
+        map[key ?? ""] = val ?? "";
+    }
+    internalBinaryWrite(message: DeviceModel, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        /* string version = 2; */
+        if (message.version !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.version);
+        /* string name = 3; */
+        if (message.name !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.name);
+        /* string description = 4; */
+        if (message.description !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.description);
+        /* repeated string tags = 5; */
+        for (let i = 0; i < message.tags.length; i++)
+            writer.tag(5, WireType.LengthDelimited).string(message.tags[i]);
+        /* repeated remote_control.home.ActionSpec actions = 6; */
+        for (let i = 0; i < message.actions.length; i++)
+            ActionSpec.internalBinaryWrite(message.actions[i], writer.tag(6, WireType.LengthDelimited).fork(), options).join();
+        /* map<string, string> state_schema = 7; */
+        for (let k of globalThis.Object.keys(message.stateSchema))
+            writer.tag(7, WireType.LengthDelimited).fork().tag(1, WireType.LengthDelimited).string(k).tag(2, WireType.LengthDelimited).string(message.stateSchema[k]).join();
+        /* int64 updated_at = 8; */
+        if (message.updatedAt !== "0")
+            writer.tag(8, WireType.Varint).int64(message.updatedAt);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message remote_control.home.DeviceModel
+ */
+export const DeviceModel = new DeviceModel$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class DeviceModelSpec$Type extends MessageType<DeviceModelSpec> {
+    constructor() {
+        super("remote_control.home.DeviceModelSpec", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "version", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "description", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "tags", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
+            { no: 6, name: "actions", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => ActionSpec },
+            { no: 7, name: "state_schema", kind: "map", K: 9 /*ScalarType.STRING*/, V: { kind: "scalar", T: 9 /*ScalarType.STRING*/ } }
+        ]);
+    }
+    create(value?: PartialMessage<DeviceModelSpec>): DeviceModelSpec {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        message.id = "";
+        message.version = "";
+        message.name = "";
+        message.description = "";
+        message.tags = [];
+        message.actions = [];
+        message.stateSchema = {};
+        if (value !== undefined)
+            reflectionMergePartial<DeviceModelSpec>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: DeviceModelSpec): DeviceModelSpec {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                case /* string version */ 2:
+                    message.version = reader.string();
+                    break;
+                case /* string name */ 3:
+                    message.name = reader.string();
+                    break;
+                case /* string description */ 4:
+                    message.description = reader.string();
+                    break;
+                case /* repeated string tags */ 5:
+                    message.tags.push(reader.string());
+                    break;
+                case /* repeated remote_control.home.ActionSpec actions */ 6:
+                    message.actions.push(ActionSpec.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                case /* map<string, string> state_schema */ 7:
+                    this.binaryReadMap7(message.stateSchema, reader, options);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    private binaryReadMap7(map: DeviceModelSpec["stateSchema"], reader: IBinaryReader, options: BinaryReadOptions): void {
+        let len = reader.uint32(), end = reader.pos + len, key: keyof DeviceModelSpec["stateSchema"] | undefined, val: DeviceModelSpec["stateSchema"][any] | undefined;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case 1:
+                    key = reader.string();
+                    break;
+                case 2:
+                    val = reader.string();
+                    break;
+                default: throw new globalThis.Error("unknown map entry field for remote_control.home.DeviceModelSpec.state_schema");
+            }
+        }
+        map[key ?? ""] = val ?? "";
+    }
+    internalBinaryWrite(message: DeviceModelSpec, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        /* string version = 2; */
+        if (message.version !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.version);
+        /* string name = 3; */
+        if (message.name !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.name);
+        /* string description = 4; */
+        if (message.description !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.description);
+        /* repeated string tags = 5; */
+        for (let i = 0; i < message.tags.length; i++)
+            writer.tag(5, WireType.LengthDelimited).string(message.tags[i]);
+        /* repeated remote_control.home.ActionSpec actions = 6; */
+        for (let i = 0; i < message.actions.length; i++)
+            ActionSpec.internalBinaryWrite(message.actions[i], writer.tag(6, WireType.LengthDelimited).fork(), options).join();
+        /* map<string, string> state_schema = 7; */
+        for (let k of globalThis.Object.keys(message.stateSchema))
+            writer.tag(7, WireType.LengthDelimited).fork().tag(1, WireType.LengthDelimited).string(k).tag(2, WireType.LengthDelimited).string(message.stateSchema[k]).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message remote_control.home.DeviceModelSpec
+ */
+export const DeviceModelSpec = new DeviceModelSpec$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ListDeviceModelsRequest$Type extends MessageType<ListDeviceModelsRequest> {
+    constructor() {
+        super("remote_control.home.ListDeviceModelsRequest", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "name_contains", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<ListDeviceModelsRequest>): ListDeviceModelsRequest {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        message.id = "";
+        message.nameContains = "";
+        if (value !== undefined)
+            reflectionMergePartial<ListDeviceModelsRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ListDeviceModelsRequest): ListDeviceModelsRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                case /* string name_contains */ 2:
+                    message.nameContains = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ListDeviceModelsRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        /* string name_contains = 2; */
+        if (message.nameContains !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.nameContains);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message remote_control.home.ListDeviceModelsRequest
+ */
+export const ListDeviceModelsRequest = new ListDeviceModelsRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ListDeviceModelsResponse$Type extends MessageType<ListDeviceModelsResponse> {
+    constructor() {
+        super("remote_control.home.ListDeviceModelsResponse", [
+            { no: 1, name: "models", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => DeviceModel }
+        ]);
+    }
+    create(value?: PartialMessage<ListDeviceModelsResponse>): ListDeviceModelsResponse {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        message.models = [];
+        if (value !== undefined)
+            reflectionMergePartial<ListDeviceModelsResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ListDeviceModelsResponse): ListDeviceModelsResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* repeated remote_control.home.DeviceModel models */ 1:
+                    message.models.push(DeviceModel.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ListDeviceModelsResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated remote_control.home.DeviceModel models = 1; */
+        for (let i = 0; i < message.models.length; i++)
+            DeviceModel.internalBinaryWrite(message.models[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message remote_control.home.ListDeviceModelsResponse
+ */
+export const ListDeviceModelsResponse = new ListDeviceModelsResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class GetDeviceModelRequest$Type extends MessageType<GetDeviceModelRequest> {
+    constructor() {
+        super("remote_control.home.GetDeviceModelRequest", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "version", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<GetDeviceModelRequest>): GetDeviceModelRequest {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        message.id = "";
+        message.version = "";
+        if (value !== undefined)
+            reflectionMergePartial<GetDeviceModelRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetDeviceModelRequest): GetDeviceModelRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                case /* string version */ 2:
+                    message.version = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: GetDeviceModelRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        /* string version = 2; */
+        if (message.version !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.version);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message remote_control.home.GetDeviceModelRequest
+ */
+export const GetDeviceModelRequest = new GetDeviceModelRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class GetDeviceModelResponse$Type extends MessageType<GetDeviceModelResponse> {
+    constructor() {
+        super("remote_control.home.GetDeviceModelResponse", [
+            { no: 1, name: "model", kind: "message", T: () => DeviceModel }
+        ]);
+    }
+    create(value?: PartialMessage<GetDeviceModelResponse>): GetDeviceModelResponse {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        if (value !== undefined)
+            reflectionMergePartial<GetDeviceModelResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetDeviceModelResponse): GetDeviceModelResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* remote_control.home.DeviceModel model */ 1:
+                    message.model = DeviceModel.internalBinaryRead(reader, reader.uint32(), options, message.model);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: GetDeviceModelResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* remote_control.home.DeviceModel model = 1; */
+        if (message.model)
+            DeviceModel.internalBinaryWrite(message.model, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message remote_control.home.GetDeviceModelResponse
+ */
+export const GetDeviceModelResponse = new GetDeviceModelResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class CreateDeviceModelRequest$Type extends MessageType<CreateDeviceModelRequest> {
+    constructor() {
+        super("remote_control.home.CreateDeviceModelRequest", [
+            { no: 1, name: "model", kind: "message", T: () => DeviceModelSpec }
+        ]);
+    }
+    create(value?: PartialMessage<CreateDeviceModelRequest>): CreateDeviceModelRequest {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        if (value !== undefined)
+            reflectionMergePartial<CreateDeviceModelRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CreateDeviceModelRequest): CreateDeviceModelRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* remote_control.home.DeviceModelSpec model */ 1:
+                    message.model = DeviceModelSpec.internalBinaryRead(reader, reader.uint32(), options, message.model);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: CreateDeviceModelRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* remote_control.home.DeviceModelSpec model = 1; */
+        if (message.model)
+            DeviceModelSpec.internalBinaryWrite(message.model, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message remote_control.home.CreateDeviceModelRequest
+ */
+export const CreateDeviceModelRequest = new CreateDeviceModelRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class CreateDeviceModelResponse$Type extends MessageType<CreateDeviceModelResponse> {
+    constructor() {
+        super("remote_control.home.CreateDeviceModelResponse", [
+            { no: 1, name: "ok", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 2, name: "message", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<CreateDeviceModelResponse>): CreateDeviceModelResponse {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        message.ok = false;
+        message.message = "";
+        if (value !== undefined)
+            reflectionMergePartial<CreateDeviceModelResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CreateDeviceModelResponse): CreateDeviceModelResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* bool ok */ 1:
+                    message.ok = reader.bool();
+                    break;
+                case /* string message */ 2:
+                    message.message = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: CreateDeviceModelResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* bool ok = 1; */
+        if (message.ok !== false)
+            writer.tag(1, WireType.Varint).bool(message.ok);
+        /* string message = 2; */
+        if (message.message !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.message);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message remote_control.home.CreateDeviceModelResponse
+ */
+export const CreateDeviceModelResponse = new CreateDeviceModelResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class UpdateDeviceModelRequest$Type extends MessageType<UpdateDeviceModelRequest> {
+    constructor() {
+        super("remote_control.home.UpdateDeviceModelRequest", [
+            { no: 1, name: "model", kind: "message", T: () => DeviceModelSpec }
+        ]);
+    }
+    create(value?: PartialMessage<UpdateDeviceModelRequest>): UpdateDeviceModelRequest {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        if (value !== undefined)
+            reflectionMergePartial<UpdateDeviceModelRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: UpdateDeviceModelRequest): UpdateDeviceModelRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* remote_control.home.DeviceModelSpec model */ 1:
+                    message.model = DeviceModelSpec.internalBinaryRead(reader, reader.uint32(), options, message.model);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: UpdateDeviceModelRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* remote_control.home.DeviceModelSpec model = 1; */
+        if (message.model)
+            DeviceModelSpec.internalBinaryWrite(message.model, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message remote_control.home.UpdateDeviceModelRequest
+ */
+export const UpdateDeviceModelRequest = new UpdateDeviceModelRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class UpdateDeviceModelResponse$Type extends MessageType<UpdateDeviceModelResponse> {
+    constructor() {
+        super("remote_control.home.UpdateDeviceModelResponse", [
+            { no: 1, name: "ok", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 2, name: "message", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<UpdateDeviceModelResponse>): UpdateDeviceModelResponse {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        message.ok = false;
+        message.message = "";
+        if (value !== undefined)
+            reflectionMergePartial<UpdateDeviceModelResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: UpdateDeviceModelResponse): UpdateDeviceModelResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* bool ok */ 1:
+                    message.ok = reader.bool();
+                    break;
+                case /* string message */ 2:
+                    message.message = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: UpdateDeviceModelResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* bool ok = 1; */
+        if (message.ok !== false)
+            writer.tag(1, WireType.Varint).bool(message.ok);
+        /* string message = 2; */
+        if (message.message !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.message);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message remote_control.home.UpdateDeviceModelResponse
+ */
+export const UpdateDeviceModelResponse = new UpdateDeviceModelResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class DeleteDeviceModelRequest$Type extends MessageType<DeleteDeviceModelRequest> {
+    constructor() {
+        super("remote_control.home.DeleteDeviceModelRequest", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "version", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<DeleteDeviceModelRequest>): DeleteDeviceModelRequest {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        message.id = "";
+        message.version = "";
+        if (value !== undefined)
+            reflectionMergePartial<DeleteDeviceModelRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: DeleteDeviceModelRequest): DeleteDeviceModelRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                case /* string version */ 2:
+                    message.version = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: DeleteDeviceModelRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        /* string version = 2; */
+        if (message.version !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.version);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message remote_control.home.DeleteDeviceModelRequest
+ */
+export const DeleteDeviceModelRequest = new DeleteDeviceModelRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class DeleteDeviceModelResponse$Type extends MessageType<DeleteDeviceModelResponse> {
+    constructor() {
+        super("remote_control.home.DeleteDeviceModelResponse", [
+            { no: 1, name: "ok", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 2, name: "message", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<DeleteDeviceModelResponse>): DeleteDeviceModelResponse {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        message.ok = false;
+        message.message = "";
+        if (value !== undefined)
+            reflectionMergePartial<DeleteDeviceModelResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: DeleteDeviceModelResponse): DeleteDeviceModelResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* bool ok */ 1:
+                    message.ok = reader.bool();
+                    break;
+                case /* string message */ 2:
+                    message.message = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: DeleteDeviceModelResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* bool ok = 1; */
+        if (message.ok !== false)
+            writer.tag(1, WireType.Varint).bool(message.ok);
+        /* string message = 2; */
+        if (message.message !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.message);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message remote_control.home.DeleteDeviceModelResponse
+ */
+export const DeleteDeviceModelResponse = new DeleteDeviceModelResponse$Type();
 /**
  * @generated ServiceType for protobuf service remote_control.home.HomeService
  */
@@ -2511,4 +3468,14 @@ export const AutomationService = new ServiceType("remote_control.home.Automation
     { name: "DeleteAutomation", options: {}, I: DeleteAutomationRequest, O: DeleteAutomationResponse },
     { name: "SetAutomationEnabled", options: {}, I: SetAutomationEnabledRequest, O: SetAutomationEnabledResponse },
     { name: "TriggerAutomation", options: {}, I: TriggerAutomationRequest, O: TriggerAutomationResponse }
+]);
+/**
+ * @generated ServiceType for protobuf service remote_control.home.DeviceModelService
+ */
+export const DeviceModelService = new ServiceType("remote_control.home.DeviceModelService", [
+    { name: "ListDeviceModels", options: {}, I: ListDeviceModelsRequest, O: ListDeviceModelsResponse },
+    { name: "GetDeviceModel", options: {}, I: GetDeviceModelRequest, O: GetDeviceModelResponse },
+    { name: "CreateDeviceModel", options: {}, I: CreateDeviceModelRequest, O: CreateDeviceModelResponse },
+    { name: "UpdateDeviceModel", options: {}, I: UpdateDeviceModelRequest, O: UpdateDeviceModelResponse },
+    { name: "DeleteDeviceModel", options: {}, I: DeleteDeviceModelRequest, O: DeleteDeviceModelResponse }
 ]);

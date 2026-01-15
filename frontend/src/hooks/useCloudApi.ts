@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { GrpcWebFetchTransport } from '@protobuf-ts/grpcweb-transport'
 import { GatewayServiceClient, AuditServiceClient } from '../proto/cloud/gateway.client'
-import type { Device, ListDevicesResponse, InvokeActionResponse, DeviceEvent, UpsertDeviceResponse, Automation, ListAutomationsResponse, ListLogsResponse, LogEntry } from '../proto/home/service'
+import type { Device, ListDevicesResponse, InvokeActionResponse, DeviceEvent, UpsertDeviceResponse, Automation, ListAutomationsResponse, ListLogsResponse, LogEntry, DeviceModelSpec } from '../proto/home/service'
 import { TelemetryEventKind } from '../proto/home/service'
 import type { Struct } from '../proto/google/protobuf/struct'
 import type { ServerStreamingCall } from '@protobuf-ts/runtime-rpc'
@@ -173,6 +173,12 @@ export function useCloudApi(config?: Partial<CloudConfig>) {
       return { ok: false, error: String(e?.message ?? e) }
     }
   }, [agentId])
+
+  const listDeviceModels = useCallback(async () => ({ ok: false, error: 'unsupported in cloud mode' }), [])
+  const getDeviceModel = useCallback(async () => ({ ok: false, error: 'unsupported in cloud mode' }), [])
+  const createDeviceModel = useCallback(async (_model?: DeviceModelSpec) => ({ ok: false, error: 'unsupported in cloud mode' }), [])
+  const updateDeviceModel = useCallback(async (_model?: DeviceModelSpec) => ({ ok: false, error: 'unsupported in cloud mode' }), [])
+  const deleteDeviceModel = useCallback(async () => ({ ok: false, error: 'unsupported in cloud mode' }), [])
 
   function toValue(v: any): any {
     const kind: any = { oneofKind: undefined }
@@ -372,6 +378,11 @@ export function useCloudApi(config?: Partial<CloudConfig>) {
     upsertDevice,
     deleteDevice,
     listAuditLogs,
+    listDeviceModels,
+    getDeviceModel,
+    createDeviceModel,
+    updateDeviceModel,
+    deleteDeviceModel,
     listAutomations,
     setAutomationEnabled,
     triggerAutomation,

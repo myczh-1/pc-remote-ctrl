@@ -208,6 +208,11 @@ func main() {
 		log.Fatalf("FATAL: load devices db %s failed: %v", cfg.DevicesFile, err)
 	}
 	log.Printf("[storage] devices loaded: %d from %s", len(devices.List()), cfg.DevicesFile)
+	models := devstore.NewDeviceModels(cfg.DevicesFile)
+	if err := models.Load(); err != nil {
+		log.Fatalf("FATAL: load device models db %s failed: %v", cfg.DevicesFile, err)
+	}
+	log.Printf("[storage] device models ready: %s", cfg.DevicesFile)
 	auditLogs := devstore.NewAuditLogs(cfg.LogsFile)
 	if err := auditLogs.Load(); err != nil {
 		log.Fatalf("FATAL: load audit db %s failed: %v", cfg.LogsFile, err)
@@ -250,12 +255,13 @@ func main() {
 	reflection.Register(grpcServer)
 	// ops via MQTT
 	ops := ops.NewMQTTOps(mqttClient)
-	homesvc := home.New(devices, auditLogs, ops)
+	homesvc := home.New(devices, models, auditLogs, ops)
 	engine := home.NewAutomationEngine(automations, devices, ops, auditLogs)
 	homesvc.InitSubscriptions(mqttClient)
 	homepb.RegisterHomeServiceServer(grpcServer, homesvc)
 	homepb.RegisterAuditServiceServer(grpcServer, home.NewAuditService(auditLogs))
 	homepb.RegisterAutomationServiceServer(grpcServer, home.NewAutomationService(automations, auditLogs, engine))
+	homepb.RegisterDeviceModelServiceServer(grpcServer, home.NewDeviceModelService(models, auditLogs))
 
 	wrapped := grpcweb.WrapServer(
 		grpcServer,

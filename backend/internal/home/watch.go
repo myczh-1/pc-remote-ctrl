@@ -278,14 +278,6 @@ func extractReportedFromActionResult(payload map[string]any) map[string]any {
 	return nil
 }
 
-func cloneStringAnyMap(in map[string]any) map[string]any {
-	out := make(map[string]any, len(in))
-	for k, v := range in {
-		out[k] = v
-	}
-	return out
-}
-
 func mergeStringAnyMap(dst map[string]any, src map[string]any) {
 	for k, v := range src {
 		dst[k] = v

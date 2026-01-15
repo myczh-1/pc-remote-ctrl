@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { GrpcWebFetchTransport } from '@protobuf-ts/grpcweb-transport'
-import { HomeServiceClient, AutomationServiceClient, AuditServiceClient } from '../proto/home/service.client'
-import type { Device, ListDevicesResponse, InvokeActionResponse, DeviceEvent, UpsertDeviceResponse, Automation, ListAutomationsResponse, LogEntry, ListLogsResponse } from '../proto/home/service'
+import { HomeServiceClient, AutomationServiceClient, AuditServiceClient, DeviceModelServiceClient } from '../proto/home/service.client'
+import type { Device, ListDevicesResponse, InvokeActionResponse, DeviceEvent, UpsertDeviceResponse, Automation, ListAutomationsResponse, LogEntry, ListLogsResponse, DeviceModel, DeviceModelSpec, ListDeviceModelsResponse, GetDeviceModelResponse } from '../proto/home/service'
 import { TelemetryEventKind } from '../proto/home/service'
 import type { Struct } from '../proto/google/protobuf/struct'
 import type { ServerStreamingCall } from '@protobuf-ts/runtime-rpc'
@@ -25,12 +25,14 @@ export function useHomeApi(config?: Partial<HomeConfig>) {
   const clientRef = useRef(new HomeServiceClient(transport))
   const autoClientRef = useRef(new AutomationServiceClient(transport))
   const auditClientRef = useRef(new AuditServiceClient(transport))
+  const modelClientRef = useRef(new DeviceModelServiceClient(transport))
   const onEventRef = useRef<HomeConfig['onEvent']>(config?.onEvent)
 
   useEffect(() => {
     clientRef.current = new HomeServiceClient(new GrpcWebFetchTransport({ baseUrl }))
     autoClientRef.current = new AutomationServiceClient(new GrpcWebFetchTransport({ baseUrl }))
     auditClientRef.current = new AuditServiceClient(new GrpcWebFetchTransport({ baseUrl }))
+    modelClientRef.current = new DeviceModelServiceClient(new GrpcWebFetchTransport({ baseUrl }))
   }, [baseUrl])
   useEffect(() => { onEventRef.current = config?.onEvent }, [config?.onEvent])
 
@@ -345,6 +347,56 @@ export function useHomeApi(config?: Partial<HomeConfig>) {
     }
   }, [])
 
+  const listDeviceModels = useCallback(async (opts?: { id?: string; name?: string }) => {
+    try {
+      const res = await modelClientRef.current.listDeviceModels({
+        id: opts?.id ?? '',
+        nameContains: opts?.name ?? '',
+      }).response as ListDeviceModelsResponse
+      return { ok: true, models: (res.models as DeviceModel[]) || [] }
+    } catch (e: any) {
+      return { ok: false, error: String(e?.message ?? e) }
+    }
+  }, [])
+
+  const getDeviceModel = useCallback(async (id: string, version: string) => {
+    try {
+      const res = await modelClientRef.current.getDeviceModel({ id, version }).response as GetDeviceModelResponse
+      return { ok: true, model: res.model as DeviceModel | undefined }
+    } catch (e: any) {
+      return { ok: false, error: String(e?.message ?? e) }
+    }
+  }, [])
+
+  const createDeviceModel = useCallback(async (model: DeviceModelSpec) => {
+    console.log(model)
+    console.log(modelClientRef.current)
+    try {
+      const res = await modelClientRef.current.createDeviceModel({ model }).response
+      return { ok: (res as any).ok, message: (res as any).message }
+    } catch (e: any) {
+      return { ok: false, error: String(e?.message ?? e) }
+    }
+  }, [])
+
+  const updateDeviceModel = useCallback(async (model: DeviceModelSpec) => {
+    try {
+      const res = await modelClientRef.current.updateDeviceModel({ model }).response
+      return { ok: (res as any).ok, message: (res as any).message }
+    } catch (e: any) {
+      return { ok: false, error: String(e?.message ?? e) }
+    }
+  }, [])
+
+  const deleteDeviceModel = useCallback(async (id: string, version: string) => {
+    try {
+      const res = await modelClientRef.current.deleteDeviceModel({ id, version }).response
+      return { ok: (res as any).ok, message: (res as any).message }
+    } catch (e: any) {
+      return { ok: false, error: String(e?.message ?? e) }
+    }
+  }, [])
+
   useEffect(() => () => stopWatch(), [stopWatch])
 
   return {
@@ -364,6 +416,11 @@ export function useHomeApi(config?: Partial<HomeConfig>) {
     triggerAutomation,
     upsertAutomation,
     listAuditLogs,
+    listDeviceModels,
+    getDeviceModel,
+    createDeviceModel,
+    updateDeviceModel,
+    deleteDeviceModel,
   }
 }
 

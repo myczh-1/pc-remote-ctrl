@@ -44,6 +44,8 @@ message Device {
   Adapter adapter = 9;
   repeated ActionSpec actions = 10;
   google.protobuf.Struct state = 11;
+  string model_id = 12;
+  string model_version = 13;
 }
 
 message ListDevicesRequest {
@@ -199,6 +201,73 @@ message TriggerAutomationResponse {
   string message = 2;
 }
 
+message DeviceModel {
+  string id = 1;
+  string version = 2;
+  string name = 3;
+  string description = 4;
+  repeated string tags = 5;
+  repeated ActionSpec actions = 6;
+  map<string, string> state_schema = 7;
+  int64 updated_at = 8;
+}
+
+message DeviceModelSpec {
+  string id = 1;
+  string version = 2;
+  string name = 3;
+  string description = 4;
+  repeated string tags = 5;
+  repeated ActionSpec actions = 6;
+  map<string, string> state_schema = 7;
+}
+
+message ListDeviceModelsRequest {
+  string id = 1;
+  string name_contains = 2;
+}
+
+message ListDeviceModelsResponse {
+  repeated DeviceModel models = 1;
+}
+
+message GetDeviceModelRequest {
+  string id = 1;
+  string version = 2;
+}
+
+message GetDeviceModelResponse {
+  DeviceModel model = 1;
+}
+
+message CreateDeviceModelRequest {
+  DeviceModelSpec model = 1;
+}
+
+message CreateDeviceModelResponse {
+  bool ok = 1;
+  string message = 2;
+}
+
+message UpdateDeviceModelRequest {
+  DeviceModelSpec model = 1;
+}
+
+message UpdateDeviceModelResponse {
+  bool ok = 1;
+  string message = 2;
+}
+
+message DeleteDeviceModelRequest {
+  string id = 1;
+  string version = 2;
+}
+
+message DeleteDeviceModelResponse {
+  bool ok = 1;
+  string message = 2;
+}
+
 service HomeService {
   rpc ListDevices(ListDevicesRequest) returns (ListDevicesResponse);
   rpc WatchDevices(WatchDevicesRequest) returns (stream DeviceEvent);
@@ -218,4 +287,12 @@ service AutomationService {
   rpc DeleteAutomation(DeleteAutomationRequest) returns (DeleteAutomationResponse);
   rpc SetAutomationEnabled(SetAutomationEnabledRequest) returns (SetAutomationEnabledResponse);
   rpc TriggerAutomation(TriggerAutomationRequest) returns (TriggerAutomationResponse);
+}
+
+service DeviceModelService {
+  rpc ListDeviceModels(ListDeviceModelsRequest) returns (ListDeviceModelsResponse);
+  rpc GetDeviceModel(GetDeviceModelRequest) returns (GetDeviceModelResponse);
+  rpc CreateDeviceModel(CreateDeviceModelRequest) returns (CreateDeviceModelResponse);
+  rpc UpdateDeviceModel(UpdateDeviceModelRequest) returns (UpdateDeviceModelResponse);
+  rpc DeleteDeviceModel(DeleteDeviceModelRequest) returns (DeleteDeviceModelResponse);
 }

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import type { Device } from '../proto/home/service'
+import type { Device, DeviceModel } from '../proto/home/service'
 import { AdapterKind } from '../proto/home/service'
 import { useBleProvisioning } from '../hooks/useBleProvisioning'
 import type { DeviceListParams } from '../hooks/useHomeApi'
@@ -18,21 +18,7 @@ interface DeviceCreateModalProps {
   onCreate?: (device: Device) => Promise<SaveResult> | SaveResult
   initialDevice?: Device
   api: DeviceApi
-}
-
-function parseArgsSchema(input: string): Record<string, string> {
-  const out: Record<string, string> = {}
-  input.split(/[;,\n]/).map(s => s.trim()).filter(Boolean).forEach(pair => {
-    const idx = pair.indexOf('=')
-    if (idx > 0) {
-      const k = pair.slice(0, idx).trim()
-      const v = pair.slice(idx + 1).trim()
-      if (k) out[k] = v
-    } else {
-      out[pair] = ''
-    }
-  })
-  return out
+  models: DeviceModel[]
 }
 
 function parseDeviceIdFromMessage(msg?: string): string {
@@ -41,18 +27,14 @@ function parseDeviceIdFromMessage(msg?: string): string {
   return m ? m[1].trim() : ''
 }
 
-export function DeviceCreateModal({ open, onCancel, onCreate, initialDevice, api }: DeviceCreateModalProps) {
+export function DeviceCreateModal({ open, onCancel, onCreate, initialDevice, api, models }: DeviceCreateModalProps) {
   const [id, setId] = useState(initialDevice?.id ?? '')
   const [name, setName] = useState(initialDevice?.name ?? '')
   const [type, setType] = useState(initialDevice?.type ?? '')
   const [room, setRoom] = useState(initialDevice?.room ?? '')
   const [tags, setTags] = useState((initialDevice?.tags ?? []).join(','))
-  const [adapterKind, setAdapterKind] = useState<AdapterKind>(initialDevice?.adapter?.kind ?? AdapterKind.MQTT)
-  const [actions, setActions] = useState<Array<{ name: string; args: string; timeout: number }>>(
-    (initialDevice?.actions ?? []).length > 0
-      ? (initialDevice!.actions as any).map((a: any) => ({ name: a.name, args: Object.entries(a.argsSchema ?? {}).map(([k, v]) => `${k}=${v as string}`).join(';'), timeout: Number(a.timeoutMs ?? 2000) }))
-      : [{ name: '', args: '', timeout: 2000 }]
-  )
+  const [modelId, setModelId] = useState(initialDevice?.modelId ?? '')
+  const [modelVersion, setModelVersion] = useState(initialDevice?.modelVersion ?? '')
   const [submitting, setSubmitting] = useState(false)
   const [formError, setFormError] = useState('')
   // BLE provisioning inputs
@@ -76,16 +58,8 @@ export function DeviceCreateModal({ open, onCancel, onCreate, initialDevice, api
       setType(initialDevice.type ?? '')
       setRoom(initialDevice.room ?? '')
       setTags((initialDevice.tags ?? []).join(','))
-      setAdapterKind(initialDevice.adapter?.kind ?? AdapterKind.MQTT)
-      setActions(
-        (initialDevice.actions ?? []).length > 0
-          ? (initialDevice.actions as any).map((a: any) => ({
-              name: a.name,
-              args: Object.entries(a.argsSchema ?? {}).map(([k, v]) => `${k}=${v as string}`).join(';'),
-              timeout: Number(a.timeoutMs ?? 2000)
-            }))
-          : [{ name: '', args: '', timeout: 2000 }]
-      )
+      setModelId(initialDevice.modelId ?? '')
+      setModelVersion(initialDevice.modelVersion ?? '')
     } else {
       // 重置为空状态
       setId('')
@@ -93,8 +67,8 @@ export function DeviceCreateModal({ open, onCancel, onCreate, initialDevice, api
       setType('')
       setRoom('')
       setTags('')
-      setAdapterKind(AdapterKind.MQTT)
-      setActions([{ name: '', args: '', timeout: 2000 }])
+      setModelId('')
+      setModelVersion('')
       setSsid('')
       setWifiPass('')
       setMqttUrl(defaultMqttUrl)
@@ -104,38 +78,8 @@ export function DeviceCreateModal({ open, onCancel, onCreate, initialDevice, api
       setFormError('')
       setAllocated(false)
       setStep('init')
-      if (open) {
-        (async () => {
-          try {
-            const r = await api.upsertDevice({
-              id: '' as any,
-              name: '', type: '', room: '', tags: [],
-              online: false, lastSeen: 0 as any, topics: {},
-              adapter: { kind: AdapterKind.MQTT, config: {} } as any,
-              actions: [], state: { fields: {} } as any,
-            } as any)
-            if (r.ok) {
-              const newId = r.deviceId || parseDeviceIdFromMessage(r.message)
-              if (newId) {
-                setId(newId)
-                setAllocated(true)
-                setStep('ble')
-                setBleLogs(prev => [...prev, { t: Date.now(), msg: `已分配设备ID: ${newId}`, ok: true }])
-              } else {
-                setBleLogs(prev => [...prev, { t: Date.now(), msg: `分配设备ID失败: ${String(r.message || 'unknown')}`, ok: false }])
-              }
-            } else {
-              setBleLogs(prev => [...prev, { t: Date.now(), msg: `分配设备ID失败: ${r.error}`, ok: false }])
-            }
-          } catch (e: any) {
-            setBleLogs(prev => [...prev, { t: Date.now(), msg: `分配设备ID异常: ${String(e?.message ?? e)}`, ok: false }])
-          }
-        })()
-      }
     }
   }, [initialDevice, open])
-
-  if (!open) return null
 
   const handleCancel = async () => {
     if (allocated && step !== 'done' && id) { try { await api.deleteDevice(id) } catch {} }
@@ -146,10 +90,14 @@ export function DeviceCreateModal({ open, onCancel, onCreate, initialDevice, api
     if (!name && !id) return
     setSubmitting(true)
     setFormError('')
+    if (!modelId || !modelVersion) {
+      setFormError('请选择设备模型')
+      setSubmitting(false)
+      return
+    }
     const trimmedName = name.trim()
     const baseTopics = initialDevice?.topics ?? {}
-    const baseAdapterConfig = initialDevice?.adapter?.config ?? {}
-    const device: Device = {
+      const device: Device = {
       id: id,
       name: trimmedName,
       type,
@@ -158,9 +106,11 @@ export function DeviceCreateModal({ open, onCancel, onCreate, initialDevice, api
       online: initialDevice?.online ?? false,
       lastSeen: initialDevice?.lastSeen ?? (0 as any),
       topics: { ...baseTopics },
-      adapter: { kind: adapterKind, config: { ...baseAdapterConfig } },
-      actions: actions.filter(a => a.name.trim()).map(a => ({ name: a.name.trim(), argsSchema: parseArgsSchema(a.args), timeoutMs: a.timeout as any })),
+      adapter: { kind: AdapterKind.MQTT, config: {} } as any,
+      actions: [],
       state: initialDevice?.state ?? ({ fields: {} } as any),
+      modelId,
+      modelVersion,
     }
     try {
       const res = await onCreate?.(device)
@@ -176,8 +126,25 @@ export function DeviceCreateModal({ open, onCancel, onCreate, initialDevice, api
     }
   }
 
-  const addAction = () => setActions(prev => [...prev, { name: '', args: '', timeout: 2000 }])
-  const removeAction = (i: number) => setActions(prev => prev.filter((_, idx) => idx !== i))
+  const availableModels = useMemo(() => {
+    return (models ?? []).map(m => ({
+      id: m.id,
+      version: m.version,
+      name: m.name || m.id,
+    }))
+  }, [models])
+
+  useEffect(() => {
+    if (!modelId || !modelVersion) {
+      return
+    }
+    const picked = models.find(m => m.id === modelId && m.version === modelVersion)
+    if (picked && !initialDevice) {
+      setType(picked.name || picked.id)
+    }
+  }, [modelId, modelVersion, models, initialDevice])
+
+  if (!open) return null
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
@@ -200,8 +167,27 @@ export function DeviceCreateModal({ open, onCancel, onCreate, initialDevice, api
             <input className="w-full rounded-lg border border-black/10 dark:border-white/10 bg-transparent px-2 py-1" value={name} onChange={e => setName(e.target.value)} placeholder="例如：客厅灯" />
           </div>
           <div className="col-span-1">
+            <label className="text-xs text-slate-500">设备模型</label>
+            <select
+              className="w-full rounded-lg border border-black/10 dark:border-white/10 bg-transparent px-2 py-1"
+              value={modelId && modelVersion ? `${modelId}@${modelVersion}` : ''}
+              onChange={e => {
+                const [mid, mver] = e.target.value.split('@')
+                setModelId(mid || '')
+                setModelVersion(mver || '')
+              }}
+            >
+              <option value="">请选择模型</option>
+              {availableModels.map(m => (
+                <option key={`${m.id}@${m.version}`} value={`${m.id}@${m.version}`}>
+                  {m.name} ({m.id}@{m.version})
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="col-span-1">
             <label className="text-xs text-slate-500">类型</label>
-            <input className="w-full rounded-lg border border-black/10 dark:border-white/10 bg-transparent px-2 py-1" value={type} onChange={e => setType(e.target.value)} placeholder="light/thermostat 等" />
+            <input readOnly className="w-full rounded-lg border border-black/10 dark:border-white/10 bg-transparent px-2 py-1" value={type} placeholder="来自设备模型" />
           </div>
           <div className="col-span-1">
             <label className="text-xs text-slate-500">房间</label>
@@ -251,6 +237,7 @@ export function DeviceCreateModal({ open, onCancel, onCreate, initialDevice, api
               className="px-3 py-2 text-sm rounded-xl bg-gradient-to-r from-prime-500 to-prime-600 text-white hover:from-prime-600 hover:to-prime-700 disabled:opacity-50"
               onClick={async () => {
                 if (!ssid || !wifiPass) { alert('请填写 Wi‑Fi 名称与密码'); return }
+                if (!modelId || !modelVersion) { alert('请选择设备模型'); return }
                 setBleRunning(true)
                 setBleLogs([])
                 try {
@@ -258,10 +245,12 @@ export function DeviceCreateModal({ open, onCancel, onCreate, initialDevice, api
                   if (!allocated) {
                     const r = await api.upsertDevice({
                       id: '' as any,
-                      name: '', type: '', room: '', tags: [],
+                      name: name.trim(), type: type, room: '', tags: [],
                       online: false, lastSeen: 0 as any, topics: {},
                       adapter: { kind: AdapterKind.MQTT, config: {} } as any,
                       actions: [], state: { fields: {} } as any,
+                      modelId,
+                      modelVersion,
                     } as any)
                     if (!r.ok) throw new Error(`分配设备ID失败: ${r.error}`)
                     const newId = r.deviceId || parseDeviceIdFromMessage(r.message)
@@ -334,26 +323,8 @@ export function DeviceCreateModal({ open, onCancel, onCreate, initialDevice, api
         </div>
         )}
 
-        <div className="mt-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <label className="text-xs text-slate-500">动作列表</label>
-              <div className="text-xs text-slate-400 mt-1">定义设备支持的操作，如开关、调节等</div>
-            </div>
-            <button className="text-xs px-2 py-1 rounded-lg border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5" onClick={addAction}>+ 添加动作</button>
-          </div>
-          <div className="mt-2 flex flex-col gap-2">
-            {actions.map((a, i) => (
-              <div key={i} className="grid grid-cols-6 gap-2 items-center">
-                <input className="col-span-2 rounded-lg border border-black/10 dark:border-white/10 bg-transparent px-2 py-1" placeholder="动作名，如 power" value={a.name} onChange={e => setActions(prev => prev.map((x, idx) => idx===i? {...x, name: e.target.value}: x))} />
-                <input className="col-span-3 rounded-lg border border-black/10 dark:border-white/10 bg-transparent px-2 py-1" placeholder="参数：brightness=80;color=red" value={a.args} onChange={e => setActions(prev => prev.map((x, idx) => idx===i? {...x, args: e.target.value}: x))} />
-                <div className="col-span-1 flex items-center gap-2">
-                  <input type="number" className="w-24 rounded-lg border border-black/10 dark:border-white/10 bg-transparent px-2 py-1" value={a.timeout} onChange={e => setActions(prev => prev.map((x, idx) => idx===i? {...x, timeout: Number(e.target.value)}: x))} />
-                  <button className="text-xs px-2 py-1 rounded-lg border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5" onClick={() => removeAction(i)}>删</button>
-                </div>
-              </div>
-            ))}
-          </div>
+        <div className="mt-3 rounded-lg border border-dashed border-black/10 dark:border-white/10 p-3 text-xs text-slate-500">
+          动作与协议来自设备模型，不可在设备实例中修改。
         </div>
 
         <div className="mt-4 flex justify-end gap-2">

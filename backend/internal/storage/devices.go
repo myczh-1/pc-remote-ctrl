@@ -35,6 +35,8 @@ type Device struct {
 	Shadow    Shadow            `json:"shadow"`
 	Online    bool              `json:"online"`
 	LastSeen  int64             `json:"last_seen"`
+	ModelID   string            `json:"model_id,omitempty"`
+	ModelVer  string            `json:"model_version,omitempty"`
 	Provision map[string]any    `json:"provision,omitempty"`
 	Meta      map[string]any    `json:"meta,omitempty"`
 }
@@ -105,6 +107,8 @@ func createSchema(db *sql.DB) error {
             name TEXT NOT NULL DEFAULT '',
             type TEXT NOT NULL DEFAULT '',
             room TEXT,
+            model_id TEXT,
+            model_version TEXT,
             online INTEGER NOT NULL DEFAULT 0,
             last_seen INTEGER NOT NULL,
             snapshot_version INTEGER NOT NULL DEFAULT 1
@@ -204,7 +208,7 @@ func (r *Devices) fetchDevices(where string, args ...any) ([]Device, error) {
 		return nil, errors.New("storage not initialized")
 	}
 	q := `
-        SELECT d.id, d.name, d.type, d.room, d.online, d.last_seen
+        SELECT d.id, d.name, d.type, d.room, d.model_id, d.model_version, d.online, d.last_seen
         FROM devices d
     `
 	if where != "" {
@@ -220,12 +224,15 @@ func (r *Devices) fetchDevices(where string, args ...any) ([]Device, error) {
 	var order []string
 	for rows.Next() {
 		var room sql.NullString
+		var modelID, modelVer sql.NullString
 		var onlineInt int
 		d := Device{Topics: map[string]string{}}
-		if err := rows.Scan(&d.ID, &d.Name, &d.Type, &room, &onlineInt, &d.LastSeen); err != nil {
+		if err := rows.Scan(&d.ID, &d.Name, &d.Type, &room, &modelID, &modelVer, &onlineInt, &d.LastSeen); err != nil {
 			return nil, err
 		}
 		d.Room = room.String
+		d.ModelID = modelID.String
+		d.ModelVer = modelVer.String
 		d.Online = onlineInt != 0
 		devMap[d.ID] = &d
 		order = append(order, d.ID)
@@ -445,15 +452,17 @@ func (r *Devices) Upsert(d Device) error {
 	}()
 
 	_, err = tx.Exec(`
-        INSERT INTO devices (id, name, type, room, online, last_seen)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO devices (id, name, type, room, model_id, model_version, online, last_seen)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(id) DO UPDATE SET
             name = excluded.name,
             type = excluded.type,
             room = excluded.room,
+            model_id = excluded.model_id,
+            model_version = excluded.model_version,
             online = excluded.online,
             last_seen = excluded.last_seen
-    `, d.ID, d.Name, d.Type, nullString(d.Room), boolToInt(d.Online), d.LastSeen)
+    `, d.ID, d.Name, d.Type, nullString(d.Room), nullString(d.ModelID), nullString(d.ModelVer), boolToInt(d.Online), d.LastSeen)
 	if err != nil {
 		return err
 	}

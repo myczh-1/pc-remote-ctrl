@@ -6,7 +6,8 @@ import { Console } from './components/Console'
 import { DeviceCard } from './components/DeviceCard'
 import { DeviceDetailDrawer } from './components/DeviceDetailDrawer'
 import { DeviceCreateModal } from './components/DeviceCreateModal'
-import type { Device, ActionSpec } from './proto/home/service'
+import { DeviceModelModal } from './components/DeviceModelModal'
+import type { Device, ActionSpec, DeviceModel } from './proto/home/service'
 import { useHomeApi } from './hooks/useHomeApi'
 import { useCloudApi } from './hooks/useCloudApi'
 import { CloudSettings } from './components/CloudSettings'
@@ -183,7 +184,7 @@ export default function App() {
     }
   }, [mode, tinyAuthOrigin, logError])
 
-  const [activeView, setActiveView] = useState<'devices' | 'automations'>('devices')
+  const [activeView, setActiveView] = useState<'devices' | 'automations' | 'models'>('devices')
   const [detailOpen, setDetailOpen] = useState(false)
   const [detailDeviceId, setDetailDeviceId] = useState('')
   const [detailInitialAction, setDetailInitialAction] = useState('')
@@ -234,6 +235,11 @@ export default function App() {
   const [editingAuto, setEditingAuto] = useState<Automation | undefined>(undefined)
   const [autoLogs, setAutoLogs] = useState<Record<string, { entries: LogEntry[]; loading: boolean; error?: string; next?: string }>>({})
   const [logsOpen, setLogsOpen] = useState<Record<string, boolean>>({})
+  const [models, setModels] = useState<DeviceModel[]>([])
+  const [modelLoading, setModelLoading] = useState(false)
+  const [modelError, setModelError] = useState('')
+  const [modelEditOpen, setModelEditOpen] = useState(false)
+  const [editingModel, setEditingModel] = useState<DeviceModel | undefined>(undefined)
   const [auditLogs, setAuditLogs] = useState<LogEntry[]>([])
   const [auditLoading, setAuditLoading] = useState(false)
   const [auditError, setAuditError] = useState('')
@@ -272,6 +278,24 @@ export default function App() {
       setAutoError(String(e?.message ?? e))
     } finally {
       setAutoLoading(false)
+    }
+  }
+
+  const loadDeviceModels = async () => {
+    if (modelLoading) return
+    setModelLoading(true)
+    setModelError('')
+    try {
+      const res = await api.listDeviceModels?.({})
+      if (!res || !res.ok) {
+        setModelError(res?.error || '加载设备模型失败')
+        return
+      }
+      setModels(res.models || [])
+    } catch (e: any) {
+      setModelError(String(e?.message ?? e))
+    } finally {
+      setModelLoading(false)
     }
   }
 
@@ -356,6 +380,18 @@ export default function App() {
       loadAutomations(true)
     }
   }, [activeView, filterTag, filterName, mode, cloudCfg.baseUrl, cloudCfg.agentId])
+
+  React.useEffect(() => {
+    if (mode === 'local' && activeView === 'models') {
+      loadDeviceModels()
+    }
+  }, [activeView, mode])
+
+  React.useEffect(() => {
+    if (mode === 'local' && createOpen && models.length === 0) {
+      loadDeviceModels()
+    }
+  }, [createOpen, mode, models.length])
 
   const loadAutomationLogs = async (automationId: string, reset?: boolean) => {
     if (!automationApi?.listAuditLogs) { logError('暂不支持查询日志'); return }
@@ -594,6 +630,7 @@ export default function App() {
                         {([
                           { key: 'devices', label: '设备' },
                           { key: 'automations', label: '自动化' },
+                          ...(mode === 'local' ? [{ key: 'models', label: '模型' }] : []),
                         ] as const).map(t => (
                           <button
                             key={t.key}
@@ -620,11 +657,19 @@ export default function App() {
                           {autoLoading ? '加载自动化...' : `共 ${automations.length} 条`}
                         </div>
                       )}
+                      {activeView === 'models' && (
+                        <div className="text-sm text-slate-500 dark:text-slate-400">
+                          {modelLoading ? '加载模型...' : `共 ${models.length} 个`}
+                        </div>
+                      )}
                       {api.error && activeView === 'devices' && (
                         <div className="text-xs text-red-500">{api.error}</div>
                       )}
                       {autoError && activeView === 'automations' && (
                         <div className="text-xs text-red-500">{autoError}</div>
+                      )}
+                      {modelError && activeView === 'models' && (
+                        <div className="text-xs text-red-500">{modelError}</div>
                       )}
                     </div>
                     {activeView === 'devices' && (
@@ -793,6 +838,73 @@ export default function App() {
                         </div>
                       </div>
                     )}
+                    {activeView === 'models' && (
+                      <div className="space-y-3">
+                        <div className="flex flex-wrap gap-2 items-center">
+                          <button
+                            onClick={() => { setEditingModel(undefined); setModelEditOpen(true) }}
+                            className="px-3 py-2 text-sm rounded-lg bg-prime-500 text-white hover:bg-prime-600 active:scale-[0.99]"
+                          >
+                            新建设备模型
+                          </button>
+                          <button
+                            onClick={() => loadDeviceModels()}
+                            className="px-3 py-2 text-sm rounded-lg border border-slate-200/60 dark:border-white/10 bg-white/80 dark:bg-white/10"
+                          >
+                            刷新
+                          </button>
+                        </div>
+                        {models.length === 0 && !modelLoading ? (
+                          <div className="text-sm text-slate-500 dark:text-slate-400">暂无设备模型</div>
+                        ) : (
+                          <div className="grid gap-3 grid-cols-[repeat(auto-fit,minmax(320px,420px))]">
+                            {models.map(m => (
+                              <div key={`${m.id}@${m.version}`} className="rounded-2xl border border-black/10 bg-white/70 p-3 shadow-[0_8px_24px_rgba(15,21,32,0.12)] dark:border-white/10 dark:bg-white/[0.06]">
+                                <div className="flex items-start justify-between gap-2">
+                                  <div className="min-w-0">
+                                    <div className="text-[15px] font-semibold text-slate-900 dark:text-slate-100 truncate">{m.name || m.id}</div>
+                                    <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                                      {m.id}@{m.version}
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <button
+                                      className="text-xs px-2 py-1 rounded-lg border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5"
+                                      onClick={() => { setEditingModel(m); setModelEditOpen(true) }}
+                                    >
+                                      编辑
+                                    </button>
+                                    <button
+                                      className="text-xs px-2 py-1 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 dark:border-red-500/40 dark:text-red-200 dark:hover:bg-red-500/10"
+                                      onClick={async () => {
+                                        const confirmed = window.confirm(`确认删除模型 ${m.id}@${m.version}？`)
+                                        if (!confirmed) return
+                                        const res = await api.deleteDeviceModel?.(m.id, m.version)
+                                        if (res?.ok) {
+                                          logSuccess(`模型已删除：${m.id}@${m.version}`)
+                                          await loadDeviceModels()
+                                        } else {
+                                          logError(res?.error || res?.message || '删除失败')
+                                        }
+                                      }}
+                                    >
+                                      删除
+                                    </button>
+                                  </div>
+                                </div>
+                                {m.description && (
+                                  <div className="mt-2 text-xs text-slate-600 dark:text-slate-300">{m.description}</div>
+                                )}
+                                <div className="mt-2 flex flex-wrap gap-2 text-xs text-slate-500 dark:text-slate-400">
+                                  <span>动作 {m.actions?.length || 0}</span>
+                                  <span>字段 {Object.keys(m.stateSchema || {}).length}</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </motion.div>
 
                   {/* 日志开关：移动端隐藏不参与布局；平板/桌面可控 */}
@@ -937,6 +1049,7 @@ export default function App() {
         open={createOpen}
         initialDevice={editing}
         api={api}
+        models={models}
         onCancel={() => { setCreateOpen(false); setEditing(undefined) }}
         onCreate={async (device) => {
           const r = await api.upsertDevice(device)
@@ -948,6 +1061,34 @@ export default function App() {
             logError(`创建设备失败: ${r.error || r.message}`)
           }
           return { ok: r.ok, error: r.error || r.message }
+        }}
+      />
+
+      <DeviceModelModal
+        open={modelEditOpen}
+        initialModel={editingModel}
+        onCancel={() => { setModelEditOpen(false); setEditingModel(undefined) }}
+        onSubmit={async (model) => {
+          console.log(model)
+          console.log(editingModel)
+          try {
+            if (editingModel) {
+              const res = await api.updateDeviceModel?.(model)
+              if (!res?.ok) throw new Error(res?.error || res?.message || '更新失败')
+              logSuccess('模型已更新')
+            } else {
+              console.log(api.createDeviceModel)
+              const res = await api.createDeviceModel?.(model)
+              if (!res?.ok) throw new Error(res?.error || res?.message || '创建失败')
+              logSuccess('模型已创建')
+            }
+          } catch (e: any) {
+            const msg = String(e?.message ?? e)
+            throw new Error(`模型保存失败: ${msg}`)
+          }
+          setModelEditOpen(false)
+          setEditingModel(undefined)
+          await loadDeviceModels()
         }}
       />
 
