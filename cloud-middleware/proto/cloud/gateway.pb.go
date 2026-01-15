@@ -9,7 +9,6 @@ package cloudpb
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	home "pc-remote-ctrl/backend/proto/home"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -22,28 +21,29 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type ListDevicesRequest struct {
-	state         protoimpl.MessageState   `protogen:"open.v1"`
-	DeviceId      string                   `protobuf:"bytes,1,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty"` // 目标设备/网关ID
-	Request       *home.ListDevicesRequest `protobuf:"bytes,2,opt,name=request,proto3" json:"request,omitempty"`
+type ProxyUnaryRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	DeviceId      string                 `protobuf:"bytes,1,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty"` // 目标设备/网关ID
+	Method        string                 `protobuf:"bytes,2,opt,name=method,proto3" json:"method,omitempty"`                     // 目标方法名，例如 "/remote_control.home.HomeService/ListDevices"
+	Payload       []byte                 `protobuf:"bytes,3,opt,name=payload,proto3" json:"payload,omitempty"`                   // 请求 payload（protobuf wire bytes）
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ListDevicesRequest) Reset() {
-	*x = ListDevicesRequest{}
+func (x *ProxyUnaryRequest) Reset() {
+	*x = ProxyUnaryRequest{}
 	mi := &file_cloud_gateway_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ListDevicesRequest) String() string {
+func (x *ProxyUnaryRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ListDevicesRequest) ProtoMessage() {}
+func (*ProxyUnaryRequest) ProtoMessage() {}
 
-func (x *ListDevicesRequest) ProtoReflect() protoreflect.Message {
+func (x *ProxyUnaryRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_cloud_gateway_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -55,47 +55,53 @@ func (x *ListDevicesRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ListDevicesRequest.ProtoReflect.Descriptor instead.
-func (*ListDevicesRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use ProxyUnaryRequest.ProtoReflect.Descriptor instead.
+func (*ProxyUnaryRequest) Descriptor() ([]byte, []int) {
 	return file_cloud_gateway_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *ListDevicesRequest) GetDeviceId() string {
+func (x *ProxyUnaryRequest) GetDeviceId() string {
 	if x != nil {
 		return x.DeviceId
 	}
 	return ""
 }
 
-func (x *ListDevicesRequest) GetRequest() *home.ListDevicesRequest {
+func (x *ProxyUnaryRequest) GetMethod() string {
 	if x != nil {
-		return x.Request
+		return x.Method
+	}
+	return ""
+}
+
+func (x *ProxyUnaryRequest) GetPayload() []byte {
+	if x != nil {
+		return x.Payload
 	}
 	return nil
 }
 
-type WatchDevicesRequest struct {
-	state         protoimpl.MessageState    `protogen:"open.v1"`
-	DeviceId      string                    `protobuf:"bytes,1,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty"` // 目标设备/网关ID
-	Request       *home.WatchDevicesRequest `protobuf:"bytes,2,opt,name=request,proto3" json:"request,omitempty"`
+type ProxyUnaryResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Payload       []byte                 `protobuf:"bytes,1,opt,name=payload,proto3" json:"payload,omitempty"` // 响应 payload（protobuf wire bytes）
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *WatchDevicesRequest) Reset() {
-	*x = WatchDevicesRequest{}
+func (x *ProxyUnaryResponse) Reset() {
+	*x = ProxyUnaryResponse{}
 	mi := &file_cloud_gateway_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *WatchDevicesRequest) String() string {
+func (x *ProxyUnaryResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*WatchDevicesRequest) ProtoMessage() {}
+func (*ProxyUnaryResponse) ProtoMessage() {}
 
-func (x *WatchDevicesRequest) ProtoReflect() protoreflect.Message {
+func (x *ProxyUnaryResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_cloud_gateway_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -107,47 +113,41 @@ func (x *WatchDevicesRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use WatchDevicesRequest.ProtoReflect.Descriptor instead.
-func (*WatchDevicesRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use ProxyUnaryResponse.ProtoReflect.Descriptor instead.
+func (*ProxyUnaryResponse) Descriptor() ([]byte, []int) {
 	return file_cloud_gateway_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *WatchDevicesRequest) GetDeviceId() string {
+func (x *ProxyUnaryResponse) GetPayload() []byte {
 	if x != nil {
-		return x.DeviceId
-	}
-	return ""
-}
-
-func (x *WatchDevicesRequest) GetRequest() *home.WatchDevicesRequest {
-	if x != nil {
-		return x.Request
+		return x.Payload
 	}
 	return nil
 }
 
-type UpsertDeviceRequest struct {
-	state         protoimpl.MessageState    `protogen:"open.v1"`
-	DeviceId      string                    `protobuf:"bytes,1,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty"` // 目标设备/网关ID
-	Request       *home.UpsertDeviceRequest `protobuf:"bytes,2,opt,name=request,proto3" json:"request,omitempty"`
+type ProxyStreamRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	DeviceId      string                 `protobuf:"bytes,1,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty"` // 目标设备/网关ID
+	Method        string                 `protobuf:"bytes,2,opt,name=method,proto3" json:"method,omitempty"`                     // 目标方法名，例如 "/remote_control.home.HomeService/WatchDevices"
+	Payload       []byte                 `protobuf:"bytes,3,opt,name=payload,proto3" json:"payload,omitempty"`                   // 请求 payload（protobuf wire bytes）
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *UpsertDeviceRequest) Reset() {
-	*x = UpsertDeviceRequest{}
+func (x *ProxyStreamRequest) Reset() {
+	*x = ProxyStreamRequest{}
 	mi := &file_cloud_gateway_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *UpsertDeviceRequest) String() string {
+func (x *ProxyStreamRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*UpsertDeviceRequest) ProtoMessage() {}
+func (*ProxyStreamRequest) ProtoMessage() {}
 
-func (x *UpsertDeviceRequest) ProtoReflect() protoreflect.Message {
+func (x *ProxyStreamRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_cloud_gateway_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -159,47 +159,53 @@ func (x *UpsertDeviceRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use UpsertDeviceRequest.ProtoReflect.Descriptor instead.
-func (*UpsertDeviceRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use ProxyStreamRequest.ProtoReflect.Descriptor instead.
+func (*ProxyStreamRequest) Descriptor() ([]byte, []int) {
 	return file_cloud_gateway_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *UpsertDeviceRequest) GetDeviceId() string {
+func (x *ProxyStreamRequest) GetDeviceId() string {
 	if x != nil {
 		return x.DeviceId
 	}
 	return ""
 }
 
-func (x *UpsertDeviceRequest) GetRequest() *home.UpsertDeviceRequest {
+func (x *ProxyStreamRequest) GetMethod() string {
 	if x != nil {
-		return x.Request
+		return x.Method
+	}
+	return ""
+}
+
+func (x *ProxyStreamRequest) GetPayload() []byte {
+	if x != nil {
+		return x.Payload
 	}
 	return nil
 }
 
-type DeleteDeviceRequest struct {
-	state         protoimpl.MessageState    `protogen:"open.v1"`
-	DeviceId      string                    `protobuf:"bytes,1,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty"` // 目标设备/网关ID
-	Request       *home.DeleteDeviceRequest `protobuf:"bytes,2,opt,name=request,proto3" json:"request,omitempty"`
+type ProxyStreamResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Payload       []byte                 `protobuf:"bytes,1,opt,name=payload,proto3" json:"payload,omitempty"` // 流式响应 payload（protobuf wire bytes）
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *DeleteDeviceRequest) Reset() {
-	*x = DeleteDeviceRequest{}
+func (x *ProxyStreamResponse) Reset() {
+	*x = ProxyStreamResponse{}
 	mi := &file_cloud_gateway_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *DeleteDeviceRequest) String() string {
+func (x *ProxyStreamResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*DeleteDeviceRequest) ProtoMessage() {}
+func (*ProxyStreamResponse) ProtoMessage() {}
 
-func (x *DeleteDeviceRequest) ProtoReflect() protoreflect.Message {
+func (x *ProxyStreamResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_cloud_gateway_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -211,437 +217,14 @@ func (x *DeleteDeviceRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use DeleteDeviceRequest.ProtoReflect.Descriptor instead.
-func (*DeleteDeviceRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use ProxyStreamResponse.ProtoReflect.Descriptor instead.
+func (*ProxyStreamResponse) Descriptor() ([]byte, []int) {
 	return file_cloud_gateway_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *DeleteDeviceRequest) GetDeviceId() string {
+func (x *ProxyStreamResponse) GetPayload() []byte {
 	if x != nil {
-		return x.DeviceId
-	}
-	return ""
-}
-
-func (x *DeleteDeviceRequest) GetRequest() *home.DeleteDeviceRequest {
-	if x != nil {
-		return x.Request
-	}
-	return nil
-}
-
-type InvokeActionRequest struct {
-	state         protoimpl.MessageState    `protogen:"open.v1"`
-	DeviceId      string                    `protobuf:"bytes,1,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty"` // 目标设备/网关ID
-	Request       *home.InvokeActionRequest `protobuf:"bytes,2,opt,name=request,proto3" json:"request,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *InvokeActionRequest) Reset() {
-	*x = InvokeActionRequest{}
-	mi := &file_cloud_gateway_proto_msgTypes[4]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *InvokeActionRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*InvokeActionRequest) ProtoMessage() {}
-
-func (x *InvokeActionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_cloud_gateway_proto_msgTypes[4]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use InvokeActionRequest.ProtoReflect.Descriptor instead.
-func (*InvokeActionRequest) Descriptor() ([]byte, []int) {
-	return file_cloud_gateway_proto_rawDescGZIP(), []int{4}
-}
-
-func (x *InvokeActionRequest) GetDeviceId() string {
-	if x != nil {
-		return x.DeviceId
-	}
-	return ""
-}
-
-func (x *InvokeActionRequest) GetRequest() *home.InvokeActionRequest {
-	if x != nil {
-		return x.Request
-	}
-	return nil
-}
-
-type ListAutomationsRequest struct {
-	state         protoimpl.MessageState       `protogen:"open.v1"`
-	DeviceId      string                       `protobuf:"bytes,1,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty"` // 目标设备/网关ID
-	Request       *home.ListAutomationsRequest `protobuf:"bytes,2,opt,name=request,proto3" json:"request,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ListAutomationsRequest) Reset() {
-	*x = ListAutomationsRequest{}
-	mi := &file_cloud_gateway_proto_msgTypes[5]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ListAutomationsRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ListAutomationsRequest) ProtoMessage() {}
-
-func (x *ListAutomationsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_cloud_gateway_proto_msgTypes[5]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ListAutomationsRequest.ProtoReflect.Descriptor instead.
-func (*ListAutomationsRequest) Descriptor() ([]byte, []int) {
-	return file_cloud_gateway_proto_rawDescGZIP(), []int{5}
-}
-
-func (x *ListAutomationsRequest) GetDeviceId() string {
-	if x != nil {
-		return x.DeviceId
-	}
-	return ""
-}
-
-func (x *ListAutomationsRequest) GetRequest() *home.ListAutomationsRequest {
-	if x != nil {
-		return x.Request
-	}
-	return nil
-}
-
-type UpsertAutomationRequest struct {
-	state         protoimpl.MessageState        `protogen:"open.v1"`
-	DeviceId      string                        `protobuf:"bytes,1,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty"` // 目标设备/网关ID
-	Request       *home.UpsertAutomationRequest `protobuf:"bytes,2,opt,name=request,proto3" json:"request,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *UpsertAutomationRequest) Reset() {
-	*x = UpsertAutomationRequest{}
-	mi := &file_cloud_gateway_proto_msgTypes[6]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *UpsertAutomationRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*UpsertAutomationRequest) ProtoMessage() {}
-
-func (x *UpsertAutomationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_cloud_gateway_proto_msgTypes[6]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use UpsertAutomationRequest.ProtoReflect.Descriptor instead.
-func (*UpsertAutomationRequest) Descriptor() ([]byte, []int) {
-	return file_cloud_gateway_proto_rawDescGZIP(), []int{6}
-}
-
-func (x *UpsertAutomationRequest) GetDeviceId() string {
-	if x != nil {
-		return x.DeviceId
-	}
-	return ""
-}
-
-func (x *UpsertAutomationRequest) GetRequest() *home.UpsertAutomationRequest {
-	if x != nil {
-		return x.Request
-	}
-	return nil
-}
-
-type DeleteAutomationRequest struct {
-	state         protoimpl.MessageState        `protogen:"open.v1"`
-	DeviceId      string                        `protobuf:"bytes,1,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty"` // 目标设备/网关ID
-	Request       *home.DeleteAutomationRequest `protobuf:"bytes,2,opt,name=request,proto3" json:"request,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *DeleteAutomationRequest) Reset() {
-	*x = DeleteAutomationRequest{}
-	mi := &file_cloud_gateway_proto_msgTypes[7]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *DeleteAutomationRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*DeleteAutomationRequest) ProtoMessage() {}
-
-func (x *DeleteAutomationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_cloud_gateway_proto_msgTypes[7]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use DeleteAutomationRequest.ProtoReflect.Descriptor instead.
-func (*DeleteAutomationRequest) Descriptor() ([]byte, []int) {
-	return file_cloud_gateway_proto_rawDescGZIP(), []int{7}
-}
-
-func (x *DeleteAutomationRequest) GetDeviceId() string {
-	if x != nil {
-		return x.DeviceId
-	}
-	return ""
-}
-
-func (x *DeleteAutomationRequest) GetRequest() *home.DeleteAutomationRequest {
-	if x != nil {
-		return x.Request
-	}
-	return nil
-}
-
-type SetAutomationEnabledRequest struct {
-	state         protoimpl.MessageState            `protogen:"open.v1"`
-	DeviceId      string                            `protobuf:"bytes,1,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty"` // 目标设备/网关ID
-	Request       *home.SetAutomationEnabledRequest `protobuf:"bytes,2,opt,name=request,proto3" json:"request,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *SetAutomationEnabledRequest) Reset() {
-	*x = SetAutomationEnabledRequest{}
-	mi := &file_cloud_gateway_proto_msgTypes[8]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *SetAutomationEnabledRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*SetAutomationEnabledRequest) ProtoMessage() {}
-
-func (x *SetAutomationEnabledRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_cloud_gateway_proto_msgTypes[8]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use SetAutomationEnabledRequest.ProtoReflect.Descriptor instead.
-func (*SetAutomationEnabledRequest) Descriptor() ([]byte, []int) {
-	return file_cloud_gateway_proto_rawDescGZIP(), []int{8}
-}
-
-func (x *SetAutomationEnabledRequest) GetDeviceId() string {
-	if x != nil {
-		return x.DeviceId
-	}
-	return ""
-}
-
-func (x *SetAutomationEnabledRequest) GetRequest() *home.SetAutomationEnabledRequest {
-	if x != nil {
-		return x.Request
-	}
-	return nil
-}
-
-type TriggerAutomationRequest struct {
-	state         protoimpl.MessageState         `protogen:"open.v1"`
-	DeviceId      string                         `protobuf:"bytes,1,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty"` // 目标设备/网关ID
-	Request       *home.TriggerAutomationRequest `protobuf:"bytes,2,opt,name=request,proto3" json:"request,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *TriggerAutomationRequest) Reset() {
-	*x = TriggerAutomationRequest{}
-	mi := &file_cloud_gateway_proto_msgTypes[9]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *TriggerAutomationRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*TriggerAutomationRequest) ProtoMessage() {}
-
-func (x *TriggerAutomationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_cloud_gateway_proto_msgTypes[9]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use TriggerAutomationRequest.ProtoReflect.Descriptor instead.
-func (*TriggerAutomationRequest) Descriptor() ([]byte, []int) {
-	return file_cloud_gateway_proto_rawDescGZIP(), []int{9}
-}
-
-func (x *TriggerAutomationRequest) GetDeviceId() string {
-	if x != nil {
-		return x.DeviceId
-	}
-	return ""
-}
-
-func (x *TriggerAutomationRequest) GetRequest() *home.TriggerAutomationRequest {
-	if x != nil {
-		return x.Request
-	}
-	return nil
-}
-
-type ListAuditLogsRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	DeviceId      string                 `protobuf:"bytes,1,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty"`
-	Request       *home.ListLogsRequest  `protobuf:"bytes,2,opt,name=request,proto3" json:"request,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ListAuditLogsRequest) Reset() {
-	*x = ListAuditLogsRequest{}
-	mi := &file_cloud_gateway_proto_msgTypes[10]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ListAuditLogsRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ListAuditLogsRequest) ProtoMessage() {}
-
-func (x *ListAuditLogsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_cloud_gateway_proto_msgTypes[10]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ListAuditLogsRequest.ProtoReflect.Descriptor instead.
-func (*ListAuditLogsRequest) Descriptor() ([]byte, []int) {
-	return file_cloud_gateway_proto_rawDescGZIP(), []int{10}
-}
-
-func (x *ListAuditLogsRequest) GetDeviceId() string {
-	if x != nil {
-		return x.DeviceId
-	}
-	return ""
-}
-
-func (x *ListAuditLogsRequest) GetRequest() *home.ListLogsRequest {
-	if x != nil {
-		return x.Request
-	}
-	return nil
-}
-
-type CleanupAuditLogsRequest struct {
-	state         protoimpl.MessageState   `protogen:"open.v1"`
-	DeviceId      string                   `protobuf:"bytes,1,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty"`
-	Request       *home.CleanupLogsRequest `protobuf:"bytes,2,opt,name=request,proto3" json:"request,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *CleanupAuditLogsRequest) Reset() {
-	*x = CleanupAuditLogsRequest{}
-	mi := &file_cloud_gateway_proto_msgTypes[11]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *CleanupAuditLogsRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*CleanupAuditLogsRequest) ProtoMessage() {}
-
-func (x *CleanupAuditLogsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_cloud_gateway_proto_msgTypes[11]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use CleanupAuditLogsRequest.ProtoReflect.Descriptor instead.
-func (*CleanupAuditLogsRequest) Descriptor() ([]byte, []int) {
-	return file_cloud_gateway_proto_rawDescGZIP(), []int{11}
-}
-
-func (x *CleanupAuditLogsRequest) GetDeviceId() string {
-	if x != nil {
-		return x.DeviceId
-	}
-	return ""
-}
-
-func (x *CleanupAuditLogsRequest) GetRequest() *home.CleanupLogsRequest {
-	if x != nil {
-		return x.Request
+		return x.Payload
 	}
 	return nil
 }
@@ -650,57 +233,22 @@ var File_cloud_gateway_proto protoreflect.FileDescriptor
 
 const file_cloud_gateway_proto_rawDesc = "" +
 	"\n" +
-	"\x13cloud/gateway.proto\x12\x17remote_control.cloud.v1\x1a\x12home/service.proto\"t\n" +
-	"\x12ListDevicesRequest\x12\x1b\n" +
-	"\tdevice_id\x18\x01 \x01(\tR\bdeviceId\x12A\n" +
-	"\arequest\x18\x02 \x01(\v2'.remote_control.home.ListDevicesRequestR\arequest\"v\n" +
-	"\x13WatchDevicesRequest\x12\x1b\n" +
-	"\tdevice_id\x18\x01 \x01(\tR\bdeviceId\x12B\n" +
-	"\arequest\x18\x02 \x01(\v2(.remote_control.home.WatchDevicesRequestR\arequest\"v\n" +
-	"\x13UpsertDeviceRequest\x12\x1b\n" +
-	"\tdevice_id\x18\x01 \x01(\tR\bdeviceId\x12B\n" +
-	"\arequest\x18\x02 \x01(\v2(.remote_control.home.UpsertDeviceRequestR\arequest\"v\n" +
-	"\x13DeleteDeviceRequest\x12\x1b\n" +
-	"\tdevice_id\x18\x01 \x01(\tR\bdeviceId\x12B\n" +
-	"\arequest\x18\x02 \x01(\v2(.remote_control.home.DeleteDeviceRequestR\arequest\"v\n" +
-	"\x13InvokeActionRequest\x12\x1b\n" +
-	"\tdevice_id\x18\x01 \x01(\tR\bdeviceId\x12B\n" +
-	"\arequest\x18\x02 \x01(\v2(.remote_control.home.InvokeActionRequestR\arequest\"|\n" +
-	"\x16ListAutomationsRequest\x12\x1b\n" +
-	"\tdevice_id\x18\x01 \x01(\tR\bdeviceId\x12E\n" +
-	"\arequest\x18\x02 \x01(\v2+.remote_control.home.ListAutomationsRequestR\arequest\"~\n" +
-	"\x17UpsertAutomationRequest\x12\x1b\n" +
-	"\tdevice_id\x18\x01 \x01(\tR\bdeviceId\x12F\n" +
-	"\arequest\x18\x02 \x01(\v2,.remote_control.home.UpsertAutomationRequestR\arequest\"~\n" +
-	"\x17DeleteAutomationRequest\x12\x1b\n" +
-	"\tdevice_id\x18\x01 \x01(\tR\bdeviceId\x12F\n" +
-	"\arequest\x18\x02 \x01(\v2,.remote_control.home.DeleteAutomationRequestR\arequest\"\x86\x01\n" +
-	"\x1bSetAutomationEnabledRequest\x12\x1b\n" +
-	"\tdevice_id\x18\x01 \x01(\tR\bdeviceId\x12J\n" +
-	"\arequest\x18\x02 \x01(\v20.remote_control.home.SetAutomationEnabledRequestR\arequest\"\x80\x01\n" +
-	"\x18TriggerAutomationRequest\x12\x1b\n" +
-	"\tdevice_id\x18\x01 \x01(\tR\bdeviceId\x12G\n" +
-	"\arequest\x18\x02 \x01(\v2-.remote_control.home.TriggerAutomationRequestR\arequest\"s\n" +
-	"\x14ListAuditLogsRequest\x12\x1b\n" +
-	"\tdevice_id\x18\x01 \x01(\tR\bdeviceId\x12>\n" +
-	"\arequest\x18\x02 \x01(\v2$.remote_control.home.ListLogsRequestR\arequest\"y\n" +
-	"\x17CleanupAuditLogsRequest\x12\x1b\n" +
-	"\tdevice_id\x18\x01 \x01(\tR\bdeviceId\x12A\n" +
-	"\arequest\x18\x02 \x01(\v2'.remote_control.home.CleanupLogsRequestR\arequest2\xe8\b\n" +
-	"\x0eGatewayService\x12d\n" +
-	"\vListDevices\x12+.remote_control.cloud.v1.ListDevicesRequest\x1a(.remote_control.home.ListDevicesResponse\x12`\n" +
-	"\fWatchDevices\x12,.remote_control.cloud.v1.WatchDevicesRequest\x1a .remote_control.home.DeviceEvent0\x01\x12g\n" +
-	"\fUpsertDevice\x12,.remote_control.cloud.v1.UpsertDeviceRequest\x1a).remote_control.home.UpsertDeviceResponse\x12g\n" +
-	"\fDeleteDevice\x12,.remote_control.cloud.v1.DeleteDeviceRequest\x1a).remote_control.home.DeleteDeviceResponse\x12g\n" +
-	"\fInvokeAction\x12,.remote_control.cloud.v1.InvokeActionRequest\x1a).remote_control.home.InvokeActionResponse\x12p\n" +
-	"\x0fListAutomations\x12/.remote_control.cloud.v1.ListAutomationsRequest\x1a,.remote_control.home.ListAutomationsResponse\x12s\n" +
-	"\x10UpsertAutomation\x120.remote_control.cloud.v1.UpsertAutomationRequest\x1a-.remote_control.home.UpsertAutomationResponse\x12s\n" +
-	"\x10DeleteAutomation\x120.remote_control.cloud.v1.DeleteAutomationRequest\x1a-.remote_control.home.DeleteAutomationResponse\x12\x7f\n" +
-	"\x14SetAutomationEnabled\x124.remote_control.cloud.v1.SetAutomationEnabledRequest\x1a1.remote_control.home.SetAutomationEnabledResponse\x12v\n" +
-	"\x11TriggerAutomation\x121.remote_control.cloud.v1.TriggerAutomationRequest\x1a..remote_control.home.TriggerAutomationResponse2\xdb\x01\n" +
-	"\fAuditService\x12`\n" +
-	"\bListLogs\x12-.remote_control.cloud.v1.ListAuditLogsRequest\x1a%.remote_control.home.ListLogsResponse\x12i\n" +
-	"\vCleanupLogs\x120.remote_control.cloud.v1.CleanupAuditLogsRequest\x1a(.remote_control.home.CleanupLogsResponseB5Z3pc-remote-ctrl/cloud-middleware/proto/cloud;cloudpbb\x06proto3"
+	"\x13cloud/gateway.proto\x12\x17remote_control.cloud.v1\"b\n" +
+	"\x11ProxyUnaryRequest\x12\x1b\n" +
+	"\tdevice_id\x18\x01 \x01(\tR\bdeviceId\x12\x16\n" +
+	"\x06method\x18\x02 \x01(\tR\x06method\x12\x18\n" +
+	"\apayload\x18\x03 \x01(\fR\apayload\".\n" +
+	"\x12ProxyUnaryResponse\x12\x18\n" +
+	"\apayload\x18\x01 \x01(\fR\apayload\"c\n" +
+	"\x12ProxyStreamRequest\x12\x1b\n" +
+	"\tdevice_id\x18\x01 \x01(\tR\bdeviceId\x12\x16\n" +
+	"\x06method\x18\x02 \x01(\tR\x06method\x12\x18\n" +
+	"\apayload\x18\x03 \x01(\fR\apayload\"/\n" +
+	"\x13ProxyStreamResponse\x12\x18\n" +
+	"\apayload\x18\x01 \x01(\fR\apayload2\xd9\x01\n" +
+	"\x0eGatewayService\x12`\n" +
+	"\x05Unary\x12*.remote_control.cloud.v1.ProxyUnaryRequest\x1a+.remote_control.cloud.v1.ProxyUnaryResponse\x12e\n" +
+	"\x06Stream\x12+.remote_control.cloud.v1.ProxyStreamRequest\x1a,.remote_control.cloud.v1.ProxyStreamResponse0\x01B5Z3pc-remote-ctrl/cloud-middleware/proto/cloud;cloudpbb\x06proto3"
 
 var (
 	file_cloud_gateway_proto_rawDescOnce sync.Once
@@ -714,87 +262,23 @@ func file_cloud_gateway_proto_rawDescGZIP() []byte {
 	return file_cloud_gateway_proto_rawDescData
 }
 
-var file_cloud_gateway_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
+var file_cloud_gateway_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_cloud_gateway_proto_goTypes = []any{
-	(*ListDevicesRequest)(nil),                // 0: remote_control.cloud.v1.ListDevicesRequest
-	(*WatchDevicesRequest)(nil),               // 1: remote_control.cloud.v1.WatchDevicesRequest
-	(*UpsertDeviceRequest)(nil),               // 2: remote_control.cloud.v1.UpsertDeviceRequest
-	(*DeleteDeviceRequest)(nil),               // 3: remote_control.cloud.v1.DeleteDeviceRequest
-	(*InvokeActionRequest)(nil),               // 4: remote_control.cloud.v1.InvokeActionRequest
-	(*ListAutomationsRequest)(nil),            // 5: remote_control.cloud.v1.ListAutomationsRequest
-	(*UpsertAutomationRequest)(nil),           // 6: remote_control.cloud.v1.UpsertAutomationRequest
-	(*DeleteAutomationRequest)(nil),           // 7: remote_control.cloud.v1.DeleteAutomationRequest
-	(*SetAutomationEnabledRequest)(nil),       // 8: remote_control.cloud.v1.SetAutomationEnabledRequest
-	(*TriggerAutomationRequest)(nil),          // 9: remote_control.cloud.v1.TriggerAutomationRequest
-	(*ListAuditLogsRequest)(nil),              // 10: remote_control.cloud.v1.ListAuditLogsRequest
-	(*CleanupAuditLogsRequest)(nil),           // 11: remote_control.cloud.v1.CleanupAuditLogsRequest
-	(*home.ListDevicesRequest)(nil),           // 12: remote_control.home.ListDevicesRequest
-	(*home.WatchDevicesRequest)(nil),          // 13: remote_control.home.WatchDevicesRequest
-	(*home.UpsertDeviceRequest)(nil),          // 14: remote_control.home.UpsertDeviceRequest
-	(*home.DeleteDeviceRequest)(nil),          // 15: remote_control.home.DeleteDeviceRequest
-	(*home.InvokeActionRequest)(nil),          // 16: remote_control.home.InvokeActionRequest
-	(*home.ListAutomationsRequest)(nil),       // 17: remote_control.home.ListAutomationsRequest
-	(*home.UpsertAutomationRequest)(nil),      // 18: remote_control.home.UpsertAutomationRequest
-	(*home.DeleteAutomationRequest)(nil),      // 19: remote_control.home.DeleteAutomationRequest
-	(*home.SetAutomationEnabledRequest)(nil),  // 20: remote_control.home.SetAutomationEnabledRequest
-	(*home.TriggerAutomationRequest)(nil),     // 21: remote_control.home.TriggerAutomationRequest
-	(*home.ListLogsRequest)(nil),              // 22: remote_control.home.ListLogsRequest
-	(*home.CleanupLogsRequest)(nil),           // 23: remote_control.home.CleanupLogsRequest
-	(*home.ListDevicesResponse)(nil),          // 24: remote_control.home.ListDevicesResponse
-	(*home.DeviceEvent)(nil),                  // 25: remote_control.home.DeviceEvent
-	(*home.UpsertDeviceResponse)(nil),         // 26: remote_control.home.UpsertDeviceResponse
-	(*home.DeleteDeviceResponse)(nil),         // 27: remote_control.home.DeleteDeviceResponse
-	(*home.InvokeActionResponse)(nil),         // 28: remote_control.home.InvokeActionResponse
-	(*home.ListAutomationsResponse)(nil),      // 29: remote_control.home.ListAutomationsResponse
-	(*home.UpsertAutomationResponse)(nil),     // 30: remote_control.home.UpsertAutomationResponse
-	(*home.DeleteAutomationResponse)(nil),     // 31: remote_control.home.DeleteAutomationResponse
-	(*home.SetAutomationEnabledResponse)(nil), // 32: remote_control.home.SetAutomationEnabledResponse
-	(*home.TriggerAutomationResponse)(nil),    // 33: remote_control.home.TriggerAutomationResponse
-	(*home.ListLogsResponse)(nil),             // 34: remote_control.home.ListLogsResponse
-	(*home.CleanupLogsResponse)(nil),          // 35: remote_control.home.CleanupLogsResponse
+	(*ProxyUnaryRequest)(nil),   // 0: remote_control.cloud.v1.ProxyUnaryRequest
+	(*ProxyUnaryResponse)(nil),  // 1: remote_control.cloud.v1.ProxyUnaryResponse
+	(*ProxyStreamRequest)(nil),  // 2: remote_control.cloud.v1.ProxyStreamRequest
+	(*ProxyStreamResponse)(nil), // 3: remote_control.cloud.v1.ProxyStreamResponse
 }
 var file_cloud_gateway_proto_depIdxs = []int32{
-	12, // 0: remote_control.cloud.v1.ListDevicesRequest.request:type_name -> remote_control.home.ListDevicesRequest
-	13, // 1: remote_control.cloud.v1.WatchDevicesRequest.request:type_name -> remote_control.home.WatchDevicesRequest
-	14, // 2: remote_control.cloud.v1.UpsertDeviceRequest.request:type_name -> remote_control.home.UpsertDeviceRequest
-	15, // 3: remote_control.cloud.v1.DeleteDeviceRequest.request:type_name -> remote_control.home.DeleteDeviceRequest
-	16, // 4: remote_control.cloud.v1.InvokeActionRequest.request:type_name -> remote_control.home.InvokeActionRequest
-	17, // 5: remote_control.cloud.v1.ListAutomationsRequest.request:type_name -> remote_control.home.ListAutomationsRequest
-	18, // 6: remote_control.cloud.v1.UpsertAutomationRequest.request:type_name -> remote_control.home.UpsertAutomationRequest
-	19, // 7: remote_control.cloud.v1.DeleteAutomationRequest.request:type_name -> remote_control.home.DeleteAutomationRequest
-	20, // 8: remote_control.cloud.v1.SetAutomationEnabledRequest.request:type_name -> remote_control.home.SetAutomationEnabledRequest
-	21, // 9: remote_control.cloud.v1.TriggerAutomationRequest.request:type_name -> remote_control.home.TriggerAutomationRequest
-	22, // 10: remote_control.cloud.v1.ListAuditLogsRequest.request:type_name -> remote_control.home.ListLogsRequest
-	23, // 11: remote_control.cloud.v1.CleanupAuditLogsRequest.request:type_name -> remote_control.home.CleanupLogsRequest
-	0,  // 12: remote_control.cloud.v1.GatewayService.ListDevices:input_type -> remote_control.cloud.v1.ListDevicesRequest
-	1,  // 13: remote_control.cloud.v1.GatewayService.WatchDevices:input_type -> remote_control.cloud.v1.WatchDevicesRequest
-	2,  // 14: remote_control.cloud.v1.GatewayService.UpsertDevice:input_type -> remote_control.cloud.v1.UpsertDeviceRequest
-	3,  // 15: remote_control.cloud.v1.GatewayService.DeleteDevice:input_type -> remote_control.cloud.v1.DeleteDeviceRequest
-	4,  // 16: remote_control.cloud.v1.GatewayService.InvokeAction:input_type -> remote_control.cloud.v1.InvokeActionRequest
-	5,  // 17: remote_control.cloud.v1.GatewayService.ListAutomations:input_type -> remote_control.cloud.v1.ListAutomationsRequest
-	6,  // 18: remote_control.cloud.v1.GatewayService.UpsertAutomation:input_type -> remote_control.cloud.v1.UpsertAutomationRequest
-	7,  // 19: remote_control.cloud.v1.GatewayService.DeleteAutomation:input_type -> remote_control.cloud.v1.DeleteAutomationRequest
-	8,  // 20: remote_control.cloud.v1.GatewayService.SetAutomationEnabled:input_type -> remote_control.cloud.v1.SetAutomationEnabledRequest
-	9,  // 21: remote_control.cloud.v1.GatewayService.TriggerAutomation:input_type -> remote_control.cloud.v1.TriggerAutomationRequest
-	10, // 22: remote_control.cloud.v1.AuditService.ListLogs:input_type -> remote_control.cloud.v1.ListAuditLogsRequest
-	11, // 23: remote_control.cloud.v1.AuditService.CleanupLogs:input_type -> remote_control.cloud.v1.CleanupAuditLogsRequest
-	24, // 24: remote_control.cloud.v1.GatewayService.ListDevices:output_type -> remote_control.home.ListDevicesResponse
-	25, // 25: remote_control.cloud.v1.GatewayService.WatchDevices:output_type -> remote_control.home.DeviceEvent
-	26, // 26: remote_control.cloud.v1.GatewayService.UpsertDevice:output_type -> remote_control.home.UpsertDeviceResponse
-	27, // 27: remote_control.cloud.v1.GatewayService.DeleteDevice:output_type -> remote_control.home.DeleteDeviceResponse
-	28, // 28: remote_control.cloud.v1.GatewayService.InvokeAction:output_type -> remote_control.home.InvokeActionResponse
-	29, // 29: remote_control.cloud.v1.GatewayService.ListAutomations:output_type -> remote_control.home.ListAutomationsResponse
-	30, // 30: remote_control.cloud.v1.GatewayService.UpsertAutomation:output_type -> remote_control.home.UpsertAutomationResponse
-	31, // 31: remote_control.cloud.v1.GatewayService.DeleteAutomation:output_type -> remote_control.home.DeleteAutomationResponse
-	32, // 32: remote_control.cloud.v1.GatewayService.SetAutomationEnabled:output_type -> remote_control.home.SetAutomationEnabledResponse
-	33, // 33: remote_control.cloud.v1.GatewayService.TriggerAutomation:output_type -> remote_control.home.TriggerAutomationResponse
-	34, // 34: remote_control.cloud.v1.AuditService.ListLogs:output_type -> remote_control.home.ListLogsResponse
-	35, // 35: remote_control.cloud.v1.AuditService.CleanupLogs:output_type -> remote_control.home.CleanupLogsResponse
-	24, // [24:36] is the sub-list for method output_type
-	12, // [12:24] is the sub-list for method input_type
-	12, // [12:12] is the sub-list for extension type_name
-	12, // [12:12] is the sub-list for extension extendee
-	0,  // [0:12] is the sub-list for field type_name
+	0, // 0: remote_control.cloud.v1.GatewayService.Unary:input_type -> remote_control.cloud.v1.ProxyUnaryRequest
+	2, // 1: remote_control.cloud.v1.GatewayService.Stream:input_type -> remote_control.cloud.v1.ProxyStreamRequest
+	1, // 2: remote_control.cloud.v1.GatewayService.Unary:output_type -> remote_control.cloud.v1.ProxyUnaryResponse
+	3, // 3: remote_control.cloud.v1.GatewayService.Stream:output_type -> remote_control.cloud.v1.ProxyStreamResponse
+	2, // [2:4] is the sub-list for method output_type
+	0, // [0:2] is the sub-list for method input_type
+	0, // [0:0] is the sub-list for extension type_name
+	0, // [0:0] is the sub-list for extension extendee
+	0, // [0:0] is the sub-list for field type_name
 }
 
 func init() { file_cloud_gateway_proto_init() }
@@ -808,9 +292,9 @@ func file_cloud_gateway_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_cloud_gateway_proto_rawDesc), len(file_cloud_gateway_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   12,
+			NumMessages:   4,
 			NumExtensions: 0,
-			NumServices:   2,
+			NumServices:   1,
 		},
 		GoTypes:           file_cloud_gateway_proto_goTypes,
 		DependencyIndexes: file_cloud_gateway_proto_depIdxs,

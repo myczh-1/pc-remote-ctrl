@@ -92,12 +92,9 @@ func main() {
 	gw := svr.NewGatewayServer(reg, cfg.TunnelMaxFrameBytes)
 	agent := svr.NewAgentServer(reg, cfg.AgentSecret)
 	tunnel := svr.NewTunnelServer(reg, cfg.TunnelSessionBuf, cfg.TunnelMaxFrameBytes, cfg.AgentSecret)
-	audit := svr.NewAuditProxy(reg, cfg.TunnelMaxFrameBytes)
-
 	cloudpb.RegisterGatewayServiceServer(grpcServer, gw)
 	cloudpb.RegisterAgentServiceServer(grpcServer, agent)
 	cloudpb.RegisterTunnelServiceServer(grpcServer, tunnel)
-	cloudpb.RegisterAuditServiceServer(grpcServer, audit)
 
 	// grpc-web wrapper with open CORS (dev)
 	wrapped := grpcweb.WrapServer(
