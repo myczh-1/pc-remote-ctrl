@@ -3,6 +3,7 @@ package cloud
 import (
 	"context"
 	"log"
+	"sync"
 	"time"
 
 	homepb "pc-remote-ctrl/backend/proto/home"
@@ -16,6 +17,8 @@ import (
 // Default tunables (runtime-configurable via caller)
 const (
 	streamRecvIdleTimeout = 0 // no idle timeout; rely on connection liveness
+	sendQueueSize         = 128
+	sendQueueSendTimeout  = 2 * time.Second
 )
 
 // StartTunnelClient connects to cloud TunnelService and bridges requests to local HomeService.
@@ -75,11 +78,14 @@ func StartTunnelClient(ctx context.Context, cloudAddr, deviceID, agentSecret, lo
 			auto := homepb.NewAutomationServiceClient(homeConn)
 			audit := homepb.NewAuditServiceClient(homeConn)
 			model := homepb.NewDeviceModelServiceClient(homeConn)
+			sendCtx, sendCancel := context.WithCancel(ctx)
+			sendq := newSendQueue(sendCtx, stream)
 
 			// recv loop
-			if err := handleFrames(ctx, stream, home, auto, audit, model, unaryTimeout); err != nil {
+			if err := handleFrames(ctx, sendq, home, auto, audit, model, unaryTimeout); err != nil {
 				log.Printf("[tunnel] stream closed: %v", err)
 			}
+			sendCancel()
 			_ = homeConn.Close()
 			_ = conn.Close()
 			time.Sleep(2 * time.Second)
@@ -87,15 +93,15 @@ func StartTunnelClient(ctx context.Context, cloudAddr, deviceID, agentSecret, lo
 	}()
 }
 
-func handleFrames(ctx context.Context, stream cloudpb.TunnelService_OpenClient, home homepb.HomeServiceClient, auto homepb.AutomationServiceClient, audit homepb.AuditServiceClient, model homepb.DeviceModelServiceClient, unaryTimeout time.Duration) error {
+func handleFrames(ctx context.Context, sendq *sendQueue, home homepb.HomeServiceClient, auto homepb.AutomationServiceClient, audit homepb.AuditServiceClient, model homepb.DeviceModelServiceClient, unaryTimeout time.Duration) error {
 	for {
-		f, err := stream.Recv()
+		f, err := sendq.stream.Recv()
 		if err != nil {
 			return err
 		}
 		switch f.GetType() {
 		case cloudpb.FrameType_OPEN:
-			go handleOpen(ctx, stream, home, auto, audit, model, f, unaryTimeout)
+			go handleOpen(ctx, sendq, home, auto, audit, model, f, unaryTimeout)
 		case cloudpb.FrameType_CLOSE:
 			// ignore stray CLOSE from server
 		case cloudpb.FrameType_DATA:
@@ -107,13 +113,15 @@ func handleFrames(ctx context.Context, stream cloudpb.TunnelService_OpenClient, 
 	}
 }
 
-func handleOpen(ctx context.Context, stream cloudpb.TunnelService_OpenClient, home homepb.HomeServiceClient, auto homepb.AutomationServiceClient, audit homepb.AuditServiceClient, model homepb.DeviceModelServiceClient, f *cloudpb.TunnelFrame, unaryTimeout time.Duration) {
+func handleOpen(ctx context.Context, sendq *sendQueue, home homepb.HomeServiceClient, auto homepb.AutomationServiceClient, audit homepb.AuditServiceClient, model homepb.DeviceModelServiceClient, f *cloudpb.TunnelFrame, unaryTimeout time.Duration) {
 	method := f.GetMethod()
 	corr := f.GetCorrId()
 	sendErr := func(msg string) {
-		_ = stream.Send(&cloudpb.TunnelFrame{CorrId: corr, Type: cloudpb.FrameType_ERROR, Message: msg})
+		_ = sendq.sendWithTimeout(ctx, sendQueueSendTimeout, &cloudpb.TunnelFrame{CorrId: corr, Type: cloudpb.FrameType_ERROR, Message: msg})
 	}
-	sendClose := func() { _ = stream.Send(&cloudpb.TunnelFrame{CorrId: corr, Type: cloudpb.FrameType_CLOSE}) }
+	sendClose := func() {
+		_ = sendq.sendWithTimeout(ctx, sendQueueSendTimeout, &cloudpb.TunnelFrame{CorrId: corr, Type: cloudpb.FrameType_CLOSE})
+	}
 
 	log.Printf("[tunnel] OPEN method=%s corr_id=%s", method, corr)
 	switch method {
@@ -131,7 +139,7 @@ func handleOpen(ctx context.Context, stream cloudpb.TunnelService_OpenClient, ho
 			return
 		}
 		b, _ := proto.Marshal(out)
-		if err := stream.Send(&cloudpb.TunnelFrame{CorrId: corr, Type: cloudpb.FrameType_DATA, Payload: b}); err != nil {
+		if err := sendq.sendWithTimeout(ctx, sendQueueSendTimeout, &cloudpb.TunnelFrame{CorrId: corr, Type: cloudpb.FrameType_DATA, Payload: b}); err != nil {
 			return
 		}
 		sendClose()
@@ -149,7 +157,7 @@ func handleOpen(ctx context.Context, stream cloudpb.TunnelService_OpenClient, ho
 			return
 		}
 		b, _ := proto.Marshal(out)
-		if err := stream.Send(&cloudpb.TunnelFrame{CorrId: corr, Type: cloudpb.FrameType_DATA, Payload: b}); err != nil {
+		if err := sendq.sendWithTimeout(ctx, sendQueueSendTimeout, &cloudpb.TunnelFrame{CorrId: corr, Type: cloudpb.FrameType_DATA, Payload: b}); err != nil {
 			return
 		}
 		sendClose()
@@ -167,7 +175,7 @@ func handleOpen(ctx context.Context, stream cloudpb.TunnelService_OpenClient, ho
 			return
 		}
 		b, _ := proto.Marshal(out)
-		if err := stream.Send(&cloudpb.TunnelFrame{CorrId: corr, Type: cloudpb.FrameType_DATA, Payload: b}); err != nil {
+		if err := sendq.sendWithTimeout(ctx, sendQueueSendTimeout, &cloudpb.TunnelFrame{CorrId: corr, Type: cloudpb.FrameType_DATA, Payload: b}); err != nil {
 			return
 		}
 		sendClose()
@@ -185,7 +193,7 @@ func handleOpen(ctx context.Context, stream cloudpb.TunnelService_OpenClient, ho
 			return
 		}
 		b, _ := proto.Marshal(out)
-		if err := stream.Send(&cloudpb.TunnelFrame{CorrId: corr, Type: cloudpb.FrameType_DATA, Payload: b}); err != nil {
+		if err := sendq.sendWithTimeout(ctx, sendQueueSendTimeout, &cloudpb.TunnelFrame{CorrId: corr, Type: cloudpb.FrameType_DATA, Payload: b}); err != nil {
 			return
 		}
 		sendClose()
@@ -207,7 +215,7 @@ func handleOpen(ctx context.Context, stream cloudpb.TunnelService_OpenClient, ho
 				return
 			}
 			b, _ := proto.Marshal(ev)
-			if err := stream.Send(&cloudpb.TunnelFrame{CorrId: corr, Type: cloudpb.FrameType_DATA, Payload: b}); err != nil {
+			if err := sendq.sendWithTimeout(ctx, sendQueueSendTimeout, &cloudpb.TunnelFrame{CorrId: corr, Type: cloudpb.FrameType_DATA, Payload: b}); err != nil {
 				sendErr("stream send failed")
 				return
 			}
@@ -226,7 +234,7 @@ func handleOpen(ctx context.Context, stream cloudpb.TunnelService_OpenClient, ho
 			return
 		}
 		b, _ := proto.Marshal(out)
-		if err := stream.Send(&cloudpb.TunnelFrame{CorrId: corr, Type: cloudpb.FrameType_DATA, Payload: b}); err != nil {
+		if err := sendq.sendWithTimeout(ctx, sendQueueSendTimeout, &cloudpb.TunnelFrame{CorrId: corr, Type: cloudpb.FrameType_DATA, Payload: b}); err != nil {
 			return
 		}
 		sendClose()
@@ -244,7 +252,7 @@ func handleOpen(ctx context.Context, stream cloudpb.TunnelService_OpenClient, ho
 			return
 		}
 		b, _ := proto.Marshal(out)
-		if err := stream.Send(&cloudpb.TunnelFrame{CorrId: corr, Type: cloudpb.FrameType_DATA, Payload: b}); err != nil {
+		if err := sendq.sendWithTimeout(ctx, sendQueueSendTimeout, &cloudpb.TunnelFrame{CorrId: corr, Type: cloudpb.FrameType_DATA, Payload: b}); err != nil {
 			return
 		}
 		sendClose()
@@ -262,7 +270,7 @@ func handleOpen(ctx context.Context, stream cloudpb.TunnelService_OpenClient, ho
 			return
 		}
 		b, _ := proto.Marshal(out)
-		if err := stream.Send(&cloudpb.TunnelFrame{CorrId: corr, Type: cloudpb.FrameType_DATA, Payload: b}); err != nil {
+		if err := sendq.sendWithTimeout(ctx, sendQueueSendTimeout, &cloudpb.TunnelFrame{CorrId: corr, Type: cloudpb.FrameType_DATA, Payload: b}); err != nil {
 			return
 		}
 		sendClose()
@@ -280,7 +288,7 @@ func handleOpen(ctx context.Context, stream cloudpb.TunnelService_OpenClient, ho
 			return
 		}
 		b, _ := proto.Marshal(out)
-		if err := stream.Send(&cloudpb.TunnelFrame{CorrId: corr, Type: cloudpb.FrameType_DATA, Payload: b}); err != nil {
+		if err := sendq.sendWithTimeout(ctx, sendQueueSendTimeout, &cloudpb.TunnelFrame{CorrId: corr, Type: cloudpb.FrameType_DATA, Payload: b}); err != nil {
 			return
 		}
 		sendClose()
@@ -298,7 +306,7 @@ func handleOpen(ctx context.Context, stream cloudpb.TunnelService_OpenClient, ho
 			return
 		}
 		b, _ := proto.Marshal(out)
-		if err := stream.Send(&cloudpb.TunnelFrame{CorrId: corr, Type: cloudpb.FrameType_DATA, Payload: b}); err != nil {
+		if err := sendq.sendWithTimeout(ctx, sendQueueSendTimeout, &cloudpb.TunnelFrame{CorrId: corr, Type: cloudpb.FrameType_DATA, Payload: b}); err != nil {
 			return
 		}
 		sendClose()
@@ -316,7 +324,7 @@ func handleOpen(ctx context.Context, stream cloudpb.TunnelService_OpenClient, ho
 			return
 		}
 		b, _ := proto.Marshal(out)
-		if err := stream.Send(&cloudpb.TunnelFrame{CorrId: corr, Type: cloudpb.FrameType_DATA, Payload: b}); err != nil {
+		if err := sendq.sendWithTimeout(ctx, sendQueueSendTimeout, &cloudpb.TunnelFrame{CorrId: corr, Type: cloudpb.FrameType_DATA, Payload: b}); err != nil {
 			return
 		}
 		sendClose()
@@ -334,7 +342,7 @@ func handleOpen(ctx context.Context, stream cloudpb.TunnelService_OpenClient, ho
 			return
 		}
 		b, _ := proto.Marshal(out)
-		if err := stream.Send(&cloudpb.TunnelFrame{CorrId: corr, Type: cloudpb.FrameType_DATA, Payload: b}); err != nil {
+		if err := sendq.sendWithTimeout(ctx, sendQueueSendTimeout, &cloudpb.TunnelFrame{CorrId: corr, Type: cloudpb.FrameType_DATA, Payload: b}); err != nil {
 			return
 		}
 		sendClose()
@@ -352,7 +360,7 @@ func handleOpen(ctx context.Context, stream cloudpb.TunnelService_OpenClient, ho
 			return
 		}
 		b, _ := proto.Marshal(out)
-		if err := stream.Send(&cloudpb.TunnelFrame{CorrId: corr, Type: cloudpb.FrameType_DATA, Payload: b}); err != nil {
+		if err := sendq.sendWithTimeout(ctx, sendQueueSendTimeout, &cloudpb.TunnelFrame{CorrId: corr, Type: cloudpb.FrameType_DATA, Payload: b}); err != nil {
 			return
 		}
 		sendClose()
@@ -370,7 +378,7 @@ func handleOpen(ctx context.Context, stream cloudpb.TunnelService_OpenClient, ho
 			return
 		}
 		b, _ := proto.Marshal(out)
-		if err := stream.Send(&cloudpb.TunnelFrame{CorrId: corr, Type: cloudpb.FrameType_DATA, Payload: b}); err != nil {
+		if err := sendq.sendWithTimeout(ctx, sendQueueSendTimeout, &cloudpb.TunnelFrame{CorrId: corr, Type: cloudpb.FrameType_DATA, Payload: b}); err != nil {
 			return
 		}
 		sendClose()
@@ -388,7 +396,7 @@ func handleOpen(ctx context.Context, stream cloudpb.TunnelService_OpenClient, ho
 			return
 		}
 		b, _ := proto.Marshal(out)
-		if err := stream.Send(&cloudpb.TunnelFrame{CorrId: corr, Type: cloudpb.FrameType_DATA, Payload: b}); err != nil {
+		if err := sendq.sendWithTimeout(ctx, sendQueueSendTimeout, &cloudpb.TunnelFrame{CorrId: corr, Type: cloudpb.FrameType_DATA, Payload: b}); err != nil {
 			return
 		}
 		sendClose()
@@ -406,7 +414,7 @@ func handleOpen(ctx context.Context, stream cloudpb.TunnelService_OpenClient, ho
 			return
 		}
 		b, _ := proto.Marshal(out)
-		if err := stream.Send(&cloudpb.TunnelFrame{CorrId: corr, Type: cloudpb.FrameType_DATA, Payload: b}); err != nil {
+		if err := sendq.sendWithTimeout(ctx, sendQueueSendTimeout, &cloudpb.TunnelFrame{CorrId: corr, Type: cloudpb.FrameType_DATA, Payload: b}); err != nil {
 			return
 		}
 		sendClose()
@@ -424,11 +432,82 @@ func handleOpen(ctx context.Context, stream cloudpb.TunnelService_OpenClient, ho
 			return
 		}
 		b, _ := proto.Marshal(out)
-		if err := stream.Send(&cloudpb.TunnelFrame{CorrId: corr, Type: cloudpb.FrameType_DATA, Payload: b}); err != nil {
+		if err := sendq.sendWithTimeout(ctx, sendQueueSendTimeout, &cloudpb.TunnelFrame{CorrId: corr, Type: cloudpb.FrameType_DATA, Payload: b}); err != nil {
 			return
 		}
 		sendClose()
 	default:
 		sendErr("unknown method")
 	}
+}
+
+type sendQueue struct {
+	stream cloudpb.TunnelService_OpenClient
+	ch     chan *cloudpb.TunnelFrame
+	done   chan struct{}
+	mu     sync.Mutex
+	err    error
+}
+
+func newSendQueue(ctx context.Context, stream cloudpb.TunnelService_OpenClient) *sendQueue {
+	q := &sendQueue{
+		stream: stream,
+		ch:     make(chan *cloudpb.TunnelFrame, sendQueueSize),
+		done:   make(chan struct{}),
+	}
+	go q.run(ctx)
+	return q
+}
+
+func (q *sendQueue) run(ctx context.Context) {
+	defer close(q.done)
+	for {
+		select {
+		case <-ctx.Done():
+			q.setErr(ctx.Err())
+			return
+		case f := <-q.ch:
+			if f == nil {
+				return
+			}
+			if err := q.stream.Send(f); err != nil {
+				q.setErr(err)
+				return
+			}
+		}
+	}
+}
+
+func (q *sendQueue) send(ctx context.Context, f *cloudpb.TunnelFrame) error {
+	select {
+	case <-q.done:
+		return q.getErr()
+	case <-ctx.Done():
+		return ctx.Err()
+	case q.ch <- f:
+		return nil
+	}
+}
+
+func (q *sendQueue) sendWithTimeout(ctx context.Context, timeout time.Duration, f *cloudpb.TunnelFrame) error {
+	if timeout <= 0 {
+		return q.send(ctx, f)
+	}
+	cctx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+	return q.send(cctx, f)
+}
+
+func (q *sendQueue) setErr(err error) {
+	q.mu.Lock()
+	if q.err == nil {
+		q.err = err
+	}
+	q.mu.Unlock()
+}
+
+func (q *sendQueue) getErr() error {
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	return q.err
 }
