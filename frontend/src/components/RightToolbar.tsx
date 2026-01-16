@@ -5,13 +5,13 @@ interface RightToolbarProps {
   mode?: 'local' | 'cloud';
   showLogs?: boolean;
   onToggleMode?: () => void;
-  onRefreshDevices?: () => void;
+  onRefresh?: () => void;
   onConfigCloud?: () => void;
   onToggleLogs?: () => void;
-  onAddDevice?: () => void;
+  onAdd?: () => void;
 }
 
-export function RightToolbar({ mode = 'local', showLogs = false, onToggleMode, onRefreshDevices, onConfigCloud, onToggleLogs, onAddDevice }: RightToolbarProps) {
+export function RightToolbar({ mode = 'local', showLogs = false, onToggleMode, onRefresh, onConfigCloud, onToggleLogs, onAdd }: RightToolbarProps) {
   const prefersReduced = useReducedMotion();
   const transition = useMemo(() => (
     prefersReduced ? { duration: 0 } : { duration: 0.2, ease: [0.22, 1, 0.36, 1] as any }
@@ -39,7 +39,7 @@ export function RightToolbar({ mode = 'local', showLogs = false, onToggleMode, o
       exit={{ opacity: 0, y: -6 }}
       transition={transition}
     >
-      <Btn title="刷新设备" onClick={onRefreshDevices}>
+      <Btn title="刷新" onClick={onRefresh}>
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
         </svg>
@@ -54,7 +54,7 @@ export function RightToolbar({ mode = 'local', showLogs = false, onToggleMode, o
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
         </svg>
       </Btn>
-      <Btn title="添加设备" onClick={onAddDevice}>
+      <Btn title="添加" onClick={onAdd}>
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v12m6-6H6" />
         </svg>
@@ -68,4 +68,3 @@ export function RightToolbar({ mode = 'local', showLogs = false, onToggleMode, o
     </motion.aside>
   );
 }
-

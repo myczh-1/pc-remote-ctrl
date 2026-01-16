@@ -1,4 +1,7 @@
 import React from 'react'
+import { Button } from './ui/button'
+import { Input } from './ui/input'
+import { Select } from './ui/select'
 
 export type DeviceStatusFilter = 'all' | 'online' | 'offline'
 
@@ -14,6 +17,7 @@ interface DeviceFiltersProps {
   onRoomChange: (value: string) => void
   onToggleTag: (tag: string) => void
   onReset: () => void
+  variant?: 'panel' | 'plain'
 }
 
 export function DeviceFilters({
@@ -28,6 +32,7 @@ export function DeviceFilters({
   onRoomChange,
   onToggleTag,
   onReset,
+  variant = 'panel',
 }: DeviceFiltersProps) {
   const statusButtons: Array<{ id: DeviceStatusFilter; label: string }> = [
     { id: 'all', label: '全部' },
@@ -35,19 +40,23 @@ export function DeviceFilters({
     { id: 'offline', label: '离线' },
   ]
 
+  const containerClass = variant === 'panel'
+    ? 'w-full h-full min-h-0 flex flex-col gap-4 p-3 overflow-auto rounded-2xl border border-black/10 dark:border-white/10 bg-white/60 dark:bg-white/[0.04] backdrop-blur-sm'
+    : 'w-full h-full min-h-0 flex flex-col gap-4 p-1 overflow-auto'
+
   return (
-    <aside className="w-full h-full min-h-0 flex flex-col gap-4 p-3 overflow-auto rounded-2xl border border-black/10 dark:border-white/10 bg-white/60 dark:bg-white/[0.04] backdrop-blur-sm">
+    <aside className={containerClass}>
       <div className="text-sm font-medium text-slate-700 dark:text-slate-200">设备筛选</div>
 
       {/* 搜索 */}
       <div>
         <label className="text-xs text-slate-500 dark:text-slate-400 block mb-1">搜索</label>
-        <input
+        <Input
           type="text"
           placeholder="按名称 / ID 搜索"
           value={search}
           onChange={e => onSearchChange(e.target.value)}
-          className="w-full px-3 py-2 rounded-lg border border-black/10 dark:border-white/10 bg-white/80 dark:bg-white/[0.06] outline-none focus:ring-2 focus:ring-prime-400/40"
+          className="h-10"
         />
       </div>
 
@@ -56,8 +65,9 @@ export function DeviceFilters({
         <label className="text-xs text-slate-500 dark:text-slate-400 block mb-2">在线状态</label>
         <div className="flex gap-2 flex-wrap">
           {statusButtons.map(btn => (
-            <button
+            <Button
               key={btn.id}
+              variant="outline"
               className={`px-3 py-1.5 text-sm rounded-lg border transition-colors ${
                 status === btn.id
                   ? 'border-prime-400 bg-prime-50 text-prime-600 dark:border-prime-400/40 dark:bg-prime-400/10 dark:text-prime-200'
@@ -66,7 +76,7 @@ export function DeviceFilters({
               onClick={() => onStatusChange(btn.id)}
             >
               {btn.label}
-            </button>
+            </Button>
           ))}
         </div>
       </div>
@@ -81,9 +91,10 @@ export function DeviceFilters({
             {availableTags.map(tag => {
               const active = selectedTags.includes(tag)
               return (
-                <button
+                <Button
                   key={tag}
                   onClick={() => onToggleTag(tag)}
+                  variant="outline"
                   className={`px-2.5 py-1 text-xs rounded-lg border transition-colors ${
                     active
                       ? 'border-prime-400 bg-prime-500/10 text-prime-600 dark:border-prime-400/40 dark:text-prime-200'
@@ -91,7 +102,7 @@ export function DeviceFilters({
                   }`}
                 >
                   #{tag}
-                </button>
+                </Button>
               )
             })}
           </div>
@@ -101,25 +112,26 @@ export function DeviceFilters({
       {/* 房间 */}
       <div>
         <label className="text-xs text-slate-500 dark:text-slate-400 block mb-1">房间</label>
-        <select
+        <Select
           value={room}
           onChange={e => onRoomChange(e.target.value)}
-          className="w-full px-3 py-2 rounded-lg border border-black/10 dark:border-white/10 bg-white/80 dark:bg-white/[0.06]"
+          className="h-10"
         >
           <option value="">全部</option>
           {rooms.map(r => (
             <option key={r} value={r}>{r}</option>
           ))}
-        </select>
+        </Select>
       </div>
 
       <div className="mt-auto pt-2 border-t border-black/5 dark:border-white/5">
-        <button
-          className="w-full px-3 py-2 rounded-lg border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/[0.08] text-sm"
+        <Button
+          variant="outline"
+          className="w-full px-3 py-2 rounded-lg text-sm"
           onClick={onReset}
         >
           重置筛选
-        </button>
+        </Button>
       </div>
     </aside>
   )

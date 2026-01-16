@@ -3,6 +3,7 @@ package home
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -149,60 +150,138 @@ func (e *AutomationEngine) runAutomation(a storage.Automation, ev *homepb.Device
 	}
 }
 
-func matchTrigger(when map[string]any, ev *homepb.DeviceEvent) bool {
-	if when == nil || ev == nil {
+func matchTrigger(when storage.AutomationWhen, ev *homepb.DeviceEvent) bool {
+	if ev == nil || len(when.Conditions) == 0 {
 		return false
 	}
-	wtype := strings.ToLower(fmt.Sprint(when["type"]))
-	deviceID := strings.TrimSpace(fmt.Sprint(when["device_id"]))
-	if deviceID != "" && deviceID != ev.GetDeviceId() {
-		return false
-	}
-	payload := ev.GetPayload()
+	logic := strings.ToLower(strings.TrimSpace(when.Logic))
+	all := logic != "any"
 	payloadMap := map[string]any{}
-	if payload != nil {
+	if payload := ev.GetPayload(); payload != nil {
 		payloadMap = payload.AsMap()
 	}
-	switch wtype {
+	for _, cond := range when.Conditions {
+		ok := matchCondition(cond, ev, payloadMap)
+		if all && !ok {
+			return false
+		}
+		if !all && ok {
+			return true
+		}
+	}
+	return all
+}
+
+func matchCondition(cond storage.AutomationCondition, ev *homepb.DeviceEvent, payload map[string]any) bool {
+	if strings.TrimSpace(cond.DeviceID) != "" && cond.DeviceID != ev.GetDeviceId() {
+		return false
+	}
+	kind := strings.ToLower(strings.TrimSpace(cond.Kind))
+	switch kind {
 	case "state":
 		if ev.GetKind() != homepb.TelemetryEventKind_STATE {
 			return false
 		}
-		return matchFieldEquals(when, payloadMap)
-	case "event":
-		if ev.GetKind() != homepb.TelemetryEventKind_EVENT {
-			return false
-		}
-		return matchFieldEquals(when, payloadMap)
+		return matchValue(cond, payload)
 	case "online":
 		if ev.GetKind() != homepb.TelemetryEventKind_ONLINE {
 			return false
 		}
-		return matchFieldEquals(when, payloadMap)
-	case "action_result":
-		if ev.GetKind() != homepb.TelemetryEventKind_ACTION_RESULT {
-			return false
-		}
-		return matchFieldEquals(when, payloadMap)
+		return matchOnline(cond, payload)
 	default:
 		return false
 	}
 }
 
-// matchFieldEquals supports a simple predicate: path (top-level key) + equals value.
-func matchFieldEquals(when map[string]any, payload map[string]any) bool {
-	path := strings.TrimSpace(fmt.Sprint(when["path"]))
+func matchOnline(cond storage.AutomationCondition, payload map[string]any) bool {
+	val, ok := payload["online"]
+	if !ok {
+		return false
+	}
+	expect, ok := cond.Value.(bool)
+	if !ok {
+		return false
+	}
+	switch strings.ToLower(strings.TrimSpace(cond.Op)) {
+	case "ne":
+		return val != expect
+	default:
+		return val == expect
+	}
+}
+
+func matchValue(cond storage.AutomationCondition, payload map[string]any) bool {
+	path := strings.TrimSpace(cond.Path)
 	if path == "" {
-		return true // match any event of this type
+		return false
 	}
 	val, ok := payload[path]
 	if !ok {
 		return false
 	}
-	if eqRaw, exists := when["equals"]; exists {
-		return fmt.Sprint(eqRaw) == fmt.Sprint(val)
+	op := strings.ToLower(strings.TrimSpace(cond.Op))
+	switch op {
+	case "eq":
+		return equalValue(val, cond.Value)
+	case "ne":
+		return !equalValue(val, cond.Value)
+	case "gt", "gte", "lt", "lte":
+		left, okL := toFloat(val)
+		right, okR := toFloat(cond.Value)
+		if !okL || !okR {
+			return false
+		}
+		switch op {
+		case "gt":
+			return left > right
+		case "gte":
+			return left >= right
+		case "lt":
+			return left < right
+		case "lte":
+			return left <= right
+		}
 	}
-	return true
+	return false
+}
+
+func equalValue(a, b any) bool {
+	af, aok := toFloat(a)
+	bf, bok := toFloat(b)
+	if aok && bok {
+		return af == bf
+	}
+	if av, ok := a.(bool); ok {
+		if bv, ok := b.(bool); ok {
+			return av == bv
+		}
+	}
+	return fmt.Sprint(a) == fmt.Sprint(b)
+}
+
+func toFloat(v any) (float64, bool) {
+	switch t := v.(type) {
+	case float64:
+		return t, true
+	case float32:
+		return float64(t), true
+	case int:
+		return float64(t), true
+	case int64:
+		return float64(t), true
+	case int32:
+		return float64(t), true
+	case uint64:
+		return float64(t), true
+	case uint32:
+		return float64(t), true
+	case string:
+		f, err := strconv.ParseFloat(strings.TrimSpace(t), 64)
+		if err == nil {
+			return f, true
+		}
+	}
+	return 0, false
 }
 
 func (e *AutomationEngine) logAudit(kind, subject string, data map[string]any) {

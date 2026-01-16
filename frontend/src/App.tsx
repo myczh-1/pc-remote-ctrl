@@ -10,6 +10,7 @@ import { RightToolbar } from './components/RightToolbar'
 import { DeviceFilters } from './components/DeviceFilters'
 import { MobileFiltersDrawer } from './components/MobileFiltersDrawer'
 import { AutomationEditDrawer } from './components/AutomationEditDrawer'
+import { AutomationFilters } from './components/AutomationFilters'
 import { useLogger } from './hooks/useLogger'
 import { useHomeApi } from './hooks/useHomeApi'
 import { useCloudApi } from './hooks/useCloudApi'
@@ -178,6 +179,12 @@ export default function App() {
   }, [devicesView.createOpen, mode, modelsView.loadDeviceModels, modelsView.models.length])
 
   useEffect(() => {
+    if (mode === 'local' && automationsView.autoEditOpen && modelsView.models.length === 0) {
+      modelsView.loadDeviceModels()
+    }
+  }, [automationsView.autoEditOpen, mode, modelsView.loadDeviceModels, modelsView.models.length])
+
+  useEffect(() => {
     if (logPanelVisible && !logPanelSeenRef.current) {
       logPanelSeenRef.current = true
       audit.ensureAuditLogsLoaded()
@@ -189,7 +196,7 @@ export default function App() {
   }, [audit.ensureAuditLogsLoaded, logPanelVisible])
 
   useEffect(() => {
-    if (activeView !== 'devices' && mobileFiltersOpen) {
+    if (activeView !== 'devices' && activeView !== 'automations' && mobileFiltersOpen) {
       setMobileFiltersOpen(false)
     }
   }, [activeView, mobileFiltersOpen, setMobileFiltersOpen])
@@ -240,6 +247,32 @@ export default function App() {
     await modelsView.deleteModel(model)
   }
 
+  const handleToolbarRefresh = () => {
+    if (activeView === 'automations') {
+      automationsView.loadAutomations(true)
+      return
+    }
+    if (activeView === 'models') {
+      modelsView.loadDeviceModels()
+      return
+    }
+    devicesView.handleRefreshDevices()
+  }
+
+  const handleToolbarAdd = () => {
+    if (activeView === 'automations') {
+      automationsView.setEditingAuto(undefined)
+      automationsView.setAutoEditOpen(true)
+      return
+    }
+    if (activeView === 'models') {
+      modelsView.setEditingModel(undefined)
+      modelsView.setModelEditOpen(true)
+      return
+    }
+    devicesView.setCreateOpen(true)
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 via-sky-50/60 to-violet-50/60 text-slate-900 dark:from-[#0b1220] dark:via-[#0b1220] dark:to-[#0a0f1a] dark:text-slate-100 relative selection:bg-prime-400/20 selection:text-white overflow-hidden">
       <div className="relative z-10 flex h-screen flex-col overflow-hidden">
@@ -248,7 +281,7 @@ export default function App() {
             mode={mode}
             theme={theme}
             onOpenFilters={() => {
-              if (activeView !== 'devices') return
+              if (activeView !== 'devices' && activeView !== 'automations') return
               setMobileFiltersOpen(true)
             }}
             onToggleTheme={toggleTheme}
@@ -384,14 +417,6 @@ export default function App() {
                             <AutomationsPage
                               automations={automationsView.automations}
                               autoLoading={automationsView.autoLoading}
-                              autoNext={automationsView.autoNext}
-                              filterName={automationsView.filterName}
-                              filterTag={automationsView.filterTag}
-                              onFilterNameChange={automationsView.setFilterName}
-                              onFilterTagChange={automationsView.setFilterTag}
-                              onCreate={() => { automationsView.setEditingAuto(undefined); automationsView.setAutoEditOpen(true) }}
-                              onRefresh={() => automationsView.loadAutomations(true)}
-                              onLoadMore={() => automationsView.loadAutomations(false)}
                               onToggleLog={automationsView.toggleLogOpen}
                               onEdit={(a) => { automationsView.setEditingAuto(a as Automation); automationsView.setAutoEditOpen(true) }}
                               onToggleEnabled={automationsView.toggleEnabled}
@@ -399,6 +424,21 @@ export default function App() {
                               autoLogs={automationsView.autoLogs}
                               logsOpen={automationsView.logsOpen}
                               onLoadAutomationLogs={(id) => automationsView.loadAutomationLogs(id, false)}
+                              showFilters={!isMobile}
+                              filtersPanel={(
+                                <AutomationFilters
+                                  name={automationsView.filterName}
+                                  tag={automationsView.filterTag}
+                                  onNameChange={automationsView.setFilterName}
+                                  onTagChange={automationsView.setFilterTag}
+                                  onReset={() => {
+                                    automationsView.setFilterName('')
+                                    automationsView.setFilterTag('')
+                                    automationsView.loadAutomations(true)
+                                  }}
+                                  variant="panel"
+                                />
+                              )}
                             />
                           )}
 
@@ -406,8 +446,6 @@ export default function App() {
                             <ModelsPage
                               models={modelsView.models}
                               modelLoading={modelsView.modelLoading}
-                              onCreate={() => { modelsView.setEditingModel(undefined); modelsView.setModelEditOpen(true) }}
-                              onRefresh={modelsView.loadDeviceModels}
                               onEdit={(m) => { modelsView.setEditingModel(m); modelsView.setModelEditOpen(true) }}
                               onDelete={handleDeleteModel}
                             />
@@ -449,32 +487,49 @@ export default function App() {
         <RightToolbar
           mode={mode}
           showLogs={showLogs}
-          onRefreshDevices={devicesView.handleRefreshDevices}
+          onRefresh={handleToolbarRefresh}
           onToggleMode={toggleMode}
           onConfigCloud={() => setCloudSettingsOpen(true)}
           onToggleLogs={handleToggleLogsPanel}
-          onAddDevice={() => devicesView.setCreateOpen(true)}
+          onAdd={handleToolbarAdd}
         />
       )}
 
-      {isMobile && activeView === 'devices' && (
+      {isMobile && (activeView === 'devices' || activeView === 'automations') && (
         <MobileFiltersDrawer
           open={mobileFiltersOpen}
           onClose={() => setMobileFiltersOpen(false)}
         >
-          <DeviceFilters
-            search={devicesView.deviceFilters.search}
-            status={devicesView.deviceFilters.status}
-            room={devicesView.deviceFilters.room}
-            rooms={devicesView.availableRooms}
-            availableTags={devicesView.availableTags}
-            selectedTags={devicesView.deviceFilters.tags}
-            onSearchChange={devicesView.handleDeviceSearchChange}
-            onStatusChange={devicesView.handleDeviceStatusChange}
-            onRoomChange={devicesView.handleDeviceRoomChange}
-            onToggleTag={devicesView.handleToggleDeviceTag}
-            onReset={() => { devicesView.handleResetDeviceFilters(); setMobileFiltersOpen(false) }}
-          />
+          {activeView === 'devices' ? (
+            <DeviceFilters
+              search={devicesView.deviceFilters.search}
+              status={devicesView.deviceFilters.status}
+              room={devicesView.deviceFilters.room}
+              rooms={devicesView.availableRooms}
+              availableTags={devicesView.availableTags}
+              selectedTags={devicesView.deviceFilters.tags}
+              onSearchChange={devicesView.handleDeviceSearchChange}
+              onStatusChange={devicesView.handleDeviceStatusChange}
+              onRoomChange={devicesView.handleDeviceRoomChange}
+              onToggleTag={devicesView.handleToggleDeviceTag}
+              onReset={() => { devicesView.handleResetDeviceFilters(); setMobileFiltersOpen(false) }}
+              variant="plain"
+            />
+          ) : (
+            <AutomationFilters
+              name={automationsView.filterName}
+              tag={automationsView.filterTag}
+              onNameChange={automationsView.setFilterName}
+              onTagChange={automationsView.setFilterTag}
+              onReset={() => {
+                automationsView.setFilterName('')
+                automationsView.setFilterTag('')
+                automationsView.loadAutomations(true)
+                setMobileFiltersOpen(false)
+              }}
+              variant="plain"
+            />
+          )}
         </MobileFiltersDrawer>
       )}
 
@@ -492,21 +547,13 @@ export default function App() {
               })
               break
             case 'refresh':
-              if (activeView === 'automations') {
-                automationsView.loadAutomations(true)
-              } else {
-                devicesView.handleRefreshDevices()
-              }
+              handleToolbarRefresh()
               break
             case 'mode':
               toggleMode()
               break
             case 'add':
-              if (activeView === 'automations') {
-                // 预留：自动化编辑暂未实现
-              } else {
-                devicesView.setCreateOpen(true)
-              }
+              handleToolbarAdd()
               break
             case 'settings':
               setCloudSettingsOpen(true)
@@ -567,6 +614,8 @@ export default function App() {
       <AutomationEditDrawer
         open={automationsView.autoEditOpen}
         initial={automationsView.editingAuto}
+        devices={api.devices}
+        models={modelsView.models}
         onClose={() => { automationsView.setAutoEditOpen(false); automationsView.setEditingAuto(undefined) }}
         onSubmit={automationsView.submitAutomation}
       />

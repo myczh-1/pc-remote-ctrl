@@ -3,29 +3,13 @@ import type { DeviceModel } from '../proto/home/service'
 interface ModelsPageProps {
   models: DeviceModel[]
   modelLoading: boolean
-  onCreate: () => void
-  onRefresh: () => void
   onEdit: (model: DeviceModel) => void
   onDelete: (model: DeviceModel) => void
 }
 
-export function ModelsPage({ models, modelLoading, onCreate, onRefresh, onEdit, onDelete }: ModelsPageProps) {
+export function ModelsPage({ models, modelLoading, onEdit, onDelete }: ModelsPageProps) {
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap gap-2 items-center">
-        <button
-          onClick={onCreate}
-          className="px-3 py-2 text-sm rounded-lg bg-prime-500 text-white hover:bg-prime-600 active:scale-[0.99]"
-        >
-          新建设备模型
-        </button>
-        <button
-          onClick={onRefresh}
-          className="px-3 py-2 text-sm rounded-lg border border-slate-200/60 dark:border-white/10 bg-white/80 dark:bg-white/10"
-        >
-          刷新
-        </button>
-      </div>
       {models.length === 0 && !modelLoading ? (
         <div className="text-sm text-slate-500 dark:text-slate-400">暂无设备模型</div>
       ) : (

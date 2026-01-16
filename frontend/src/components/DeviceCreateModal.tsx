@@ -3,6 +3,10 @@ import type { Device, DeviceModel } from '../proto/home/service'
 import { AdapterKind } from '../proto/home/service'
 import { useBleProvisioning } from '../hooks/useBleProvisioning'
 import type { DeviceListParams } from '../hooks/useHomeApi'
+import { Dialog, DialogContent } from './ui/dialog'
+import { Button } from './ui/button'
+import { Input } from './ui/input'
+import { Select } from './ui/select'
 
 interface DeviceApi {
   listDevices: (opts?: DeviceListParams) => Promise<{ ok: boolean; devices?: Device[]; count?: number; error?: string }>
@@ -147,8 +151,13 @@ export function DeviceCreateModal({ open, onCancel, onCreate, initialDevice, api
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="w-[560px] max-w-[92vw] rounded-2xl bg-white dark:bg-surface p-4 border border-black/10 dark:border-white/10 shadow-2xl">
+    <Dialog
+      open={open}
+      onOpenChange={(nextOpen) => {
+        if (!nextOpen) onCancel?.()
+      }}
+    >
+      <DialogContent className="w-[560px] max-w-[92vw] rounded-2xl bg-white/80 p-4 dark:bg-surface/80">
         <div className="flex items-center justify-between mb-3">
           <div className="text-lg font-semibold">{initialDevice ? '编辑设备' : '添加设备'}</div>
           <button className="rounded-lg p-2 hover:bg-black/5 dark:hover:bg-white/5" onClick={onCancel}>✕</button>
@@ -159,17 +168,16 @@ export function DeviceCreateModal({ open, onCancel, onCreate, initialDevice, api
           {initialDevice && (
           <div className="col-span-1">
             <label className="text-xs text-slate-500">设备 ID</label>
-            <input readOnly className="w-full rounded-lg border border-black/10 dark:border-white/10 bg-transparent px-2 py-1" value={id} />
+            <Input readOnly value={id} />
           </div>
           )}
           <div className="col-span-1">
             <label className="text-xs text-slate-500">名称</label>
-            <input className="w-full rounded-lg border border-black/10 dark:border-white/10 bg-transparent px-2 py-1" value={name} onChange={e => setName(e.target.value)} placeholder="例如：客厅灯" />
+            <Input value={name} onChange={e => setName(e.target.value)} placeholder="例如：客厅灯" />
           </div>
           <div className="col-span-1">
             <label className="text-xs text-slate-500">设备模型</label>
-            <select
-              className="w-full rounded-lg border border-black/10 dark:border-white/10 bg-transparent px-2 py-1"
+            <Select
               value={modelId && modelVersion ? `${modelId}@${modelVersion}` : ''}
               onChange={e => {
                 const [mid, mver] = e.target.value.split('@')
@@ -183,19 +191,19 @@ export function DeviceCreateModal({ open, onCancel, onCreate, initialDevice, api
                   {m.name} ({m.id}@{m.version})
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
           <div className="col-span-1">
             <label className="text-xs text-slate-500">类型</label>
-            <input readOnly className="w-full rounded-lg border border-black/10 dark:border-white/10 bg-transparent px-2 py-1" value={type} placeholder="来自设备模型" />
+            <Input readOnly value={type} placeholder="来自设备模型" />
           </div>
           <div className="col-span-1">
             <label className="text-xs text-slate-500">房间</label>
-            <input className="w-full rounded-lg border border-black/10 dark:border-white/10 bg-transparent px-2 py-1" value={room} onChange={e => setRoom(e.target.value)} placeholder="living/bedroom 等" />
+            <Input value={room} onChange={e => setRoom(e.target.value)} placeholder="living/bedroom 等" />
           </div>
           <div className="col-span-2">
             <label className="text-xs text-slate-500">标签（逗号分隔）</label>
-            <input className="w-full rounded-lg border border-black/10 dark:border-white/10 bg-transparent px-2 py-1" value={tags} onChange={e => setTags(e.target.value)} placeholder="tag1,tag2" />
+            <Input value={tags} onChange={e => setTags(e.target.value)} placeholder="tag1,tag2" />
           </div>
           {/* 适配器选项移除：当前仅支持 MQTT，UI 不再展示 */}
         </div>
@@ -212,29 +220,29 @@ export function DeviceCreateModal({ open, onCancel, onCreate, initialDevice, api
           <div className="grid grid-cols-2 gap-2">
             <div className="col-span-1">
               <label className="text-xs text-slate-500">Wi‑Fi SSID</label>
-              <input className="w-full rounded-lg border border-black/10 dark:border-white/10 bg-transparent px-2 py-1" value={ssid} onChange={e => setSsid(e.target.value)} placeholder="路由器名称" />
+              <Input value={ssid} onChange={e => setSsid(e.target.value)} placeholder="路由器名称" />
             </div>
             <div className="col-span-1">
               <label className="text-xs text-slate-500">Wi‑Fi 密码</label>
-              <input type="password" className="w-full rounded-lg border border-black/10 dark:border-white/10 bg-transparent px-2 py-1" value={wifiPass} onChange={e => setWifiPass(e.target.value)} placeholder="至少 8 位" />
+              <Input type="password" value={wifiPass} onChange={e => setWifiPass(e.target.value)} placeholder="至少 8 位" />
             </div>
             <div className="col-span-2">
               <label className="text-xs text-slate-500">MQTT URL</label>
-              <input className="w-full rounded-lg border border-black/10 dark:border-white/10 bg-transparent px-2 py-1" value={mqttUrl} onChange={e => setMqttUrl(e.target.value)} placeholder="tcp://192.168.1.100:1883" />
+              <Input value={mqttUrl} onChange={e => setMqttUrl(e.target.value)} placeholder="tcp://192.168.1.100:1883" />
             </div>
             <div className="col-span-1">
               <label className="text-xs text-slate-500">MQTT 用户（可选）</label>
-              <input className="w-full rounded-lg border border-black/10 dark:border-white/10 bg-transparent px-2 py-1" value={mqttUser} onChange={e => setMqttUser(e.target.value)} placeholder="用户名" />
+              <Input value={mqttUser} onChange={e => setMqttUser(e.target.value)} placeholder="用户名" />
             </div>
             <div className="col-span-1">
               <label className="text-xs text-slate-500">MQTT 密码（可选）</label>
-              <input type="password" className="w-full rounded-lg border border-black/10 dark:border-white/10 bg-transparent px-2 py-1" value={mqttPass} onChange={e => setMqttPass(e.target.value)} placeholder="密码" />
+              <Input type="password" value={mqttPass} onChange={e => setMqttPass(e.target.value)} placeholder="密码" />
             </div>
           </div>
           <div className="mt-2 flex items-center gap-2">
-            <button
+            <Button
               disabled={bleRunning}
-              className="px-3 py-2 text-sm rounded-xl bg-gradient-to-r from-prime-500 to-prime-600 text-white hover:from-prime-600 hover:to-prime-700 disabled:opacity-50"
+              className="px-3 py-2 text-sm rounded-xl bg-gradient-to-r from-prime-500 to-prime-600 text-white hover:from-prime-600 hover:to-prime-700"
               onClick={async () => {
                 if (!ssid || !wifiPass) { alert('请填写 Wi‑Fi 名称与密码'); return }
                 if (!modelId || !modelVersion) { alert('请选择设备模型'); return }
@@ -305,11 +313,12 @@ export function DeviceCreateModal({ open, onCancel, onCreate, initialDevice, api
                   setBleRunning(false)
                 }
               }}
-            >{bleRunning ? '蓝牙进行中...' : '开始蓝牙配网'}</button>
-            <button
-              className="px-3 py-2 text-sm rounded-lg border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5"
+            >{bleRunning ? '蓝牙进行中...' : '开始蓝牙配网'}</Button>
+            <Button
+              variant="outline"
+              className="px-3 py-2 text-sm"
               onClick={() => { disconnect().catch(()=>{}); setBleLogs(prev => [...prev, { t: Date.now(), msg: '已断开蓝牙' }]) }}
-            >断开</button>
+            >断开</Button>
           </div>
           {bleLogs.length > 0 && (
             <div className="mt-2 max-h-32 overflow-auto rounded-lg border border-black/10 dark:border-white/10 bg-white/60 dark:bg-white/5 p-2 text-xs">
@@ -328,10 +337,10 @@ export function DeviceCreateModal({ open, onCancel, onCreate, initialDevice, api
         </div>
 
         <div className="mt-4 flex justify-end gap-2">
-          <button className="px-3 py-2 rounded-lg border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5" onClick={handleCancel}>取消</button>
-          <button disabled={submitting} className="px-3 py-2 rounded-xl bg-gradient-to-r from-prime-500 to-prime-600 text-white hover:from-prime-600 hover:to-prime-700 disabled:opacity-50" onClick={submit}>{initialDevice ? '保存' : '创建'}</button>
+          <Button variant="outline" className="px-3 py-2 rounded-lg" onClick={handleCancel}>取消</Button>
+          <Button disabled={submitting} className="px-3 py-2 rounded-xl bg-gradient-to-r from-prime-500 to-prime-600 text-white hover:from-prime-600 hover:to-prime-700" onClick={submit}>{initialDevice ? '保存' : '创建'}</Button>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   )
 }

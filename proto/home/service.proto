@@ -133,6 +133,41 @@ message CleanupLogsResponse {
   int32 deleted = 1;
 }
 
+enum AutomationLogic {
+  LOGIC_UNSPECIFIED = 0;
+  LOGIC_ALL = 1;
+  LOGIC_ANY = 2;
+}
+
+enum AutomationConditionKind {
+  CONDITION_KIND_UNSPECIFIED = 0;
+  CONDITION_STATE = 1;
+  CONDITION_ONLINE = 2;
+}
+
+enum AutomationOperator {
+  OP_UNSPECIFIED = 0;
+  OP_EQ = 1;
+  OP_NE = 2;
+  OP_GT = 3;
+  OP_GTE = 4;
+  OP_LT = 5;
+  OP_LTE = 6;
+}
+
+message AutomationCondition {
+  string device_id = 1;
+  AutomationConditionKind kind = 2;
+  string path = 3;
+  AutomationOperator op = 4;
+  google.protobuf.Value value = 5;
+}
+
+message AutomationWhen {
+  AutomationLogic logic = 1;
+  repeated AutomationCondition conditions = 2;
+}
+
 message AutomationAction {
   string device_id = 1;
   string action = 2;
@@ -144,7 +179,7 @@ message Automation {
   string name = 2;
   repeated string tags = 3;
   bool enabled = 4;
-  google.protobuf.Struct when = 5;
+  AutomationWhen when = 5;
   repeated AutomationAction then = 6;
   int64 updated_at = 7;
 }

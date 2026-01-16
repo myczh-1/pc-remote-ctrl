@@ -21,11 +21,24 @@ type AutomationAction struct {
 	Args     map[string]any `json:"args,omitempty"`
 }
 
+type AutomationCondition struct {
+	DeviceID string `json:"device_id"`
+	Kind     string `json:"kind"`
+	Path     string `json:"path,omitempty"`
+	Op       string `json:"op,omitempty"`
+	Value    any    `json:"value,omitempty"`
+}
+
+type AutomationWhen struct {
+	Logic      string                `json:"logic"`
+	Conditions []AutomationCondition `json:"conditions"`
+}
+
 type Automation struct {
 	ID        string             `json:"id"`
 	Name      string             `json:"name"`
 	Tags      []string           `json:"tags,omitempty"`
-	When      map[string]any     `json:"when,omitempty"`
+	When      AutomationWhen     `json:"when"`
 	Then      []AutomationAction `json:"then"`
 	Enabled   bool               `json:"enabled"`
 	UpdatedAt int64              `json:"updated_at"`

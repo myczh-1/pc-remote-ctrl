@@ -124,9 +124,11 @@ func fromPBAutomation(a *homepb.Automation) (*storage.Automation, error) {
 		Tags:    a.GetTags(),
 		Enabled: a.GetEnabled(),
 	}
-	if a.GetWhen() != nil {
-		st.When = mapStringAny(a.GetWhen().AsMap())
+	when, err := fromPBAutomationWhen(a.GetWhen())
+	if err != nil {
+		return nil, err
 	}
+	st.When = when
 	for _, act := range a.GetThen() {
 		stAct := storage.AutomationAction{
 			DeviceID: act.GetDeviceId(),
@@ -139,10 +141,7 @@ func fromPBAutomation(a *homepb.Automation) (*storage.Automation, error) {
 }
 
 func toPBAutomation(a storage.Automation) *homepb.Automation {
-	var when *structpb.Struct
-	if a.When != nil {
-		when, _ = structpb.NewStruct(mapStringAny(a.When))
-	}
+	when := toPBAutomationWhen(a.When)
 	then := make([]*homepb.AutomationAction, 0, len(a.Then))
 	for _, act := range a.Then {
 		var args *structpb.Struct
@@ -195,17 +194,170 @@ func validateAutomation(a storage.Automation) error {
 			return fmt.Errorf("then[%d].action required", i)
 		}
 	}
-	wtype := strings.ToLower(fmt.Sprint(a.When["type"]))
-	if wtype == "" {
-		return fmt.Errorf("when.type required")
+	if len(a.When.Conditions) == 0 {
+		return fmt.Errorf("when.conditions required")
 	}
-	switch wtype {
-	case "state", "event", "online", "action_result":
-	default:
-		return fmt.Errorf("unsupported when.type %s", wtype)
+	logic := strings.TrimSpace(strings.ToLower(a.When.Logic))
+	if logic != "all" && logic != "any" {
+		return fmt.Errorf("when.logic must be all/any")
 	}
-	if dev := strings.TrimSpace(fmt.Sprint(a.When["device_id"])); dev == "" {
-		return fmt.Errorf("when.device_id required")
+	for i, cond := range a.When.Conditions {
+		if strings.TrimSpace(cond.DeviceID) == "" {
+			return fmt.Errorf("when.conditions[%d].device_id required", i)
+		}
+		kind := strings.TrimSpace(strings.ToLower(cond.Kind))
+		switch kind {
+		case "state":
+			if strings.TrimSpace(cond.Path) == "" {
+				return fmt.Errorf("when.conditions[%d].path required", i)
+			}
+			if cond.Value == nil {
+				return fmt.Errorf("when.conditions[%d].value required", i)
+			}
+		case "online":
+			if cond.Value == nil {
+				return fmt.Errorf("when.conditions[%d].value required", i)
+			}
+		default:
+			return fmt.Errorf("when.conditions[%d].kind unsupported", i)
+		}
+		op := strings.TrimSpace(strings.ToLower(cond.Op))
+		switch op {
+		case "eq", "ne":
+		case "gt", "gte", "lt", "lte":
+			if kind != "state" {
+				return fmt.Errorf("when.conditions[%d].op unsupported for kind", i)
+			}
+		default:
+			return fmt.Errorf("when.conditions[%d].op unsupported", i)
+		}
 	}
 	return nil
+}
+
+func fromPBAutomationWhen(when *homepb.AutomationWhen) (storage.AutomationWhen, error) {
+	if when == nil {
+		return storage.AutomationWhen{}, fmt.Errorf("when required")
+	}
+	logic := logicFromPB(when.GetLogic())
+	if logic == "" {
+		return storage.AutomationWhen{}, fmt.Errorf("when.logic required")
+	}
+	out := storage.AutomationWhen{Logic: logic}
+	for _, cond := range when.GetConditions() {
+		item := storage.AutomationCondition{
+			DeviceID: cond.GetDeviceId(),
+			Kind:     kindFromPB(cond.GetKind()),
+			Path:     cond.GetPath(),
+			Op:       opFromPB(cond.GetOp()),
+		}
+		if cond.GetValue() != nil {
+			item.Value = cond.GetValue().AsInterface()
+		}
+		out.Conditions = append(out.Conditions, item)
+	}
+	return out, nil
+}
+
+func toPBAutomationWhen(when storage.AutomationWhen) *homepb.AutomationWhen {
+	out := &homepb.AutomationWhen{
+		Logic: logicToPB(when.Logic),
+	}
+	for _, cond := range when.Conditions {
+		item := &homepb.AutomationCondition{
+			DeviceId: cond.DeviceID,
+			Kind:     kindToPB(cond.Kind),
+			Path:     cond.Path,
+			Op:       opToPB(cond.Op),
+		}
+		if cond.Value != nil {
+			if v, err := structpb.NewValue(cond.Value); err == nil {
+				item.Value = v
+			}
+		}
+		out.Conditions = append(out.Conditions, item)
+	}
+	return out
+}
+
+func logicFromPB(v homepb.AutomationLogic) string {
+	switch v {
+	case homepb.AutomationLogic_LOGIC_ALL:
+		return "all"
+	case homepb.AutomationLogic_LOGIC_ANY:
+		return "any"
+	default:
+		return ""
+	}
+}
+
+func logicToPB(v string) homepb.AutomationLogic {
+	switch strings.ToLower(strings.TrimSpace(v)) {
+	case "all":
+		return homepb.AutomationLogic_LOGIC_ALL
+	case "any":
+		return homepb.AutomationLogic_LOGIC_ANY
+	default:
+		return homepb.AutomationLogic_LOGIC_UNSPECIFIED
+	}
+}
+
+func kindFromPB(v homepb.AutomationConditionKind) string {
+	switch v {
+	case homepb.AutomationConditionKind_CONDITION_STATE:
+		return "state"
+	case homepb.AutomationConditionKind_CONDITION_ONLINE:
+		return "online"
+	default:
+		return ""
+	}
+}
+
+func kindToPB(v string) homepb.AutomationConditionKind {
+	switch strings.ToLower(strings.TrimSpace(v)) {
+	case "state":
+		return homepb.AutomationConditionKind_CONDITION_STATE
+	case "online":
+		return homepb.AutomationConditionKind_CONDITION_ONLINE
+	default:
+		return homepb.AutomationConditionKind_CONDITION_KIND_UNSPECIFIED
+	}
+}
+
+func opFromPB(v homepb.AutomationOperator) string {
+	switch v {
+	case homepb.AutomationOperator_OP_EQ:
+		return "eq"
+	case homepb.AutomationOperator_OP_NE:
+		return "ne"
+	case homepb.AutomationOperator_OP_GT:
+		return "gt"
+	case homepb.AutomationOperator_OP_GTE:
+		return "gte"
+	case homepb.AutomationOperator_OP_LT:
+		return "lt"
+	case homepb.AutomationOperator_OP_LTE:
+		return "lte"
+	default:
+		return ""
+	}
+}
+
+func opToPB(v string) homepb.AutomationOperator {
+	switch strings.ToLower(strings.TrimSpace(v)) {
+	case "eq":
+		return homepb.AutomationOperator_OP_EQ
+	case "ne":
+		return homepb.AutomationOperator_OP_NE
+	case "gt":
+		return homepb.AutomationOperator_OP_GT
+	case "gte":
+		return homepb.AutomationOperator_OP_GTE
+	case "lt":
+		return homepb.AutomationOperator_OP_LT
+	case "lte":
+		return homepb.AutomationOperator_OP_LTE
+	default:
+		return homepb.AutomationOperator_OP_UNSPECIFIED
+	}
 }

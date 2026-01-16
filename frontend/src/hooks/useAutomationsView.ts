@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Automation, LogEntry } from '../proto/home/service'
 
 interface AutomationsApi {
@@ -24,16 +24,19 @@ export function useAutomationsView(automationApi: AutomationsApi | null, logger:
   const [automations, setAutomations] = useState<Automation[]>([])
   const [autoLoading, setAutoLoading] = useState(false)
   const [autoError, setAutoError] = useState('')
-  const [autoNext, setAutoNext] = useState('')
-  const autoNextRef = useRef('')
   const [filterTag, setFilterTag] = useState('')
   const [filterName, setFilterName] = useState('')
   const [autoEditOpen, setAutoEditOpen] = useState(false)
   const [editingAuto, setEditingAuto] = useState<Automation | undefined>(undefined)
   const [autoLogs, setAutoLogs] = useState<Record<string, { entries: LogEntry[]; loading: boolean; error?: string; next?: string }>>({})
   const [logsOpen, setLogsOpen] = useState<Record<string, boolean>>({})
+  const autoLogsRef = useRef(autoLogs)
 
-  const loadAutomations = useCallback(async (reset?: boolean) => {
+  useEffect(() => {
+    autoLogsRef.current = autoLogs
+  }, [autoLogs])
+
+  const loadAutomations = useCallback(async (_reset?: boolean) => {
     if (!listAutomations) {
       setAutoError('云端模式暂不支持自动化管理')
       return
@@ -41,22 +44,34 @@ export function useAutomationsView(automationApi: AutomationsApi | null, logger:
     setAutoLoading(true)
     setAutoError('')
     try {
-      const res = await listAutomations({
-        includeDisabled: true,
-        tag: filterTag,
-        name: filterName,
-        pageSize: 20,
-        pageToken: reset ? '' : autoNextRef.current,
-      })
-      if (!res.ok) {
-        setAutoError(res.error || '加载失败')
-        return
-      }
-      const data = res.automations || []
-      setAutomations(prev => (reset ? data : [...prev, ...data]))
-      const nextToken = res.nextPageToken || ''
-      autoNextRef.current = nextToken
-      setAutoNext(nextToken)
+      const nextTokens = new Set<string>()
+      let pageToken = ''
+      let nextPage = ''
+      const all: Automation[] = []
+
+      do {
+        const res = await listAutomations({
+          includeDisabled: true,
+          tag: filterTag,
+          name: filterName,
+          pageSize: 50,
+          pageToken,
+        })
+        if (!res.ok) {
+          setAutoError(res.error || '加载失败')
+          return
+        }
+        all.push(...(res.automations || []))
+        nextPage = res.nextPageToken || ''
+        if (!nextPage || nextTokens.has(nextPage)) {
+          nextPage = ''
+        } else {
+          nextTokens.add(nextPage)
+        }
+        pageToken = nextPage
+      } while (pageToken)
+
+      setAutomations(all)
     } catch (e: any) {
       setAutoError(String(e?.message ?? e))
     } finally {
@@ -70,7 +85,7 @@ export function useAutomationsView(automationApi: AutomationsApi | null, logger:
       return
     }
     setAutoLogs(prev => ({ ...prev, [automationId]: { ...(prev[automationId] || { entries: [] }), loading: true, error: undefined } }))
-    const prevState = autoLogs[automationId]
+    const prevState = autoLogsRef.current[automationId]
     const res = await listAuditLogs({
       subject: automationId,
       pageSize: 10,
@@ -90,7 +105,7 @@ export function useAutomationsView(automationApi: AutomationsApi | null, logger:
     } else {
       setAutoLogs(prev => ({ ...prev, [automationId]: { ...(prevState || { entries: [] }), loading: false, error: (res as any).error } }))
     }
-  }, [listAuditLogs, autoLogs, logger])
+  }, [listAuditLogs, logger])
 
   const toggleLogOpen = async (automationId: string) => {
     const open = !logsOpen[automationId]
@@ -98,6 +113,23 @@ export function useAutomationsView(automationApi: AutomationsApi | null, logger:
     if (open && !autoLogs[automationId]) {
       await loadAutomationLogs(automationId, true)
     }
+  }
+
+  const closeLog = (automationId: string) => {
+    setLogsOpen(prev => {
+      if (!prev[automationId]) return prev
+      return { ...prev, [automationId]: false }
+    })
+  }
+
+  const clearLog = (automationId: string) => {
+    setAutoLogs(prev => {
+      if (!prev[automationId]) return prev
+      const next = { ...prev }
+      delete next[automationId]
+      return next
+    })
+    closeLog(automationId)
   }
 
   const toggleEnabled = async (automation: Automation) => {
@@ -139,7 +171,6 @@ export function useAutomationsView(automationApi: AutomationsApi | null, logger:
     automations,
     autoLoading,
     autoError,
-    autoNext,
     filterTag,
     filterName,
     autoEditOpen,

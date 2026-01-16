@@ -1,5 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { DeviceModel, DeviceModelSpec, ActionSpec } from '../proto/home/service'
+import { Dialog, DialogContent } from './ui/dialog'
+import { Button } from './ui/button'
+import { Input } from './ui/input'
+import { Textarea } from './ui/textarea'
 
 interface DeviceModelModalProps {
   open: boolean
@@ -83,8 +87,13 @@ export function DeviceModelModal({ open, initialModel, onCancel, onSubmit }: Dev
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="w-[720px] max-w-[92vw] max-h-[92vh] overflow-auto rounded-2xl bg-white dark:bg-surface p-4 border border-black/10 dark:border-white/10 shadow-2xl">
+    <Dialog
+      open={open}
+      onOpenChange={(nextOpen) => {
+        if (!nextOpen) onCancel()
+      }}
+    >
+      <DialogContent className="w-[720px] max-w-[92vw] max-h-[92vh] overflow-auto rounded-2xl bg-white/80 p-4 dark:bg-surface/80">
         <div className="flex items-center justify-between mb-3">
           <div className="text-lg font-semibold">{title}</div>
           <button className="rounded-lg p-2 hover:bg-black/5 dark:hover:bg-white/5" onClick={onCancel}>✕</button>
@@ -95,37 +104,37 @@ export function DeviceModelModal({ open, initialModel, onCancel, onSubmit }: Dev
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="text-xs text-slate-500">模型 ID</label>
-            <input className="w-full rounded-lg border border-black/10 dark:border-white/10 bg-transparent px-2 py-1" value={id} onChange={e => setId(e.target.value)} placeholder="如 led-1" disabled={isEdit} />
+            <Input value={id} onChange={e => setId(e.target.value)} placeholder="如 led-1" disabled={isEdit} />
           </div>
           <div>
             <label className="text-xs text-slate-500">版本</label>
-            <input className="w-full rounded-lg border border-black/10 dark:border-white/10 bg-transparent px-2 py-1" value={version} onChange={e => setVersion(e.target.value)} placeholder="如 v1" disabled={isEdit} />
+            <Input value={version} onChange={e => setVersion(e.target.value)} placeholder="如 v1" disabled={isEdit} />
           </div>
           <div>
             <label className="text-xs text-slate-500">名称</label>
-            <input className="w-full rounded-lg border border-black/10 dark:border-white/10 bg-transparent px-2 py-1" value={name} onChange={e => setName(e.target.value)} placeholder="如 LED 灯" />
+            <Input value={name} onChange={e => setName(e.target.value)} placeholder="如 LED 灯" />
           </div>
           <div>
             <label className="text-xs text-slate-500">标签（逗号分隔）</label>
-            <input className="w-full rounded-lg border border-black/10 dark:border-white/10 bg-transparent px-2 py-1" value={tags} onChange={e => setTags(e.target.value)} placeholder="light,led" />
+            <Input value={tags} onChange={e => setTags(e.target.value)} placeholder="light,led" />
           </div>
           <div className="col-span-2">
             <label className="text-xs text-slate-500">描述</label>
-            <input className="w-full rounded-lg border border-black/10 dark:border-white/10 bg-transparent px-2 py-1" value={description} onChange={e => setDescription(e.target.value)} placeholder="描述用途/协议" />
+            <Input value={description} onChange={e => setDescription(e.target.value)} placeholder="描述用途/协议" />
           </div>
           <div className="col-span-2">
             <label className="text-xs text-slate-500">动作列表 Actions（JSON）</label>
-            <textarea className="w-full rounded-lg border border-black/10 dark:border-white/10 bg-transparent px-2 py-1 h-32 font-mono text-xs" value={actions} onChange={e => setActions(e.target.value)} placeholder={actionHint} />
+            <Textarea className="h-32 font-mono text-xs" value={actions} onChange={e => setActions(e.target.value)} placeholder={actionHint} />
           </div>
           <div className="col-span-2">
             <label className="text-xs text-slate-500">状态字段 Schema（JSON）</label>
-            <textarea className="w-full rounded-lg border border-black/10 dark:border-white/10 bg-transparent px-2 py-1 h-20 font-mono text-xs" value={stateSchema} onChange={e => setStateSchema(e.target.value)} />
+            <Textarea className="h-20 font-mono text-xs" value={stateSchema} onChange={e => setStateSchema(e.target.value)} />
           </div>
         </div>
 
         <div className="mt-4 flex justify-end gap-2">
-          <button className="px-3 py-2 rounded-lg border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5" onClick={onCancel}>取消</button>
-          <button
+          <Button variant="outline" className="px-3 py-2 rounded-lg" onClick={onCancel}>取消</Button>
+          <Button
             className="px-3 py-2 rounded-xl bg-gradient-to-r from-prime-500 to-prime-600 text-white hover:from-prime-600 hover:to-prime-700"
             onClick={async () => {
               setError('')
@@ -161,9 +170,9 @@ export function DeviceModelModal({ open, initialModel, onCancel, onSubmit }: Dev
             }}
           >
             {isEdit ? '保存' : '创建'}
-          </button>
+          </Button>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   )
 }

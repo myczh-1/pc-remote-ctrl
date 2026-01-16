@@ -1,5 +1,7 @@
 import type { LogEntry as AuditLogEntry } from '../proto/home/service'
 import type { LogEntry as LocalLogEntry } from '../types'
+import { Button } from './ui/button'
+import { Input } from './ui/input'
 
 interface ConsoleProps {
   auditLogs: AuditLogEntry[]
@@ -75,58 +77,61 @@ export function Console({
         </div>
         <div className="flex items-center gap-2">
           {!fullScreen && (
-            <button
+            <Button
               onClick={onExpand}
               title="放大"
-              className="w-8 h-8 rounded-full border border-black/10 dark:border-white/15 grid place-items-center hover:bg-black/5 dark:hover:bg-white/[0.08]"
+              variant="outline"
+              className="w-8 h-8 rounded-full p-0"
             >
               <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M7 7h4M7 7v4M17 17h-4M17 17v-4" />
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 15l-2 2m0 0H7m0 0v0M15 9l2-2m0 0h0m0 0v0" />
               </svg>
-            </button>
+            </Button>
           )}
           {fullScreen && (
-            <button
+            <Button
               onClick={onCloseFull}
               title="关闭"
-              className="w-8 h-8 rounded-full border border-black/10 dark:border-white/15 grid place-items-center hover:bg-black/5 dark:hover:bg-white/[0.08]"
+              variant="outline"
+              className="w-8 h-8 rounded-full p-0"
             >
               <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 6l12 12M18 6l-12 12" />
               </svg>
-            </button>
+            </Button>
           )}
         </div>
       </div>
 
       <div className={contentLayout}>
         <div className="grid gap-2 sm:grid-cols-3">
-          <input
+          <Input
             value={filters.kind}
             onChange={e => onChangeFilters({ kind: e.target.value })}
             placeholder="事件类型 (kind)"
-            className="px-3 py-2 rounded-lg border border-black/10 dark:border-white/10 bg-white/80 dark:bg-white/[0.05] text-sm"
+            className="text-sm"
           />
-          <input
+          <Input
             value={filters.subject}
             onChange={e => onChangeFilters({ subject: e.target.value })}
             placeholder="目标 ID (subject)"
-            className="px-3 py-2 rounded-lg border border-black/10 dark:border-white/10 bg-white/80 dark:bg-white/[0.05] text-sm"
+            className="text-sm"
           />
           <div className="flex gap-2">
-            <button
+            <Button
               onClick={onApplyFilters}
               className="flex-1 px-3 py-2 rounded-lg bg-prime-500 text-white text-sm hover:bg-prime-600 active:scale-[0.99]"
             >
               应用筛选
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={onResetFilters}
-              className="px-3 py-2 rounded-lg border border-black/10 dark:border-white/10 text-sm hover:bg-black/5 dark:hover:bg-white/[0.08]"
+              variant="outline"
+              className="px-3 py-2 text-sm"
             >
               重置
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -180,21 +185,23 @@ export function Console({
         </div>
 
         <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-          <button
+          <Button
             onClick={onRefresh}
             disabled={loading}
-            className="px-3 py-1 rounded-full border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/[0.08] disabled:opacity-50"
+            variant="outline"
+            className="px-3 py-1 rounded-full text-xs"
           >
             刷新
-          </button>
+          </Button>
           {supported && (
-            <button
+            <Button
               onClick={onLoadMore}
               disabled={!hasMore || loading}
-              className="px-3 py-1 rounded-full border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/[0.08] disabled:opacity-50"
+              variant="outline"
+              className="px-3 py-1 rounded-full text-xs"
             >
               加载更多
-            </button>
+            </Button>
           )}
         </div>
       </div>
