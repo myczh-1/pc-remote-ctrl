@@ -78,11 +78,10 @@ func (FrameType) EnumDescriptor() ([]byte, []int) {
 
 type RegisterRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	DeviceId      string                 `protobuf:"bytes,1,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty"`               // 设备唯一ID
-	HomeGrpcAddr  string                 `protobuf:"bytes,2,opt,name=home_grpc_addr,json=homeGrpcAddr,proto3" json:"home_grpc_addr,omitempty"` // 设备侧 HomeService 可达地址，例如 10.0.0.5:7071 或公网IP:端口
-	Secret        string                 `protobuf:"bytes,3,opt,name=secret,proto3" json:"secret,omitempty"`                                   // 设备注册密钥（与云端配置匹配）
-	Tags          []string               `protobuf:"bytes,4,rep,name=tags,proto3" json:"tags,omitempty"`                                       // 标签（可用于路由/过滤）
-	TtlSec        int32                  `protobuf:"varint,5,opt,name=ttl_sec,json=ttlSec,proto3" json:"ttl_sec,omitempty"`                    // 注册有效期，心跳刷新
+	DeviceId      string                 `protobuf:"bytes,1,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty"` // 设备唯一ID
+	Secret        string                 `protobuf:"bytes,3,opt,name=secret,proto3" json:"secret,omitempty"`                     // 设备注册密钥（与云端配置匹配）
+	Tags          []string               `protobuf:"bytes,4,rep,name=tags,proto3" json:"tags,omitempty"`                         // 标签（可用于路由/过滤）
+	TtlSec        int32                  `protobuf:"varint,5,opt,name=ttl_sec,json=ttlSec,proto3" json:"ttl_sec,omitempty"`      // 注册有效期，心跳刷新
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -120,13 +119,6 @@ func (*RegisterRequest) Descriptor() ([]byte, []int) {
 func (x *RegisterRequest) GetDeviceId() string {
 	if x != nil {
 		return x.DeviceId
-	}
-	return ""
-}
-
-func (x *RegisterRequest) GetHomeGrpcAddr() string {
-	if x != nil {
-		return x.HomeGrpcAddr
 	}
 	return ""
 }
@@ -372,13 +364,12 @@ var File_cloud_agent_proto protoreflect.FileDescriptor
 
 const file_cloud_agent_proto_rawDesc = "" +
 	"\n" +
-	"\x11cloud/agent.proto\x12\x17remote_control.cloud.v1\"\x99\x01\n" +
+	"\x11cloud/agent.proto\x12\x17remote_control.cloud.v1\"\x89\x01\n" +
 	"\x0fRegisterRequest\x12\x1b\n" +
-	"\tdevice_id\x18\x01 \x01(\tR\bdeviceId\x12$\n" +
-	"\x0ehome_grpc_addr\x18\x02 \x01(\tR\fhomeGrpcAddr\x12\x16\n" +
+	"\tdevice_id\x18\x01 \x01(\tR\bdeviceId\x12\x16\n" +
 	"\x06secret\x18\x03 \x01(\tR\x06secret\x12\x12\n" +
 	"\x04tags\x18\x04 \x03(\tR\x04tags\x12\x17\n" +
-	"\attl_sec\x18\x05 \x01(\x05R\x06ttlSec\"<\n" +
+	"\attl_sec\x18\x05 \x01(\x05R\x06ttlSecJ\x04\b\x02\x10\x03R\x0ehome_grpc_addr\"<\n" +
 	"\x10RegisterResponse\x12\x0e\n" +
 	"\x02ok\x18\x01 \x01(\bR\x02ok\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\"/\n" +

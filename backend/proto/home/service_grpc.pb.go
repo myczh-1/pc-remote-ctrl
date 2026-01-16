@@ -923,3 +923,219 @@ var DeviceModelService_ServiceDesc = grpc.ServiceDesc{
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "home/service.proto",
 }
+
+const (
+	CloudConfigService_ListCloudConfigs_FullMethodName  = "/remote_control.home.CloudConfigService/ListCloudConfigs"
+	CloudConfigService_UpsertCloudConfig_FullMethodName = "/remote_control.home.CloudConfigService/UpsertCloudConfig"
+	CloudConfigService_DeleteCloudConfig_FullMethodName = "/remote_control.home.CloudConfigService/DeleteCloudConfig"
+	CloudConfigService_ApplyCloudConfig_FullMethodName  = "/remote_control.home.CloudConfigService/ApplyCloudConfig"
+)
+
+// CloudConfigServiceClient is the client API for CloudConfigService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type CloudConfigServiceClient interface {
+	ListCloudConfigs(ctx context.Context, in *ListCloudConfigsRequest, opts ...grpc.CallOption) (*ListCloudConfigsResponse, error)
+	UpsertCloudConfig(ctx context.Context, in *UpsertCloudConfigRequest, opts ...grpc.CallOption) (*UpsertCloudConfigResponse, error)
+	DeleteCloudConfig(ctx context.Context, in *DeleteCloudConfigRequest, opts ...grpc.CallOption) (*DeleteCloudConfigResponse, error)
+	ApplyCloudConfig(ctx context.Context, in *ApplyCloudConfigRequest, opts ...grpc.CallOption) (*ApplyCloudConfigResponse, error)
+}
+
+type cloudConfigServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewCloudConfigServiceClient(cc grpc.ClientConnInterface) CloudConfigServiceClient {
+	return &cloudConfigServiceClient{cc}
+}
+
+func (c *cloudConfigServiceClient) ListCloudConfigs(ctx context.Context, in *ListCloudConfigsRequest, opts ...grpc.CallOption) (*ListCloudConfigsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListCloudConfigsResponse)
+	err := c.cc.Invoke(ctx, CloudConfigService_ListCloudConfigs_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *cloudConfigServiceClient) UpsertCloudConfig(ctx context.Context, in *UpsertCloudConfigRequest, opts ...grpc.CallOption) (*UpsertCloudConfigResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpsertCloudConfigResponse)
+	err := c.cc.Invoke(ctx, CloudConfigService_UpsertCloudConfig_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *cloudConfigServiceClient) DeleteCloudConfig(ctx context.Context, in *DeleteCloudConfigRequest, opts ...grpc.CallOption) (*DeleteCloudConfigResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteCloudConfigResponse)
+	err := c.cc.Invoke(ctx, CloudConfigService_DeleteCloudConfig_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *cloudConfigServiceClient) ApplyCloudConfig(ctx context.Context, in *ApplyCloudConfigRequest, opts ...grpc.CallOption) (*ApplyCloudConfigResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ApplyCloudConfigResponse)
+	err := c.cc.Invoke(ctx, CloudConfigService_ApplyCloudConfig_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// CloudConfigServiceServer is the server API for CloudConfigService service.
+// All implementations must embed UnimplementedCloudConfigServiceServer
+// for forward compatibility.
+type CloudConfigServiceServer interface {
+	ListCloudConfigs(context.Context, *ListCloudConfigsRequest) (*ListCloudConfigsResponse, error)
+	UpsertCloudConfig(context.Context, *UpsertCloudConfigRequest) (*UpsertCloudConfigResponse, error)
+	DeleteCloudConfig(context.Context, *DeleteCloudConfigRequest) (*DeleteCloudConfigResponse, error)
+	ApplyCloudConfig(context.Context, *ApplyCloudConfigRequest) (*ApplyCloudConfigResponse, error)
+	mustEmbedUnimplementedCloudConfigServiceServer()
+}
+
+// UnimplementedCloudConfigServiceServer must be embedded to have
+// forward compatible implementations.
+//
+// NOTE: this should be embedded by value instead of pointer to avoid a nil
+// pointer dereference when methods are called.
+type UnimplementedCloudConfigServiceServer struct{}
+
+func (UnimplementedCloudConfigServiceServer) ListCloudConfigs(context.Context, *ListCloudConfigsRequest) (*ListCloudConfigsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListCloudConfigs not implemented")
+}
+func (UnimplementedCloudConfigServiceServer) UpsertCloudConfig(context.Context, *UpsertCloudConfigRequest) (*UpsertCloudConfigResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpsertCloudConfig not implemented")
+}
+func (UnimplementedCloudConfigServiceServer) DeleteCloudConfig(context.Context, *DeleteCloudConfigRequest) (*DeleteCloudConfigResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteCloudConfig not implemented")
+}
+func (UnimplementedCloudConfigServiceServer) ApplyCloudConfig(context.Context, *ApplyCloudConfigRequest) (*ApplyCloudConfigResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ApplyCloudConfig not implemented")
+}
+func (UnimplementedCloudConfigServiceServer) mustEmbedUnimplementedCloudConfigServiceServer() {}
+func (UnimplementedCloudConfigServiceServer) testEmbeddedByValue()                            {}
+
+// UnsafeCloudConfigServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to CloudConfigServiceServer will
+// result in compilation errors.
+type UnsafeCloudConfigServiceServer interface {
+	mustEmbedUnimplementedCloudConfigServiceServer()
+}
+
+func RegisterCloudConfigServiceServer(s grpc.ServiceRegistrar, srv CloudConfigServiceServer) {
+	// If the following call pancis, it indicates UnimplementedCloudConfigServiceServer was
+	// embedded by pointer and is nil.  This will cause panics if an
+	// unimplemented method is ever invoked, so we test this at initialization
+	// time to prevent it from happening at runtime later due to I/O.
+	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
+		t.testEmbeddedByValue()
+	}
+	s.RegisterService(&CloudConfigService_ServiceDesc, srv)
+}
+
+func _CloudConfigService_ListCloudConfigs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListCloudConfigsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CloudConfigServiceServer).ListCloudConfigs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CloudConfigService_ListCloudConfigs_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CloudConfigServiceServer).ListCloudConfigs(ctx, req.(*ListCloudConfigsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CloudConfigService_UpsertCloudConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpsertCloudConfigRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CloudConfigServiceServer).UpsertCloudConfig(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CloudConfigService_UpsertCloudConfig_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CloudConfigServiceServer).UpsertCloudConfig(ctx, req.(*UpsertCloudConfigRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CloudConfigService_DeleteCloudConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteCloudConfigRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CloudConfigServiceServer).DeleteCloudConfig(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CloudConfigService_DeleteCloudConfig_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CloudConfigServiceServer).DeleteCloudConfig(ctx, req.(*DeleteCloudConfigRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CloudConfigService_ApplyCloudConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ApplyCloudConfigRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CloudConfigServiceServer).ApplyCloudConfig(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CloudConfigService_ApplyCloudConfig_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CloudConfigServiceServer).ApplyCloudConfig(ctx, req.(*ApplyCloudConfigRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// CloudConfigService_ServiceDesc is the grpc.ServiceDesc for CloudConfigService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var CloudConfigService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "remote_control.home.CloudConfigService",
+	HandlerType: (*CloudConfigServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "ListCloudConfigs",
+			Handler:    _CloudConfigService_ListCloudConfigs_Handler,
+		},
+		{
+			MethodName: "UpsertCloudConfig",
+			Handler:    _CloudConfigService_UpsertCloudConfig_Handler,
+		},
+		{
+			MethodName: "DeleteCloudConfig",
+			Handler:    _CloudConfigService_DeleteCloudConfig_Handler,
+		},
+		{
+			MethodName: "ApplyCloudConfig",
+			Handler:    _CloudConfigService_ApplyCloudConfig_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "home/service.proto",
+}

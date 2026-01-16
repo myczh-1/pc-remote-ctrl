@@ -2896,6 +2896,482 @@ func (x *DeleteDeviceModelResponse) GetMessage() string {
 	return ""
 }
 
+type CloudConfig struct {
+	state                     protoimpl.MessageState `protogen:"open.v1"`
+	Id                        string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name                      string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	CloudAddr                 string                 `protobuf:"bytes,3,opt,name=cloud_addr,json=cloudAddr,proto3" json:"cloud_addr,omitempty"`
+	AgentDeviceId             string                 `protobuf:"bytes,4,opt,name=agent_device_id,json=agentDeviceId,proto3" json:"agent_device_id,omitempty"`
+	AgentSecret               string                 `protobuf:"bytes,5,opt,name=agent_secret,json=agentSecret,proto3" json:"agent_secret,omitempty"`
+	AgentTunnelUnaryTimeoutMs int32                  `protobuf:"varint,7,opt,name=agent_tunnel_unary_timeout_ms,json=agentTunnelUnaryTimeoutMs,proto3" json:"agent_tunnel_unary_timeout_ms,omitempty"`
+	Active                    bool                   `protobuf:"varint,8,opt,name=active,proto3" json:"active,omitempty"`
+	UpdatedAt                 int64                  `protobuf:"varint,9,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields             protoimpl.UnknownFields
+	sizeCache                 protoimpl.SizeCache
+}
+
+func (x *CloudConfig) Reset() {
+	*x = CloudConfig{}
+	mi := &file_home_service_proto_msgTypes[44]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CloudConfig) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CloudConfig) ProtoMessage() {}
+
+func (x *CloudConfig) ProtoReflect() protoreflect.Message {
+	mi := &file_home_service_proto_msgTypes[44]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CloudConfig.ProtoReflect.Descriptor instead.
+func (*CloudConfig) Descriptor() ([]byte, []int) {
+	return file_home_service_proto_rawDescGZIP(), []int{44}
+}
+
+func (x *CloudConfig) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *CloudConfig) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *CloudConfig) GetCloudAddr() string {
+	if x != nil {
+		return x.CloudAddr
+	}
+	return ""
+}
+
+func (x *CloudConfig) GetAgentDeviceId() string {
+	if x != nil {
+		return x.AgentDeviceId
+	}
+	return ""
+}
+
+func (x *CloudConfig) GetAgentSecret() string {
+	if x != nil {
+		return x.AgentSecret
+	}
+	return ""
+}
+
+func (x *CloudConfig) GetAgentTunnelUnaryTimeoutMs() int32 {
+	if x != nil {
+		return x.AgentTunnelUnaryTimeoutMs
+	}
+	return 0
+}
+
+func (x *CloudConfig) GetActive() bool {
+	if x != nil {
+		return x.Active
+	}
+	return false
+}
+
+func (x *CloudConfig) GetUpdatedAt() int64 {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return 0
+}
+
+type ListCloudConfigsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListCloudConfigsRequest) Reset() {
+	*x = ListCloudConfigsRequest{}
+	mi := &file_home_service_proto_msgTypes[45]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListCloudConfigsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListCloudConfigsRequest) ProtoMessage() {}
+
+func (x *ListCloudConfigsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_home_service_proto_msgTypes[45]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListCloudConfigsRequest.ProtoReflect.Descriptor instead.
+func (*ListCloudConfigsRequest) Descriptor() ([]byte, []int) {
+	return file_home_service_proto_rawDescGZIP(), []int{45}
+}
+
+type ListCloudConfigsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Configs       []*CloudConfig         `protobuf:"bytes,1,rep,name=configs,proto3" json:"configs,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListCloudConfigsResponse) Reset() {
+	*x = ListCloudConfigsResponse{}
+	mi := &file_home_service_proto_msgTypes[46]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListCloudConfigsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListCloudConfigsResponse) ProtoMessage() {}
+
+func (x *ListCloudConfigsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_home_service_proto_msgTypes[46]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListCloudConfigsResponse.ProtoReflect.Descriptor instead.
+func (*ListCloudConfigsResponse) Descriptor() ([]byte, []int) {
+	return file_home_service_proto_rawDescGZIP(), []int{46}
+}
+
+func (x *ListCloudConfigsResponse) GetConfigs() []*CloudConfig {
+	if x != nil {
+		return x.Configs
+	}
+	return nil
+}
+
+type UpsertCloudConfigRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Config        *CloudConfig           `protobuf:"bytes,1,opt,name=config,proto3" json:"config,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpsertCloudConfigRequest) Reset() {
+	*x = UpsertCloudConfigRequest{}
+	mi := &file_home_service_proto_msgTypes[47]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpsertCloudConfigRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpsertCloudConfigRequest) ProtoMessage() {}
+
+func (x *UpsertCloudConfigRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_home_service_proto_msgTypes[47]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpsertCloudConfigRequest.ProtoReflect.Descriptor instead.
+func (*UpsertCloudConfigRequest) Descriptor() ([]byte, []int) {
+	return file_home_service_proto_rawDescGZIP(), []int{47}
+}
+
+func (x *UpsertCloudConfigRequest) GetConfig() *CloudConfig {
+	if x != nil {
+		return x.Config
+	}
+	return nil
+}
+
+type UpsertCloudConfigResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Ok            bool                   `protobuf:"varint,1,opt,name=ok,proto3" json:"ok,omitempty"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	ConfigId      string                 `protobuf:"bytes,3,opt,name=config_id,json=configId,proto3" json:"config_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpsertCloudConfigResponse) Reset() {
+	*x = UpsertCloudConfigResponse{}
+	mi := &file_home_service_proto_msgTypes[48]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpsertCloudConfigResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpsertCloudConfigResponse) ProtoMessage() {}
+
+func (x *UpsertCloudConfigResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_home_service_proto_msgTypes[48]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpsertCloudConfigResponse.ProtoReflect.Descriptor instead.
+func (*UpsertCloudConfigResponse) Descriptor() ([]byte, []int) {
+	return file_home_service_proto_rawDescGZIP(), []int{48}
+}
+
+func (x *UpsertCloudConfigResponse) GetOk() bool {
+	if x != nil {
+		return x.Ok
+	}
+	return false
+}
+
+func (x *UpsertCloudConfigResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *UpsertCloudConfigResponse) GetConfigId() string {
+	if x != nil {
+		return x.ConfigId
+	}
+	return ""
+}
+
+type DeleteCloudConfigRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ConfigId      string                 `protobuf:"bytes,1,opt,name=config_id,json=configId,proto3" json:"config_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteCloudConfigRequest) Reset() {
+	*x = DeleteCloudConfigRequest{}
+	mi := &file_home_service_proto_msgTypes[49]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteCloudConfigRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteCloudConfigRequest) ProtoMessage() {}
+
+func (x *DeleteCloudConfigRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_home_service_proto_msgTypes[49]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteCloudConfigRequest.ProtoReflect.Descriptor instead.
+func (*DeleteCloudConfigRequest) Descriptor() ([]byte, []int) {
+	return file_home_service_proto_rawDescGZIP(), []int{49}
+}
+
+func (x *DeleteCloudConfigRequest) GetConfigId() string {
+	if x != nil {
+		return x.ConfigId
+	}
+	return ""
+}
+
+type DeleteCloudConfigResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Ok            bool                   `protobuf:"varint,1,opt,name=ok,proto3" json:"ok,omitempty"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteCloudConfigResponse) Reset() {
+	*x = DeleteCloudConfigResponse{}
+	mi := &file_home_service_proto_msgTypes[50]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteCloudConfigResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteCloudConfigResponse) ProtoMessage() {}
+
+func (x *DeleteCloudConfigResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_home_service_proto_msgTypes[50]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteCloudConfigResponse.ProtoReflect.Descriptor instead.
+func (*DeleteCloudConfigResponse) Descriptor() ([]byte, []int) {
+	return file_home_service_proto_rawDescGZIP(), []int{50}
+}
+
+func (x *DeleteCloudConfigResponse) GetOk() bool {
+	if x != nil {
+		return x.Ok
+	}
+	return false
+}
+
+func (x *DeleteCloudConfigResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+type ApplyCloudConfigRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ConfigId      string                 `protobuf:"bytes,1,opt,name=config_id,json=configId,proto3" json:"config_id,omitempty"` // empty means disable cloud
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ApplyCloudConfigRequest) Reset() {
+	*x = ApplyCloudConfigRequest{}
+	mi := &file_home_service_proto_msgTypes[51]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ApplyCloudConfigRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ApplyCloudConfigRequest) ProtoMessage() {}
+
+func (x *ApplyCloudConfigRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_home_service_proto_msgTypes[51]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ApplyCloudConfigRequest.ProtoReflect.Descriptor instead.
+func (*ApplyCloudConfigRequest) Descriptor() ([]byte, []int) {
+	return file_home_service_proto_rawDescGZIP(), []int{51}
+}
+
+func (x *ApplyCloudConfigRequest) GetConfigId() string {
+	if x != nil {
+		return x.ConfigId
+	}
+	return ""
+}
+
+type ApplyCloudConfigResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Ok            bool                   `protobuf:"varint,1,opt,name=ok,proto3" json:"ok,omitempty"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ApplyCloudConfigResponse) Reset() {
+	*x = ApplyCloudConfigResponse{}
+	mi := &file_home_service_proto_msgTypes[52]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ApplyCloudConfigResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ApplyCloudConfigResponse) ProtoMessage() {}
+
+func (x *ApplyCloudConfigResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_home_service_proto_msgTypes[52]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ApplyCloudConfigResponse.ProtoReflect.Descriptor instead.
+func (*ApplyCloudConfigResponse) Descriptor() ([]byte, []int) {
+	return file_home_service_proto_rawDescGZIP(), []int{52}
+}
+
+func (x *ApplyCloudConfigResponse) GetOk() bool {
+	if x != nil {
+		return x.Ok
+	}
+	return false
+}
+
+func (x *ApplyCloudConfigResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
 var File_home_service_proto protoreflect.FileDescriptor
 
 const file_home_service_proto_rawDesc = "" +
@@ -3101,6 +3577,36 @@ const file_home_service_proto_rawDesc = "" +
 	"\aversion\x18\x02 \x01(\tR\aversion\"E\n" +
 	"\x19DeleteDeviceModelResponse\x12\x0e\n" +
 	"\x02ok\x18\x01 \x01(\bR\x02ok\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"\xaa\x02\n" +
+	"\vCloudConfig\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1d\n" +
+	"\n" +
+	"cloud_addr\x18\x03 \x01(\tR\tcloudAddr\x12&\n" +
+	"\x0fagent_device_id\x18\x04 \x01(\tR\ragentDeviceId\x12!\n" +
+	"\fagent_secret\x18\x05 \x01(\tR\vagentSecret\x12@\n" +
+	"\x1dagent_tunnel_unary_timeout_ms\x18\a \x01(\x05R\x19agentTunnelUnaryTimeoutMs\x12\x16\n" +
+	"\x06active\x18\b \x01(\bR\x06active\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\t \x01(\x03R\tupdatedAtJ\x04\b\x06\x10\aR\x0ehome_grpc_addr\"\x19\n" +
+	"\x17ListCloudConfigsRequest\"V\n" +
+	"\x18ListCloudConfigsResponse\x12:\n" +
+	"\aconfigs\x18\x01 \x03(\v2 .remote_control.home.CloudConfigR\aconfigs\"T\n" +
+	"\x18UpsertCloudConfigRequest\x128\n" +
+	"\x06config\x18\x01 \x01(\v2 .remote_control.home.CloudConfigR\x06config\"b\n" +
+	"\x19UpsertCloudConfigResponse\x12\x0e\n" +
+	"\x02ok\x18\x01 \x01(\bR\x02ok\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\x12\x1b\n" +
+	"\tconfig_id\x18\x03 \x01(\tR\bconfigId\"7\n" +
+	"\x18DeleteCloudConfigRequest\x12\x1b\n" +
+	"\tconfig_id\x18\x01 \x01(\tR\bconfigId\"E\n" +
+	"\x19DeleteCloudConfigResponse\x12\x0e\n" +
+	"\x02ok\x18\x01 \x01(\bR\x02ok\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"6\n" +
+	"\x17ApplyCloudConfigRequest\x12\x1b\n" +
+	"\tconfig_id\x18\x01 \x01(\tR\bconfigId\"D\n" +
+	"\x18ApplyCloudConfigResponse\x12\x0e\n" +
+	"\x02ok\x18\x01 \x01(\bR\x02ok\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage*K\n" +
 	"\vAdapterKind\x12\x1c\n" +
 	"\x18ADAPTER_KIND_UNSPECIFIED\x10\x00\x12\b\n" +
@@ -3153,7 +3659,12 @@ const file_home_service_proto_rawDesc = "" +
 	"\x0eGetDeviceModel\x12*.remote_control.home.GetDeviceModelRequest\x1a+.remote_control.home.GetDeviceModelResponse\x12r\n" +
 	"\x11CreateDeviceModel\x12-.remote_control.home.CreateDeviceModelRequest\x1a..remote_control.home.CreateDeviceModelResponse\x12r\n" +
 	"\x11UpdateDeviceModel\x12-.remote_control.home.UpdateDeviceModelRequest\x1a..remote_control.home.UpdateDeviceModelResponse\x12r\n" +
-	"\x11DeleteDeviceModel\x12-.remote_control.home.DeleteDeviceModelRequest\x1a..remote_control.home.DeleteDeviceModelResponseB*Z(pc-remote-ctrl/backend/proto/home;homepbb\x06proto3"
+	"\x11DeleteDeviceModel\x12-.remote_control.home.DeleteDeviceModelRequest\x1a..remote_control.home.DeleteDeviceModelResponse2\xde\x03\n" +
+	"\x12CloudConfigService\x12o\n" +
+	"\x10ListCloudConfigs\x12,.remote_control.home.ListCloudConfigsRequest\x1a-.remote_control.home.ListCloudConfigsResponse\x12r\n" +
+	"\x11UpsertCloudConfig\x12-.remote_control.home.UpsertCloudConfigRequest\x1a..remote_control.home.UpsertCloudConfigResponse\x12r\n" +
+	"\x11DeleteCloudConfig\x12-.remote_control.home.DeleteCloudConfigRequest\x1a..remote_control.home.DeleteCloudConfigResponse\x12o\n" +
+	"\x10ApplyCloudConfig\x12,.remote_control.home.ApplyCloudConfigRequest\x1a-.remote_control.home.ApplyCloudConfigResponseB*Z(pc-remote-ctrl/backend/proto/home;homepbb\x06proto3"
 
 var (
 	file_home_service_proto_rawDescOnce sync.Once
@@ -3168,7 +3679,7 @@ func file_home_service_proto_rawDescGZIP() []byte {
 }
 
 var file_home_service_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
-var file_home_service_proto_msgTypes = make([]protoimpl.MessageInfo, 49)
+var file_home_service_proto_msgTypes = make([]protoimpl.MessageInfo, 58)
 var file_home_service_proto_goTypes = []any{
 	(AdapterKind)(0),                     // 0: remote_control.home.AdapterKind
 	(TelemetryEventKind)(0),              // 1: remote_control.home.TelemetryEventKind
@@ -3219,88 +3730,107 @@ var file_home_service_proto_goTypes = []any{
 	(*UpdateDeviceModelResponse)(nil),    // 46: remote_control.home.UpdateDeviceModelResponse
 	(*DeleteDeviceModelRequest)(nil),     // 47: remote_control.home.DeleteDeviceModelRequest
 	(*DeleteDeviceModelResponse)(nil),    // 48: remote_control.home.DeleteDeviceModelResponse
-	nil,                                  // 49: remote_control.home.Adapter.ConfigEntry
-	nil,                                  // 50: remote_control.home.ActionSpec.ArgsSchemaEntry
-	nil,                                  // 51: remote_control.home.Device.TopicsEntry
-	nil,                                  // 52: remote_control.home.DeviceModel.StateSchemaEntry
-	nil,                                  // 53: remote_control.home.DeviceModelSpec.StateSchemaEntry
-	(*structpb.Struct)(nil),              // 54: google.protobuf.Struct
-	(*structpb.Value)(nil),               // 55: google.protobuf.Value
+	(*CloudConfig)(nil),                  // 49: remote_control.home.CloudConfig
+	(*ListCloudConfigsRequest)(nil),      // 50: remote_control.home.ListCloudConfigsRequest
+	(*ListCloudConfigsResponse)(nil),     // 51: remote_control.home.ListCloudConfigsResponse
+	(*UpsertCloudConfigRequest)(nil),     // 52: remote_control.home.UpsertCloudConfigRequest
+	(*UpsertCloudConfigResponse)(nil),    // 53: remote_control.home.UpsertCloudConfigResponse
+	(*DeleteCloudConfigRequest)(nil),     // 54: remote_control.home.DeleteCloudConfigRequest
+	(*DeleteCloudConfigResponse)(nil),    // 55: remote_control.home.DeleteCloudConfigResponse
+	(*ApplyCloudConfigRequest)(nil),      // 56: remote_control.home.ApplyCloudConfigRequest
+	(*ApplyCloudConfigResponse)(nil),     // 57: remote_control.home.ApplyCloudConfigResponse
+	nil,                                  // 58: remote_control.home.Adapter.ConfigEntry
+	nil,                                  // 59: remote_control.home.ActionSpec.ArgsSchemaEntry
+	nil,                                  // 60: remote_control.home.Device.TopicsEntry
+	nil,                                  // 61: remote_control.home.DeviceModel.StateSchemaEntry
+	nil,                                  // 62: remote_control.home.DeviceModelSpec.StateSchemaEntry
+	(*structpb.Struct)(nil),              // 63: google.protobuf.Struct
+	(*structpb.Value)(nil),               // 64: google.protobuf.Value
 }
 var file_home_service_proto_depIdxs = []int32{
 	0,  // 0: remote_control.home.Adapter.kind:type_name -> remote_control.home.AdapterKind
-	49, // 1: remote_control.home.Adapter.config:type_name -> remote_control.home.Adapter.ConfigEntry
-	50, // 2: remote_control.home.ActionSpec.args_schema:type_name -> remote_control.home.ActionSpec.ArgsSchemaEntry
-	51, // 3: remote_control.home.Device.topics:type_name -> remote_control.home.Device.TopicsEntry
+	58, // 1: remote_control.home.Adapter.config:type_name -> remote_control.home.Adapter.ConfigEntry
+	59, // 2: remote_control.home.ActionSpec.args_schema:type_name -> remote_control.home.ActionSpec.ArgsSchemaEntry
+	60, // 3: remote_control.home.Device.topics:type_name -> remote_control.home.Device.TopicsEntry
 	5,  // 4: remote_control.home.Device.adapter:type_name -> remote_control.home.Adapter
 	6,  // 5: remote_control.home.Device.actions:type_name -> remote_control.home.ActionSpec
-	54, // 6: remote_control.home.Device.state:type_name -> google.protobuf.Struct
+	63, // 6: remote_control.home.Device.state:type_name -> google.protobuf.Struct
 	7,  // 7: remote_control.home.ListDevicesResponse.devices:type_name -> remote_control.home.Device
 	1,  // 8: remote_control.home.DeviceEvent.kind:type_name -> remote_control.home.TelemetryEventKind
-	54, // 9: remote_control.home.DeviceEvent.payload:type_name -> google.protobuf.Struct
+	63, // 9: remote_control.home.DeviceEvent.payload:type_name -> google.protobuf.Struct
 	7,  // 10: remote_control.home.UpsertDeviceRequest.device:type_name -> remote_control.home.Device
-	54, // 11: remote_control.home.InvokeActionRequest.args:type_name -> google.protobuf.Struct
-	54, // 12: remote_control.home.InvokeActionResponse.data:type_name -> google.protobuf.Struct
-	54, // 13: remote_control.home.LogEntry.data:type_name -> google.protobuf.Struct
+	63, // 11: remote_control.home.InvokeActionRequest.args:type_name -> google.protobuf.Struct
+	63, // 12: remote_control.home.InvokeActionResponse.data:type_name -> google.protobuf.Struct
+	63, // 13: remote_control.home.LogEntry.data:type_name -> google.protobuf.Struct
 	18, // 14: remote_control.home.ListLogsResponse.entries:type_name -> remote_control.home.LogEntry
 	3,  // 15: remote_control.home.AutomationCondition.kind:type_name -> remote_control.home.AutomationConditionKind
 	4,  // 16: remote_control.home.AutomationCondition.op:type_name -> remote_control.home.AutomationOperator
-	55, // 17: remote_control.home.AutomationCondition.value:type_name -> google.protobuf.Value
+	64, // 17: remote_control.home.AutomationCondition.value:type_name -> google.protobuf.Value
 	2,  // 18: remote_control.home.AutomationWhen.logic:type_name -> remote_control.home.AutomationLogic
 	23, // 19: remote_control.home.AutomationWhen.conditions:type_name -> remote_control.home.AutomationCondition
-	54, // 20: remote_control.home.AutomationAction.args:type_name -> google.protobuf.Struct
+	63, // 20: remote_control.home.AutomationAction.args:type_name -> google.protobuf.Struct
 	24, // 21: remote_control.home.Automation.when:type_name -> remote_control.home.AutomationWhen
 	25, // 22: remote_control.home.Automation.then:type_name -> remote_control.home.AutomationAction
 	26, // 23: remote_control.home.ListAutomationsResponse.automations:type_name -> remote_control.home.Automation
 	26, // 24: remote_control.home.UpsertAutomationRequest.automation:type_name -> remote_control.home.Automation
-	54, // 25: remote_control.home.TriggerAutomationRequest.payload:type_name -> google.protobuf.Struct
+	63, // 25: remote_control.home.TriggerAutomationRequest.payload:type_name -> google.protobuf.Struct
 	6,  // 26: remote_control.home.DeviceModel.actions:type_name -> remote_control.home.ActionSpec
-	52, // 27: remote_control.home.DeviceModel.state_schema:type_name -> remote_control.home.DeviceModel.StateSchemaEntry
+	61, // 27: remote_control.home.DeviceModel.state_schema:type_name -> remote_control.home.DeviceModel.StateSchemaEntry
 	6,  // 28: remote_control.home.DeviceModelSpec.actions:type_name -> remote_control.home.ActionSpec
-	53, // 29: remote_control.home.DeviceModelSpec.state_schema:type_name -> remote_control.home.DeviceModelSpec.StateSchemaEntry
+	62, // 29: remote_control.home.DeviceModelSpec.state_schema:type_name -> remote_control.home.DeviceModelSpec.StateSchemaEntry
 	37, // 30: remote_control.home.ListDeviceModelsResponse.models:type_name -> remote_control.home.DeviceModel
 	37, // 31: remote_control.home.GetDeviceModelResponse.model:type_name -> remote_control.home.DeviceModel
 	38, // 32: remote_control.home.CreateDeviceModelRequest.model:type_name -> remote_control.home.DeviceModelSpec
 	38, // 33: remote_control.home.UpdateDeviceModelRequest.model:type_name -> remote_control.home.DeviceModelSpec
-	8,  // 34: remote_control.home.HomeService.ListDevices:input_type -> remote_control.home.ListDevicesRequest
-	10, // 35: remote_control.home.HomeService.WatchDevices:input_type -> remote_control.home.WatchDevicesRequest
-	12, // 36: remote_control.home.HomeService.UpsertDevice:input_type -> remote_control.home.UpsertDeviceRequest
-	14, // 37: remote_control.home.HomeService.DeleteDevice:input_type -> remote_control.home.DeleteDeviceRequest
-	16, // 38: remote_control.home.HomeService.InvokeAction:input_type -> remote_control.home.InvokeActionRequest
-	19, // 39: remote_control.home.AuditService.ListLogs:input_type -> remote_control.home.ListLogsRequest
-	21, // 40: remote_control.home.AuditService.CleanupLogs:input_type -> remote_control.home.CleanupLogsRequest
-	27, // 41: remote_control.home.AutomationService.ListAutomations:input_type -> remote_control.home.ListAutomationsRequest
-	29, // 42: remote_control.home.AutomationService.UpsertAutomation:input_type -> remote_control.home.UpsertAutomationRequest
-	31, // 43: remote_control.home.AutomationService.DeleteAutomation:input_type -> remote_control.home.DeleteAutomationRequest
-	33, // 44: remote_control.home.AutomationService.SetAutomationEnabled:input_type -> remote_control.home.SetAutomationEnabledRequest
-	35, // 45: remote_control.home.AutomationService.TriggerAutomation:input_type -> remote_control.home.TriggerAutomationRequest
-	39, // 46: remote_control.home.DeviceModelService.ListDeviceModels:input_type -> remote_control.home.ListDeviceModelsRequest
-	41, // 47: remote_control.home.DeviceModelService.GetDeviceModel:input_type -> remote_control.home.GetDeviceModelRequest
-	43, // 48: remote_control.home.DeviceModelService.CreateDeviceModel:input_type -> remote_control.home.CreateDeviceModelRequest
-	45, // 49: remote_control.home.DeviceModelService.UpdateDeviceModel:input_type -> remote_control.home.UpdateDeviceModelRequest
-	47, // 50: remote_control.home.DeviceModelService.DeleteDeviceModel:input_type -> remote_control.home.DeleteDeviceModelRequest
-	9,  // 51: remote_control.home.HomeService.ListDevices:output_type -> remote_control.home.ListDevicesResponse
-	11, // 52: remote_control.home.HomeService.WatchDevices:output_type -> remote_control.home.DeviceEvent
-	13, // 53: remote_control.home.HomeService.UpsertDevice:output_type -> remote_control.home.UpsertDeviceResponse
-	15, // 54: remote_control.home.HomeService.DeleteDevice:output_type -> remote_control.home.DeleteDeviceResponse
-	17, // 55: remote_control.home.HomeService.InvokeAction:output_type -> remote_control.home.InvokeActionResponse
-	20, // 56: remote_control.home.AuditService.ListLogs:output_type -> remote_control.home.ListLogsResponse
-	22, // 57: remote_control.home.AuditService.CleanupLogs:output_type -> remote_control.home.CleanupLogsResponse
-	28, // 58: remote_control.home.AutomationService.ListAutomations:output_type -> remote_control.home.ListAutomationsResponse
-	30, // 59: remote_control.home.AutomationService.UpsertAutomation:output_type -> remote_control.home.UpsertAutomationResponse
-	32, // 60: remote_control.home.AutomationService.DeleteAutomation:output_type -> remote_control.home.DeleteAutomationResponse
-	34, // 61: remote_control.home.AutomationService.SetAutomationEnabled:output_type -> remote_control.home.SetAutomationEnabledResponse
-	36, // 62: remote_control.home.AutomationService.TriggerAutomation:output_type -> remote_control.home.TriggerAutomationResponse
-	40, // 63: remote_control.home.DeviceModelService.ListDeviceModels:output_type -> remote_control.home.ListDeviceModelsResponse
-	42, // 64: remote_control.home.DeviceModelService.GetDeviceModel:output_type -> remote_control.home.GetDeviceModelResponse
-	44, // 65: remote_control.home.DeviceModelService.CreateDeviceModel:output_type -> remote_control.home.CreateDeviceModelResponse
-	46, // 66: remote_control.home.DeviceModelService.UpdateDeviceModel:output_type -> remote_control.home.UpdateDeviceModelResponse
-	48, // 67: remote_control.home.DeviceModelService.DeleteDeviceModel:output_type -> remote_control.home.DeleteDeviceModelResponse
-	51, // [51:68] is the sub-list for method output_type
-	34, // [34:51] is the sub-list for method input_type
-	34, // [34:34] is the sub-list for extension type_name
-	34, // [34:34] is the sub-list for extension extendee
-	0,  // [0:34] is the sub-list for field type_name
+	49, // 34: remote_control.home.ListCloudConfigsResponse.configs:type_name -> remote_control.home.CloudConfig
+	49, // 35: remote_control.home.UpsertCloudConfigRequest.config:type_name -> remote_control.home.CloudConfig
+	8,  // 36: remote_control.home.HomeService.ListDevices:input_type -> remote_control.home.ListDevicesRequest
+	10, // 37: remote_control.home.HomeService.WatchDevices:input_type -> remote_control.home.WatchDevicesRequest
+	12, // 38: remote_control.home.HomeService.UpsertDevice:input_type -> remote_control.home.UpsertDeviceRequest
+	14, // 39: remote_control.home.HomeService.DeleteDevice:input_type -> remote_control.home.DeleteDeviceRequest
+	16, // 40: remote_control.home.HomeService.InvokeAction:input_type -> remote_control.home.InvokeActionRequest
+	19, // 41: remote_control.home.AuditService.ListLogs:input_type -> remote_control.home.ListLogsRequest
+	21, // 42: remote_control.home.AuditService.CleanupLogs:input_type -> remote_control.home.CleanupLogsRequest
+	27, // 43: remote_control.home.AutomationService.ListAutomations:input_type -> remote_control.home.ListAutomationsRequest
+	29, // 44: remote_control.home.AutomationService.UpsertAutomation:input_type -> remote_control.home.UpsertAutomationRequest
+	31, // 45: remote_control.home.AutomationService.DeleteAutomation:input_type -> remote_control.home.DeleteAutomationRequest
+	33, // 46: remote_control.home.AutomationService.SetAutomationEnabled:input_type -> remote_control.home.SetAutomationEnabledRequest
+	35, // 47: remote_control.home.AutomationService.TriggerAutomation:input_type -> remote_control.home.TriggerAutomationRequest
+	39, // 48: remote_control.home.DeviceModelService.ListDeviceModels:input_type -> remote_control.home.ListDeviceModelsRequest
+	41, // 49: remote_control.home.DeviceModelService.GetDeviceModel:input_type -> remote_control.home.GetDeviceModelRequest
+	43, // 50: remote_control.home.DeviceModelService.CreateDeviceModel:input_type -> remote_control.home.CreateDeviceModelRequest
+	45, // 51: remote_control.home.DeviceModelService.UpdateDeviceModel:input_type -> remote_control.home.UpdateDeviceModelRequest
+	47, // 52: remote_control.home.DeviceModelService.DeleteDeviceModel:input_type -> remote_control.home.DeleteDeviceModelRequest
+	50, // 53: remote_control.home.CloudConfigService.ListCloudConfigs:input_type -> remote_control.home.ListCloudConfigsRequest
+	52, // 54: remote_control.home.CloudConfigService.UpsertCloudConfig:input_type -> remote_control.home.UpsertCloudConfigRequest
+	54, // 55: remote_control.home.CloudConfigService.DeleteCloudConfig:input_type -> remote_control.home.DeleteCloudConfigRequest
+	56, // 56: remote_control.home.CloudConfigService.ApplyCloudConfig:input_type -> remote_control.home.ApplyCloudConfigRequest
+	9,  // 57: remote_control.home.HomeService.ListDevices:output_type -> remote_control.home.ListDevicesResponse
+	11, // 58: remote_control.home.HomeService.WatchDevices:output_type -> remote_control.home.DeviceEvent
+	13, // 59: remote_control.home.HomeService.UpsertDevice:output_type -> remote_control.home.UpsertDeviceResponse
+	15, // 60: remote_control.home.HomeService.DeleteDevice:output_type -> remote_control.home.DeleteDeviceResponse
+	17, // 61: remote_control.home.HomeService.InvokeAction:output_type -> remote_control.home.InvokeActionResponse
+	20, // 62: remote_control.home.AuditService.ListLogs:output_type -> remote_control.home.ListLogsResponse
+	22, // 63: remote_control.home.AuditService.CleanupLogs:output_type -> remote_control.home.CleanupLogsResponse
+	28, // 64: remote_control.home.AutomationService.ListAutomations:output_type -> remote_control.home.ListAutomationsResponse
+	30, // 65: remote_control.home.AutomationService.UpsertAutomation:output_type -> remote_control.home.UpsertAutomationResponse
+	32, // 66: remote_control.home.AutomationService.DeleteAutomation:output_type -> remote_control.home.DeleteAutomationResponse
+	34, // 67: remote_control.home.AutomationService.SetAutomationEnabled:output_type -> remote_control.home.SetAutomationEnabledResponse
+	36, // 68: remote_control.home.AutomationService.TriggerAutomation:output_type -> remote_control.home.TriggerAutomationResponse
+	40, // 69: remote_control.home.DeviceModelService.ListDeviceModels:output_type -> remote_control.home.ListDeviceModelsResponse
+	42, // 70: remote_control.home.DeviceModelService.GetDeviceModel:output_type -> remote_control.home.GetDeviceModelResponse
+	44, // 71: remote_control.home.DeviceModelService.CreateDeviceModel:output_type -> remote_control.home.CreateDeviceModelResponse
+	46, // 72: remote_control.home.DeviceModelService.UpdateDeviceModel:output_type -> remote_control.home.UpdateDeviceModelResponse
+	48, // 73: remote_control.home.DeviceModelService.DeleteDeviceModel:output_type -> remote_control.home.DeleteDeviceModelResponse
+	51, // 74: remote_control.home.CloudConfigService.ListCloudConfigs:output_type -> remote_control.home.ListCloudConfigsResponse
+	53, // 75: remote_control.home.CloudConfigService.UpsertCloudConfig:output_type -> remote_control.home.UpsertCloudConfigResponse
+	55, // 76: remote_control.home.CloudConfigService.DeleteCloudConfig:output_type -> remote_control.home.DeleteCloudConfigResponse
+	57, // 77: remote_control.home.CloudConfigService.ApplyCloudConfig:output_type -> remote_control.home.ApplyCloudConfigResponse
+	57, // [57:78] is the sub-list for method output_type
+	36, // [36:57] is the sub-list for method input_type
+	36, // [36:36] is the sub-list for extension type_name
+	36, // [36:36] is the sub-list for extension extendee
+	0,  // [0:36] is the sub-list for field type_name
 }
 
 func init() { file_home_service_proto_init() }
@@ -3314,9 +3844,9 @@ func file_home_service_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_home_service_proto_rawDesc), len(file_home_service_proto_rawDesc)),
 			NumEnums:      5,
-			NumMessages:   49,
+			NumMessages:   58,
 			NumExtensions: 0,
-			NumServices:   4,
+			NumServices:   5,
 		},
 		GoTypes:           file_home_service_proto_goTypes,
 		DependencyIndexes: file_home_service_proto_depIdxs,

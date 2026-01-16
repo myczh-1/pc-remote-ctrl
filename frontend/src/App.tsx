@@ -609,6 +609,12 @@ export default function App() {
         onSaved={(cfg) => {
           setCloudCfg(cfg)
         }}
+        cloudConfigApi={{
+          listCloudConfigs: homeApi.listCloudConfigs,
+          upsertCloudConfig: homeApi.upsertCloudConfig,
+          deleteCloudConfig: homeApi.deleteCloudConfig,
+          applyCloudConfig: homeApi.applyCloudConfig,
+        }}
       />
 
       <AutomationEditDrawer

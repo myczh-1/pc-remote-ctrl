@@ -11,13 +11,12 @@ import (
 	"syscall"
 	"time"
 
-	cloudcli "pc-remote-ctrl/backend/internal/cloud"
+	cloudmgr "pc-remote-ctrl/backend/internal/cloud"
 	home "pc-remote-ctrl/backend/internal/home"
 	"pc-remote-ctrl/backend/internal/mqtt"
 	"pc-remote-ctrl/backend/internal/ops"
 	devstore "pc-remote-ctrl/backend/internal/storage"
 	homepb "pc-remote-ctrl/backend/proto/home"
-	cloudpb "pc-remote-ctrl/cloud-middleware/proto/cloud"
 
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
 	"golang.org/x/net/http2"
@@ -39,13 +38,6 @@ type Config struct {
 
 	// Device status
 	DeviceOfflineAfter time.Duration
-
-	// Cloud registration (optional)
-	CloudAddr                 string // e.g. 127.0.0.1:7073
-	AgentDeviceID             string // required when CloudAddr set
-	AgentSecret               string // optional
-	HomeGRPCAddr              string // override reported addr; default 127.0.0.1:Port
-	AgentTunnelUnaryTimeoutMS int    // default 8000
 }
 
 func getenv(k, def string) string {
@@ -96,6 +88,9 @@ func loadConfig() *Config {
 	if legacyScene := os.Getenv("HOME_SCENES_FILE"); legacyScene != "" {
 		log.Printf("[config] HOME_SCENES_FILE is removed (scenes are deprecated); ignoring %q", legacyScene)
 	}
+	if os.Getenv("CLOUD_ADDR") != "" || os.Getenv("AGENT_DEVICE_ID") != "" || os.Getenv("AGENT_SECRET") != "" || os.Getenv("AGENT_TUNNEL_UNARY_TIMEOUT_MS") != "" {
+		log.Printf("[config] cloud env vars are deprecated; configure via CloudConfigService instead")
+	}
 	return &Config{
 		Port:          getenv("LOCAL_PORT", "7071"),
 		DevicesFile:   getenv("HOME_DEVICES_DB", "backend/data/home.db"),
@@ -107,88 +102,7 @@ func loadConfig() *Config {
 		MqttClientID:  getenv("MQTT_CLIENT_ID", ""),
 
 		DeviceOfflineAfter: parseDurationEnv(getenv("DEVICE_OFFLINE_AFTER", ""), 2*time.Minute),
-
-		CloudAddr:     getenv("CLOUD_ADDR", ""),
-		AgentDeviceID: getenv("AGENT_DEVICE_ID", ""),
-		AgentSecret:   getenv("AGENT_SECRET", ""),
-		HomeGRPCAddr:  getenv("HOME_GRPC_ADDR", ""),
-		AgentTunnelUnaryTimeoutMS: func() int {
-			if v := getenv("AGENT_TUNNEL_UNARY_TIMEOUT_MS", ""); v != "" {
-				if n, err := strconv.Atoi(v); err == nil {
-					return n
-				}
-			}
-			return 8000
-		}(),
 	}
-}
-
-func tryCloudRegister(ctx context.Context, cfg *Config) {
-	if cfg.CloudAddr == "" {
-		return
-	}
-	addr := cfg.HomeGRPCAddr
-	if addr == "" {
-		addr = "127.0.0.1:" + cfg.Port
-	}
-	if cfg.AgentDeviceID == "" {
-		log.Printf("[cloud] skip: AGENT_DEVICE_ID not set")
-		return
-	}
-	go func() {
-		backoff := time.Second
-		for {
-			if ctx.Err() != nil {
-				return
-			}
-			conn, err := grpc.DialContext(ctx, cfg.CloudAddr, grpc.WithInsecure())
-			if err != nil {
-				log.Printf("[cloud] dial failed: %v", err)
-				time.Sleep(backoff)
-				if backoff < 15*time.Second {
-					backoff *= 2
-				}
-				continue
-			}
-			client := cloudpb.NewAgentServiceClient(conn)
-			rctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-			_, err = client.Register(rctx, &cloudpb.RegisterRequest{DeviceId: cfg.AgentDeviceID, HomeGrpcAddr: addr, Secret: cfg.AgentSecret, TtlSec: 120})
-			cancel()
-			if err != nil {
-				log.Printf("[cloud] register failed: %v", err)
-				_ = conn.Close()
-				time.Sleep(backoff)
-				if backoff < 15*time.Second {
-					backoff *= 2
-				}
-				continue
-			}
-			log.Printf("[cloud] registered device_id=%s upstream=%s via %s", cfg.AgentDeviceID, addr, cfg.CloudAddr)
-			// heartbeat loop
-			hbTicker := time.NewTicker(30 * time.Second)
-			defer hbTicker.Stop()
-			for {
-				select {
-				case <-ctx.Done():
-					_ = conn.Close()
-					return
-				case <-hbTicker.C:
-					hctx, cc := context.WithTimeout(ctx, 3*time.Second)
-					_, herr := client.Heartbeat(hctx, &cloudpb.HeartbeatRequest{DeviceId: cfg.AgentDeviceID})
-					cc()
-					if herr != nil {
-						log.Printf("[cloud] heartbeat failed: %v", herr)
-						_ = conn.Close()
-						time.Sleep(2 * time.Second)
-						// break to outer loop to re-register
-						goto REREG
-					}
-				}
-			}
-		REREG:
-			continue
-		}
-	}()
 }
 
 func main() {
@@ -218,6 +132,11 @@ func main() {
 		log.Fatalf("FATAL: load audit db %s failed: %v", cfg.LogsFile, err)
 	}
 	log.Printf("[storage] audit logs ready: %s", cfg.LogsFile)
+	cloudConfigs := devstore.NewCloudConfigs(cfg.DevicesFile)
+	if err := cloudConfigs.Load(); err != nil {
+		log.Fatalf("FATAL: load cloud configs db %s failed: %v", cfg.DevicesFile, err)
+	}
+	log.Printf("[storage] cloud configs ready: %s", cfg.DevicesFile)
 	automations := devstore.NewAutomations(cfg.AutomationsDB)
 	if err := automations.Load(); err != nil {
 		log.Fatalf("FATAL: load automations db %s failed: %v", cfg.AutomationsDB, err)
@@ -294,20 +213,27 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
+	cloudManager := cloudmgr.NewManager(ctx, cfg.Port)
+	if active, err := cloudConfigs.GetActive(); err != nil {
+		log.Printf("[cloud] load active config failed: %v", err)
+	} else if active != nil {
+		timeoutMS := active.AgentTunnelUnaryTimeoutMS
+		if timeoutMS <= 0 {
+			timeoutMS = 8000
+		}
+		cloudManager.Apply(&cloudmgr.RuntimeConfig{
+			CloudAddr:               active.CloudAddr,
+			AgentDeviceID:           active.AgentDeviceID,
+			AgentSecret:             active.AgentSecret,
+			AgentTunnelUnaryTimeout: time.Duration(timeoutMS) * time.Millisecond,
+		})
+	}
+	homepb.RegisterCloudConfigServiceServer(grpcServer, home.NewCloudConfigService(cloudConfigs, cloudManager))
+
 	// background device offline detection
 	homesvc.StartOfflineWatcher(ctx, cfg.DeviceOfflineAfter)
 	// automation engine consuming device events
 	homesvc.AttachAutomationEngine(ctx, engine)
-
-	// cloud registration (optional)
-	tryCloudRegister(ctx, cfg)
-
-	// start tunnel client (Tunnel Only): enabled when CLOUD_ADDR and AGENT_DEVICE_ID provided
-	if cfg.CloudAddr != "" && cfg.AgentDeviceID != "" {
-		localPort := cfg.Port
-		to := time.Duration(cfg.AgentTunnelUnaryTimeoutMS) * time.Millisecond
-		cloudcli.StartTunnelClient(ctx, cfg.CloudAddr, cfg.AgentDeviceID, cfg.AgentSecret, localPort, to)
-	}
 
 	// shutdown signals
 	sigc := make(chan os.Signal, 1)

@@ -3,10 +3,11 @@ import { GrpcWebFetchTransport } from '@protobuf-ts/grpcweb-transport'
 import {
   AutomationServiceClient,
   AuditServiceClient,
+  CloudConfigServiceClient,
   DeviceModelServiceClient,
   HomeServiceClient,
 } from '../proto/home/service.client'
-import type { Device, DeviceEvent, DeviceModelSpec } from '../proto/home/service'
+import type { CloudConfig, Device, DeviceEvent, DeviceModelSpec } from '../proto/home/service'
 import { useApiCore } from './useApiCore'
 import type { ApiAdapter } from './useApiCore'
 import type { DeviceListParams } from './apiTypes'
@@ -25,12 +26,14 @@ export function useHomeApi(config?: Partial<HomeConfig>) {
   const autoClientRef = useRef(new AutomationServiceClient(transport))
   const auditClientRef = useRef(new AuditServiceClient(transport))
   const modelClientRef = useRef(new DeviceModelServiceClient(transport))
+  const cloudConfigClientRef = useRef(new CloudConfigServiceClient(transport))
 
   useEffect(() => {
     clientRef.current = new HomeServiceClient(new GrpcWebFetchTransport({ baseUrl }))
     autoClientRef.current = new AutomationServiceClient(new GrpcWebFetchTransport({ baseUrl }))
     auditClientRef.current = new AuditServiceClient(new GrpcWebFetchTransport({ baseUrl }))
     modelClientRef.current = new DeviceModelServiceClient(new GrpcWebFetchTransport({ baseUrl }))
+    cloudConfigClientRef.current = new CloudConfigServiceClient(new GrpcWebFetchTransport({ baseUrl }))
   }, [baseUrl])
 
   const listDevices = useCallback((params: DeviceListParams) => {
@@ -96,6 +99,22 @@ export function useHomeApi(config?: Partial<HomeConfig>) {
     return modelClientRef.current.deleteDeviceModel(params).response
   }, [])
 
+  const listCloudConfigs = useCallback(() => {
+    return cloudConfigClientRef.current.listCloudConfigs({}).response
+  }, [])
+
+  const upsertCloudConfig = useCallback((params: { config: CloudConfig }) => {
+    return cloudConfigClientRef.current.upsertCloudConfig(params).response
+  }, [])
+
+  const deleteCloudConfig = useCallback((params: { configId: string }) => {
+    return cloudConfigClientRef.current.deleteCloudConfig(params).response
+  }, [])
+
+  const applyCloudConfig = useCallback((params: { configId: string }) => {
+    return cloudConfigClientRef.current.applyCloudConfig(params).response
+  }, [])
+
   const adapter: ApiAdapter = useMemo(() => ({
     listDevices,
     watchDevices,
@@ -112,6 +131,10 @@ export function useHomeApi(config?: Partial<HomeConfig>) {
     createDeviceModel,
     updateDeviceModel,
     deleteDeviceModel,
+    listCloudConfigs,
+    upsertCloudConfig,
+    deleteCloudConfig,
+    applyCloudConfig,
   }), [
     listDevices,
     watchDevices,
@@ -128,6 +151,10 @@ export function useHomeApi(config?: Partial<HomeConfig>) {
     createDeviceModel,
     updateDeviceModel,
     deleteDeviceModel,
+    listCloudConfigs,
+    upsertCloudConfig,
+    deleteCloudConfig,
+    applyCloudConfig,
   ])
 
   const api = useApiCore(adapter, { onEvent: config?.onEvent })
@@ -135,5 +162,9 @@ export function useHomeApi(config?: Partial<HomeConfig>) {
   return {
     baseUrl,
     ...api,
+    listCloudConfigs,
+    upsertCloudConfig,
+    deleteCloudConfig,
+    applyCloudConfig,
   }
 }

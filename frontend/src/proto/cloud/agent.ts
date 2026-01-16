@@ -20,10 +20,6 @@ export interface RegisterRequest {
      */
     deviceId: string; // 设备唯一ID
     /**
-     * @generated from protobuf field: string home_grpc_addr = 2
-     */
-    homeGrpcAddr: string; // 设备侧 HomeService 可达地址，例如 10.0.0.5:7071 或公网IP:端口
-    /**
      * @generated from protobuf field: string secret = 3
      */
     secret: string; // 设备注册密钥（与云端配置匹配）
@@ -122,7 +118,6 @@ class RegisterRequest$Type extends MessageType<RegisterRequest> {
     constructor() {
         super("remote_control.cloud.v1.RegisterRequest", [
             { no: 1, name: "device_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "home_grpc_addr", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "secret", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 4, name: "tags", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
             { no: 5, name: "ttl_sec", kind: "scalar", T: 5 /*ScalarType.INT32*/ }
@@ -131,7 +126,6 @@ class RegisterRequest$Type extends MessageType<RegisterRequest> {
     create(value?: PartialMessage<RegisterRequest>): RegisterRequest {
         const message = globalThis.Object.create((this.messagePrototype!));
         message.deviceId = "";
-        message.homeGrpcAddr = "";
         message.secret = "";
         message.tags = [];
         message.ttlSec = 0;
@@ -146,9 +140,6 @@ class RegisterRequest$Type extends MessageType<RegisterRequest> {
             switch (fieldNo) {
                 case /* string device_id */ 1:
                     message.deviceId = reader.string();
-                    break;
-                case /* string home_grpc_addr */ 2:
-                    message.homeGrpcAddr = reader.string();
                     break;
                 case /* string secret */ 3:
                     message.secret = reader.string();
@@ -174,9 +165,6 @@ class RegisterRequest$Type extends MessageType<RegisterRequest> {
         /* string device_id = 1; */
         if (message.deviceId !== "")
             writer.tag(1, WireType.LengthDelimited).string(message.deviceId);
-        /* string home_grpc_addr = 2; */
-        if (message.homeGrpcAddr !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.homeGrpcAddr);
         /* string secret = 3; */
         if (message.secret !== "")
             writer.tag(3, WireType.LengthDelimited).string(message.secret);

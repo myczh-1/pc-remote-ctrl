@@ -303,6 +303,54 @@ message DeleteDeviceModelResponse {
   string message = 2;
 }
 
+message CloudConfig {
+  string id = 1;
+  string name = 2;
+  string cloud_addr = 3;
+  string agent_device_id = 4;
+  string agent_secret = 5;
+  int32 agent_tunnel_unary_timeout_ms = 7;
+  bool active = 8;
+  int64 updated_at = 9;
+
+  reserved 6;
+  reserved "home_grpc_addr";
+}
+
+message ListCloudConfigsRequest {}
+
+message ListCloudConfigsResponse {
+  repeated CloudConfig configs = 1;
+}
+
+message UpsertCloudConfigRequest {
+  CloudConfig config = 1;
+}
+
+message UpsertCloudConfigResponse {
+  bool ok = 1;
+  string message = 2;
+  string config_id = 3;
+}
+
+message DeleteCloudConfigRequest {
+  string config_id = 1;
+}
+
+message DeleteCloudConfigResponse {
+  bool ok = 1;
+  string message = 2;
+}
+
+message ApplyCloudConfigRequest {
+  string config_id = 1; // empty means disable cloud
+}
+
+message ApplyCloudConfigResponse {
+  bool ok = 1;
+  string message = 2;
+}
+
 service HomeService {
   rpc ListDevices(ListDevicesRequest) returns (ListDevicesResponse);
   rpc WatchDevices(WatchDevicesRequest) returns (stream DeviceEvent);
@@ -330,4 +378,11 @@ service DeviceModelService {
   rpc CreateDeviceModel(CreateDeviceModelRequest) returns (CreateDeviceModelResponse);
   rpc UpdateDeviceModel(UpdateDeviceModelRequest) returns (UpdateDeviceModelResponse);
   rpc DeleteDeviceModel(DeleteDeviceModelRequest) returns (DeleteDeviceModelResponse);
+}
+
+service CloudConfigService {
+  rpc ListCloudConfigs(ListCloudConfigsRequest) returns (ListCloudConfigsResponse);
+  rpc UpsertCloudConfig(UpsertCloudConfigRequest) returns (UpsertCloudConfigResponse);
+  rpc DeleteCloudConfig(DeleteCloudConfigRequest) returns (DeleteCloudConfigResponse);
+  rpc ApplyCloudConfig(ApplyCloudConfigRequest) returns (ApplyCloudConfigResponse);
 }

@@ -756,6 +756,127 @@ export interface DeleteDeviceModelResponse {
     message: string;
 }
 /**
+ * @generated from protobuf message remote_control.home.CloudConfig
+ */
+export interface CloudConfig {
+    /**
+     * @generated from protobuf field: string id = 1
+     */
+    id: string;
+    /**
+     * @generated from protobuf field: string name = 2
+     */
+    name: string;
+    /**
+     * @generated from protobuf field: string cloud_addr = 3
+     */
+    cloudAddr: string;
+    /**
+     * @generated from protobuf field: string agent_device_id = 4
+     */
+    agentDeviceId: string;
+    /**
+     * @generated from protobuf field: string agent_secret = 5
+     */
+    agentSecret: string;
+    /**
+     * @generated from protobuf field: int32 agent_tunnel_unary_timeout_ms = 7
+     */
+    agentTunnelUnaryTimeoutMs: number;
+    /**
+     * @generated from protobuf field: bool active = 8
+     */
+    active: boolean;
+    /**
+     * @generated from protobuf field: int64 updated_at = 9
+     */
+    updatedAt: string;
+}
+/**
+ * @generated from protobuf message remote_control.home.ListCloudConfigsRequest
+ */
+export interface ListCloudConfigsRequest {
+}
+/**
+ * @generated from protobuf message remote_control.home.ListCloudConfigsResponse
+ */
+export interface ListCloudConfigsResponse {
+    /**
+     * @generated from protobuf field: repeated remote_control.home.CloudConfig configs = 1
+     */
+    configs: CloudConfig[];
+}
+/**
+ * @generated from protobuf message remote_control.home.UpsertCloudConfigRequest
+ */
+export interface UpsertCloudConfigRequest {
+    /**
+     * @generated from protobuf field: remote_control.home.CloudConfig config = 1
+     */
+    config?: CloudConfig;
+}
+/**
+ * @generated from protobuf message remote_control.home.UpsertCloudConfigResponse
+ */
+export interface UpsertCloudConfigResponse {
+    /**
+     * @generated from protobuf field: bool ok = 1
+     */
+    ok: boolean;
+    /**
+     * @generated from protobuf field: string message = 2
+     */
+    message: string;
+    /**
+     * @generated from protobuf field: string config_id = 3
+     */
+    configId: string;
+}
+/**
+ * @generated from protobuf message remote_control.home.DeleteCloudConfigRequest
+ */
+export interface DeleteCloudConfigRequest {
+    /**
+     * @generated from protobuf field: string config_id = 1
+     */
+    configId: string;
+}
+/**
+ * @generated from protobuf message remote_control.home.DeleteCloudConfigResponse
+ */
+export interface DeleteCloudConfigResponse {
+    /**
+     * @generated from protobuf field: bool ok = 1
+     */
+    ok: boolean;
+    /**
+     * @generated from protobuf field: string message = 2
+     */
+    message: string;
+}
+/**
+ * @generated from protobuf message remote_control.home.ApplyCloudConfigRequest
+ */
+export interface ApplyCloudConfigRequest {
+    /**
+     * @generated from protobuf field: string config_id = 1
+     */
+    configId: string; // empty means disable cloud
+}
+/**
+ * @generated from protobuf message remote_control.home.ApplyCloudConfigResponse
+ */
+export interface ApplyCloudConfigResponse {
+    /**
+     * @generated from protobuf field: bool ok = 1
+     */
+    ok: boolean;
+    /**
+     * @generated from protobuf field: string message = 2
+     */
+    message: string;
+}
+/**
  * @generated from protobuf enum remote_control.home.AdapterKind
  */
 export enum AdapterKind {
@@ -3681,6 +3802,507 @@ class DeleteDeviceModelResponse$Type extends MessageType<DeleteDeviceModelRespon
  * @generated MessageType for protobuf message remote_control.home.DeleteDeviceModelResponse
  */
 export const DeleteDeviceModelResponse = new DeleteDeviceModelResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class CloudConfig$Type extends MessageType<CloudConfig> {
+    constructor() {
+        super("remote_control.home.CloudConfig", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "cloud_addr", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "agent_device_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "agent_secret", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 7, name: "agent_tunnel_unary_timeout_ms", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
+            { no: 8, name: "active", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 9, name: "updated_at", kind: "scalar", T: 3 /*ScalarType.INT64*/ }
+        ]);
+    }
+    create(value?: PartialMessage<CloudConfig>): CloudConfig {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        message.id = "";
+        message.name = "";
+        message.cloudAddr = "";
+        message.agentDeviceId = "";
+        message.agentSecret = "";
+        message.agentTunnelUnaryTimeoutMs = 0;
+        message.active = false;
+        message.updatedAt = "0";
+        if (value !== undefined)
+            reflectionMergePartial<CloudConfig>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CloudConfig): CloudConfig {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                case /* string name */ 2:
+                    message.name = reader.string();
+                    break;
+                case /* string cloud_addr */ 3:
+                    message.cloudAddr = reader.string();
+                    break;
+                case /* string agent_device_id */ 4:
+                    message.agentDeviceId = reader.string();
+                    break;
+                case /* string agent_secret */ 5:
+                    message.agentSecret = reader.string();
+                    break;
+                case /* int32 agent_tunnel_unary_timeout_ms */ 7:
+                    message.agentTunnelUnaryTimeoutMs = reader.int32();
+                    break;
+                case /* bool active */ 8:
+                    message.active = reader.bool();
+                    break;
+                case /* int64 updated_at */ 9:
+                    message.updatedAt = reader.int64().toString();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: CloudConfig, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        /* string name = 2; */
+        if (message.name !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.name);
+        /* string cloud_addr = 3; */
+        if (message.cloudAddr !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.cloudAddr);
+        /* string agent_device_id = 4; */
+        if (message.agentDeviceId !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.agentDeviceId);
+        /* string agent_secret = 5; */
+        if (message.agentSecret !== "")
+            writer.tag(5, WireType.LengthDelimited).string(message.agentSecret);
+        /* int32 agent_tunnel_unary_timeout_ms = 7; */
+        if (message.agentTunnelUnaryTimeoutMs !== 0)
+            writer.tag(7, WireType.Varint).int32(message.agentTunnelUnaryTimeoutMs);
+        /* bool active = 8; */
+        if (message.active !== false)
+            writer.tag(8, WireType.Varint).bool(message.active);
+        /* int64 updated_at = 9; */
+        if (message.updatedAt !== "0")
+            writer.tag(9, WireType.Varint).int64(message.updatedAt);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message remote_control.home.CloudConfig
+ */
+export const CloudConfig = new CloudConfig$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ListCloudConfigsRequest$Type extends MessageType<ListCloudConfigsRequest> {
+    constructor() {
+        super("remote_control.home.ListCloudConfigsRequest", []);
+    }
+    create(value?: PartialMessage<ListCloudConfigsRequest>): ListCloudConfigsRequest {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        if (value !== undefined)
+            reflectionMergePartial<ListCloudConfigsRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ListCloudConfigsRequest): ListCloudConfigsRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ListCloudConfigsRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message remote_control.home.ListCloudConfigsRequest
+ */
+export const ListCloudConfigsRequest = new ListCloudConfigsRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ListCloudConfigsResponse$Type extends MessageType<ListCloudConfigsResponse> {
+    constructor() {
+        super("remote_control.home.ListCloudConfigsResponse", [
+            { no: 1, name: "configs", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => CloudConfig }
+        ]);
+    }
+    create(value?: PartialMessage<ListCloudConfigsResponse>): ListCloudConfigsResponse {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        message.configs = [];
+        if (value !== undefined)
+            reflectionMergePartial<ListCloudConfigsResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ListCloudConfigsResponse): ListCloudConfigsResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* repeated remote_control.home.CloudConfig configs */ 1:
+                    message.configs.push(CloudConfig.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ListCloudConfigsResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated remote_control.home.CloudConfig configs = 1; */
+        for (let i = 0; i < message.configs.length; i++)
+            CloudConfig.internalBinaryWrite(message.configs[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message remote_control.home.ListCloudConfigsResponse
+ */
+export const ListCloudConfigsResponse = new ListCloudConfigsResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class UpsertCloudConfigRequest$Type extends MessageType<UpsertCloudConfigRequest> {
+    constructor() {
+        super("remote_control.home.UpsertCloudConfigRequest", [
+            { no: 1, name: "config", kind: "message", T: () => CloudConfig }
+        ]);
+    }
+    create(value?: PartialMessage<UpsertCloudConfigRequest>): UpsertCloudConfigRequest {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        if (value !== undefined)
+            reflectionMergePartial<UpsertCloudConfigRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: UpsertCloudConfigRequest): UpsertCloudConfigRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* remote_control.home.CloudConfig config */ 1:
+                    message.config = CloudConfig.internalBinaryRead(reader, reader.uint32(), options, message.config);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: UpsertCloudConfigRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* remote_control.home.CloudConfig config = 1; */
+        if (message.config)
+            CloudConfig.internalBinaryWrite(message.config, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message remote_control.home.UpsertCloudConfigRequest
+ */
+export const UpsertCloudConfigRequest = new UpsertCloudConfigRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class UpsertCloudConfigResponse$Type extends MessageType<UpsertCloudConfigResponse> {
+    constructor() {
+        super("remote_control.home.UpsertCloudConfigResponse", [
+            { no: 1, name: "ok", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 2, name: "message", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "config_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<UpsertCloudConfigResponse>): UpsertCloudConfigResponse {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        message.ok = false;
+        message.message = "";
+        message.configId = "";
+        if (value !== undefined)
+            reflectionMergePartial<UpsertCloudConfigResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: UpsertCloudConfigResponse): UpsertCloudConfigResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* bool ok */ 1:
+                    message.ok = reader.bool();
+                    break;
+                case /* string message */ 2:
+                    message.message = reader.string();
+                    break;
+                case /* string config_id */ 3:
+                    message.configId = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: UpsertCloudConfigResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* bool ok = 1; */
+        if (message.ok !== false)
+            writer.tag(1, WireType.Varint).bool(message.ok);
+        /* string message = 2; */
+        if (message.message !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.message);
+        /* string config_id = 3; */
+        if (message.configId !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.configId);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message remote_control.home.UpsertCloudConfigResponse
+ */
+export const UpsertCloudConfigResponse = new UpsertCloudConfigResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class DeleteCloudConfigRequest$Type extends MessageType<DeleteCloudConfigRequest> {
+    constructor() {
+        super("remote_control.home.DeleteCloudConfigRequest", [
+            { no: 1, name: "config_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<DeleteCloudConfigRequest>): DeleteCloudConfigRequest {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        message.configId = "";
+        if (value !== undefined)
+            reflectionMergePartial<DeleteCloudConfigRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: DeleteCloudConfigRequest): DeleteCloudConfigRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string config_id */ 1:
+                    message.configId = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: DeleteCloudConfigRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string config_id = 1; */
+        if (message.configId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.configId);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message remote_control.home.DeleteCloudConfigRequest
+ */
+export const DeleteCloudConfigRequest = new DeleteCloudConfigRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class DeleteCloudConfigResponse$Type extends MessageType<DeleteCloudConfigResponse> {
+    constructor() {
+        super("remote_control.home.DeleteCloudConfigResponse", [
+            { no: 1, name: "ok", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 2, name: "message", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<DeleteCloudConfigResponse>): DeleteCloudConfigResponse {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        message.ok = false;
+        message.message = "";
+        if (value !== undefined)
+            reflectionMergePartial<DeleteCloudConfigResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: DeleteCloudConfigResponse): DeleteCloudConfigResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* bool ok */ 1:
+                    message.ok = reader.bool();
+                    break;
+                case /* string message */ 2:
+                    message.message = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: DeleteCloudConfigResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* bool ok = 1; */
+        if (message.ok !== false)
+            writer.tag(1, WireType.Varint).bool(message.ok);
+        /* string message = 2; */
+        if (message.message !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.message);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message remote_control.home.DeleteCloudConfigResponse
+ */
+export const DeleteCloudConfigResponse = new DeleteCloudConfigResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ApplyCloudConfigRequest$Type extends MessageType<ApplyCloudConfigRequest> {
+    constructor() {
+        super("remote_control.home.ApplyCloudConfigRequest", [
+            { no: 1, name: "config_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<ApplyCloudConfigRequest>): ApplyCloudConfigRequest {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        message.configId = "";
+        if (value !== undefined)
+            reflectionMergePartial<ApplyCloudConfigRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ApplyCloudConfigRequest): ApplyCloudConfigRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string config_id */ 1:
+                    message.configId = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ApplyCloudConfigRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string config_id = 1; */
+        if (message.configId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.configId);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message remote_control.home.ApplyCloudConfigRequest
+ */
+export const ApplyCloudConfigRequest = new ApplyCloudConfigRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ApplyCloudConfigResponse$Type extends MessageType<ApplyCloudConfigResponse> {
+    constructor() {
+        super("remote_control.home.ApplyCloudConfigResponse", [
+            { no: 1, name: "ok", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 2, name: "message", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<ApplyCloudConfigResponse>): ApplyCloudConfigResponse {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        message.ok = false;
+        message.message = "";
+        if (value !== undefined)
+            reflectionMergePartial<ApplyCloudConfigResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ApplyCloudConfigResponse): ApplyCloudConfigResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* bool ok */ 1:
+                    message.ok = reader.bool();
+                    break;
+                case /* string message */ 2:
+                    message.message = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ApplyCloudConfigResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* bool ok = 1; */
+        if (message.ok !== false)
+            writer.tag(1, WireType.Varint).bool(message.ok);
+        /* string message = 2; */
+        if (message.message !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.message);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message remote_control.home.ApplyCloudConfigResponse
+ */
+export const ApplyCloudConfigResponse = new ApplyCloudConfigResponse$Type();
 /**
  * @generated ServiceType for protobuf service remote_control.home.HomeService
  */
@@ -3717,4 +4339,13 @@ export const DeviceModelService = new ServiceType("remote_control.home.DeviceMod
     { name: "CreateDeviceModel", options: {}, I: CreateDeviceModelRequest, O: CreateDeviceModelResponse },
     { name: "UpdateDeviceModel", options: {}, I: UpdateDeviceModelRequest, O: UpdateDeviceModelResponse },
     { name: "DeleteDeviceModel", options: {}, I: DeleteDeviceModelRequest, O: DeleteDeviceModelResponse }
+]);
+/**
+ * @generated ServiceType for protobuf service remote_control.home.CloudConfigService
+ */
+export const CloudConfigService = new ServiceType("remote_control.home.CloudConfigService", [
+    { name: "ListCloudConfigs", options: {}, I: ListCloudConfigsRequest, O: ListCloudConfigsResponse },
+    { name: "UpsertCloudConfig", options: {}, I: UpsertCloudConfigRequest, O: UpsertCloudConfigResponse },
+    { name: "DeleteCloudConfig", options: {}, I: DeleteCloudConfigRequest, O: DeleteCloudConfigResponse },
+    { name: "ApplyCloudConfig", options: {}, I: ApplyCloudConfigRequest, O: ApplyCloudConfigResponse }
 ]);

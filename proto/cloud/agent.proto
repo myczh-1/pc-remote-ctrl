@@ -17,10 +17,12 @@ service TunnelService {
 
 message RegisterRequest {
   string device_id = 1;           // 设备唯一ID
-  string home_grpc_addr = 2;      // 设备侧 HomeService 可达地址，例如 10.0.0.5:7071 或公网IP:端口
   string secret = 3;              // 设备注册密钥（与云端配置匹配）
   repeated string tags = 4;       // 标签（可用于路由/过滤）
   int32 ttl_sec = 5;              // 注册有效期，心跳刷新
+
+  reserved 2;
+  reserved "home_grpc_addr";
 }
 
 message RegisterResponse {
