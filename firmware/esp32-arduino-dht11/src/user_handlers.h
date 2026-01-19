@@ -20,7 +20,15 @@ void user_on_action(const String& action,
                     bool& ok,
                     String& message);
 
+// Called when desired state arrives over MQTT shadow/desired.
+// - desired: JSON object of desired values
+// - reportedOut: fill with applied state (optional)
+// - ok/message: set to indicate success and human-readable message
+void user_on_desired(JsonVariantConst desired,
+                     JsonDocument& reportedOut,
+                     bool& ok,
+                     String& message);
+
 // Called periodically from loop() to allow user to update device state.
 // If hasUpdate is set true, the resulting stateOut JSON will be published to devices/{id}/state (retain).
 void user_periodic_state(JsonDocument& stateOut, bool& hasUpdate);
-

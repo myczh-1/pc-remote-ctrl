@@ -52,6 +52,10 @@ export function useHomeApi(config?: Partial<HomeConfig>) {
     return clientRef.current.upsertDevice(params).response
   }, [])
 
+  const reserveDevice = useCallback((params: { modelId: string; modelVersion: string }) => {
+    return clientRef.current.reserveDevice(params).response
+  }, [])
+
   const deleteDevice = useCallback((params: { deviceId: string }) => {
     return clientRef.current.deleteDevice(params).response
   }, [])
@@ -120,6 +124,7 @@ export function useHomeApi(config?: Partial<HomeConfig>) {
     watchDevices,
     invokeAction,
     upsertDevice,
+    reserveDevice,
     deleteDevice,
     listAutomations,
     setAutomationEnabled,
@@ -140,6 +145,7 @@ export function useHomeApi(config?: Partial<HomeConfig>) {
     watchDevices,
     invokeAction,
     upsertDevice,
+    reserveDevice,
     deleteDevice,
     listAutomations,
     setAutomationEnabled,

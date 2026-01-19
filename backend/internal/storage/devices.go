@@ -23,6 +23,13 @@ const (
 	AdapterHTTP   AdapterKind = "http"
 )
 
+type DeviceStatus string
+
+const (
+	DeviceStatusActive  DeviceStatus = "active"
+	DeviceStatusPending DeviceStatus = "pending"
+)
+
 type Device struct {
 	ID        string            `json:"id"`
 	Name      string            `json:"name"`
@@ -37,6 +44,7 @@ type Device struct {
 	LastSeen  int64             `json:"last_seen"`
 	ModelID   string            `json:"model_id,omitempty"`
 	ModelVer  string            `json:"model_version,omitempty"`
+	Status    DeviceStatus      `json:"status,omitempty"`
 	Provision map[string]any    `json:"provision,omitempty"`
 	Meta      map[string]any    `json:"meta,omitempty"`
 }
@@ -111,6 +119,7 @@ func createSchema(db *sql.DB) error {
             model_version TEXT,
             online INTEGER NOT NULL DEFAULT 0,
             last_seen INTEGER NOT NULL,
+            status TEXT NOT NULL DEFAULT 'active',
             snapshot_version INTEGER NOT NULL DEFAULT 1
         );`,
 		`CREATE TABLE IF NOT EXISTS device_adapter (
@@ -164,6 +173,41 @@ func createSchema(db *sql.DB) error {
 			return fmt.Errorf("init schema: %w", err)
 		}
 	}
+	if err := ensureDeviceStatusColumn(db); err != nil {
+		return err
+	}
+	return nil
+}
+
+func ensureDeviceStatusColumn(db *sql.DB) error {
+	rows, err := db.Query(`PRAGMA table_info(devices)`)
+	if err != nil {
+		return fmt.Errorf("check devices schema: %w", err)
+	}
+	defer rows.Close()
+	hasStatus := false
+	for rows.Next() {
+		var cid int
+		var name, ctype string
+		var notNull, pk int
+		var dflt sql.NullString
+		if err := rows.Scan(&cid, &name, &ctype, &notNull, &dflt, &pk); err != nil {
+			return fmt.Errorf("scan devices schema: %w", err)
+		}
+		if name == "status" {
+			hasStatus = true
+			break
+		}
+	}
+	if err := rows.Err(); err != nil {
+		return fmt.Errorf("scan devices schema: %w", err)
+	}
+	if hasStatus {
+		return nil
+	}
+	if _, err := db.Exec(`ALTER TABLE devices ADD COLUMN status TEXT NOT NULL DEFAULT 'active'`); err != nil {
+		return fmt.Errorf("add devices.status: %w", err)
+	}
 	return nil
 }
 
@@ -208,7 +252,7 @@ func (r *Devices) fetchDevices(where string, args ...any) ([]Device, error) {
 		return nil, errors.New("storage not initialized")
 	}
 	q := `
-        SELECT d.id, d.name, d.type, d.room, d.model_id, d.model_version, d.online, d.last_seen
+        SELECT d.id, d.name, d.type, d.room, d.model_id, d.model_version, d.online, d.last_seen, d.status
         FROM devices d
     `
 	if where != "" {
@@ -225,15 +269,21 @@ func (r *Devices) fetchDevices(where string, args ...any) ([]Device, error) {
 	for rows.Next() {
 		var room sql.NullString
 		var modelID, modelVer sql.NullString
+		var status sql.NullString
 		var onlineInt int
 		d := Device{Topics: map[string]string{}}
-		if err := rows.Scan(&d.ID, &d.Name, &d.Type, &room, &modelID, &modelVer, &onlineInt, &d.LastSeen); err != nil {
+		if err := rows.Scan(&d.ID, &d.Name, &d.Type, &room, &modelID, &modelVer, &onlineInt, &d.LastSeen, &status); err != nil {
 			return nil, err
 		}
 		d.Room = room.String
 		d.ModelID = modelID.String
 		d.ModelVer = modelVer.String
 		d.Online = onlineInt != 0
+		if status.Valid && strings.TrimSpace(status.String) != "" {
+			d.Status = DeviceStatus(status.String)
+		} else {
+			d.Status = DeviceStatusActive
+		}
 		devMap[d.ID] = &d
 		order = append(order, d.ID)
 	}
@@ -440,6 +490,9 @@ func (r *Devices) Upsert(d Device) error {
 	if d.LastSeen == 0 {
 		d.LastSeen = now
 	}
+	if strings.TrimSpace(string(d.Status)) == "" {
+		d.Status = DeviceStatusActive
+	}
 
 	tx, err := db.Begin()
 	if err != nil {
@@ -452,8 +505,8 @@ func (r *Devices) Upsert(d Device) error {
 	}()
 
 	_, err = tx.Exec(`
-        INSERT INTO devices (id, name, type, room, model_id, model_version, online, last_seen)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO devices (id, name, type, room, model_id, model_version, online, last_seen, status)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(id) DO UPDATE SET
             name = excluded.name,
             type = excluded.type,
@@ -461,8 +514,9 @@ func (r *Devices) Upsert(d Device) error {
             model_id = excluded.model_id,
             model_version = excluded.model_version,
             online = excluded.online,
-            last_seen = excluded.last_seen
-    `, d.ID, d.Name, d.Type, nullString(d.Room), nullString(d.ModelID), nullString(d.ModelVer), boolToInt(d.Online), d.LastSeen)
+            last_seen = excluded.last_seen,
+            status = excluded.status
+    `, d.ID, d.Name, d.Type, nullString(d.Room), nullString(d.ModelID), nullString(d.ModelVer), boolToInt(d.Online), d.LastSeen, string(d.Status))
 	if err != nil {
 		return err
 	}

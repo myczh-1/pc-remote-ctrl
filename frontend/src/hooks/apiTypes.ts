@@ -4,4 +4,5 @@ export interface DeviceListParams {
   room?: string
   tags?: string[]
   includeState?: boolean
+  includePending?: boolean
 }

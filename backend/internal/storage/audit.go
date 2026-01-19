@@ -177,7 +177,7 @@ func (l *AuditLogs) List(opts ListLogsOptions) ([]AuditEntry, string, error) {
 
 	nextToken := ""
 	if len(out) > pageSize {
-		nextToken = fmt.Sprintf("%d", out[pageSize].ID)
+		nextToken = fmt.Sprintf("%d", out[pageSize-1].ID)
 		out = out[:pageSize]
 	}
 	return out, nextToken, nil

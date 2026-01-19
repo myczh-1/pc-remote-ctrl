@@ -129,6 +129,55 @@ func (TelemetryEventKind) EnumDescriptor() ([]byte, []int) {
 	return file_home_service_proto_rawDescGZIP(), []int{1}
 }
 
+type DeviceStatus int32
+
+const (
+	DeviceStatus_DEVICE_STATUS_UNSPECIFIED DeviceStatus = 0
+	DeviceStatus_DEVICE_STATUS_ACTIVE      DeviceStatus = 1
+	DeviceStatus_DEVICE_STATUS_PENDING     DeviceStatus = 2
+)
+
+// Enum value maps for DeviceStatus.
+var (
+	DeviceStatus_name = map[int32]string{
+		0: "DEVICE_STATUS_UNSPECIFIED",
+		1: "DEVICE_STATUS_ACTIVE",
+		2: "DEVICE_STATUS_PENDING",
+	}
+	DeviceStatus_value = map[string]int32{
+		"DEVICE_STATUS_UNSPECIFIED": 0,
+		"DEVICE_STATUS_ACTIVE":      1,
+		"DEVICE_STATUS_PENDING":     2,
+	}
+)
+
+func (x DeviceStatus) Enum() *DeviceStatus {
+	p := new(DeviceStatus)
+	*p = x
+	return p
+}
+
+func (x DeviceStatus) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (DeviceStatus) Descriptor() protoreflect.EnumDescriptor {
+	return file_home_service_proto_enumTypes[2].Descriptor()
+}
+
+func (DeviceStatus) Type() protoreflect.EnumType {
+	return &file_home_service_proto_enumTypes[2]
+}
+
+func (x DeviceStatus) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use DeviceStatus.Descriptor instead.
+func (DeviceStatus) EnumDescriptor() ([]byte, []int) {
+	return file_home_service_proto_rawDescGZIP(), []int{2}
+}
+
 type AutomationLogic int32
 
 const (
@@ -162,11 +211,11 @@ func (x AutomationLogic) String() string {
 }
 
 func (AutomationLogic) Descriptor() protoreflect.EnumDescriptor {
-	return file_home_service_proto_enumTypes[2].Descriptor()
+	return file_home_service_proto_enumTypes[3].Descriptor()
 }
 
 func (AutomationLogic) Type() protoreflect.EnumType {
-	return &file_home_service_proto_enumTypes[2]
+	return &file_home_service_proto_enumTypes[3]
 }
 
 func (x AutomationLogic) Number() protoreflect.EnumNumber {
@@ -175,7 +224,7 @@ func (x AutomationLogic) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use AutomationLogic.Descriptor instead.
 func (AutomationLogic) EnumDescriptor() ([]byte, []int) {
-	return file_home_service_proto_rawDescGZIP(), []int{2}
+	return file_home_service_proto_rawDescGZIP(), []int{3}
 }
 
 type AutomationConditionKind int32
@@ -211,11 +260,11 @@ func (x AutomationConditionKind) String() string {
 }
 
 func (AutomationConditionKind) Descriptor() protoreflect.EnumDescriptor {
-	return file_home_service_proto_enumTypes[3].Descriptor()
+	return file_home_service_proto_enumTypes[4].Descriptor()
 }
 
 func (AutomationConditionKind) Type() protoreflect.EnumType {
-	return &file_home_service_proto_enumTypes[3]
+	return &file_home_service_proto_enumTypes[4]
 }
 
 func (x AutomationConditionKind) Number() protoreflect.EnumNumber {
@@ -224,7 +273,7 @@ func (x AutomationConditionKind) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use AutomationConditionKind.Descriptor instead.
 func (AutomationConditionKind) EnumDescriptor() ([]byte, []int) {
-	return file_home_service_proto_rawDescGZIP(), []int{3}
+	return file_home_service_proto_rawDescGZIP(), []int{4}
 }
 
 type AutomationOperator int32
@@ -272,11 +321,11 @@ func (x AutomationOperator) String() string {
 }
 
 func (AutomationOperator) Descriptor() protoreflect.EnumDescriptor {
-	return file_home_service_proto_enumTypes[4].Descriptor()
+	return file_home_service_proto_enumTypes[5].Descriptor()
 }
 
 func (AutomationOperator) Type() protoreflect.EnumType {
-	return &file_home_service_proto_enumTypes[4]
+	return &file_home_service_proto_enumTypes[5]
 }
 
 func (x AutomationOperator) Number() protoreflect.EnumNumber {
@@ -285,7 +334,7 @@ func (x AutomationOperator) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use AutomationOperator.Descriptor instead.
 func (AutomationOperator) EnumDescriptor() ([]byte, []int) {
-	return file_home_service_proto_rawDescGZIP(), []int{4}
+	return file_home_service_proto_rawDescGZIP(), []int{5}
 }
 
 type Adapter struct {
@@ -415,6 +464,7 @@ type Device struct {
 	State         *structpb.Struct       `protobuf:"bytes,11,opt,name=state,proto3" json:"state,omitempty"`
 	ModelId       string                 `protobuf:"bytes,12,opt,name=model_id,json=modelId,proto3" json:"model_id,omitempty"`
 	ModelVersion  string                 `protobuf:"bytes,13,opt,name=model_version,json=modelVersion,proto3" json:"model_version,omitempty"`
+	Status        DeviceStatus           `protobuf:"varint,14,opt,name=status,proto3,enum=remote_control.home.DeviceStatus" json:"status,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -540,15 +590,23 @@ func (x *Device) GetModelVersion() string {
 	return ""
 }
 
+func (x *Device) GetStatus() DeviceStatus {
+	if x != nil {
+		return x.Status
+	}
+	return DeviceStatus_DEVICE_STATUS_UNSPECIFIED
+}
+
 type ListDevicesRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Ids           []string               `protobuf:"bytes,1,rep,name=ids,proto3" json:"ids,omitempty"`
-	Type          string                 `protobuf:"bytes,2,opt,name=type,proto3" json:"type,omitempty"`
-	Room          string                 `protobuf:"bytes,3,opt,name=room,proto3" json:"room,omitempty"`
-	Tags          []string               `protobuf:"bytes,4,rep,name=tags,proto3" json:"tags,omitempty"`
-	IncludeState  bool                   `protobuf:"varint,5,opt,name=include_state,json=includeState,proto3" json:"include_state,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Ids            []string               `protobuf:"bytes,1,rep,name=ids,proto3" json:"ids,omitempty"`
+	Type           string                 `protobuf:"bytes,2,opt,name=type,proto3" json:"type,omitempty"`
+	Room           string                 `protobuf:"bytes,3,opt,name=room,proto3" json:"room,omitempty"`
+	Tags           []string               `protobuf:"bytes,4,rep,name=tags,proto3" json:"tags,omitempty"`
+	IncludeState   bool                   `protobuf:"varint,5,opt,name=include_state,json=includeState,proto3" json:"include_state,omitempty"`
+	IncludePending bool                   `protobuf:"varint,6,opt,name=include_pending,json=includePending,proto3" json:"include_pending,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *ListDevicesRequest) Reset() {
@@ -612,6 +670,13 @@ func (x *ListDevicesRequest) GetTags() []string {
 func (x *ListDevicesRequest) GetIncludeState() bool {
 	if x != nil {
 		return x.IncludeState
+	}
+	return false
+}
+
+func (x *ListDevicesRequest) GetIncludePending() bool {
+	if x != nil {
+		return x.IncludePending
 	}
 	return false
 }
@@ -868,6 +933,118 @@ func (x *UpsertDeviceResponse) GetMessage() string {
 	return ""
 }
 
+type ReserveDeviceRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ModelId       string                 `protobuf:"bytes,1,opt,name=model_id,json=modelId,proto3" json:"model_id,omitempty"`
+	ModelVersion  string                 `protobuf:"bytes,2,opt,name=model_version,json=modelVersion,proto3" json:"model_version,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ReserveDeviceRequest) Reset() {
+	*x = ReserveDeviceRequest{}
+	mi := &file_home_service_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReserveDeviceRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReserveDeviceRequest) ProtoMessage() {}
+
+func (x *ReserveDeviceRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_home_service_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReserveDeviceRequest.ProtoReflect.Descriptor instead.
+func (*ReserveDeviceRequest) Descriptor() ([]byte, []int) {
+	return file_home_service_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *ReserveDeviceRequest) GetModelId() string {
+	if x != nil {
+		return x.ModelId
+	}
+	return ""
+}
+
+func (x *ReserveDeviceRequest) GetModelVersion() string {
+	if x != nil {
+		return x.ModelVersion
+	}
+	return ""
+}
+
+type ReserveDeviceResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Ok            bool                   `protobuf:"varint,1,opt,name=ok,proto3" json:"ok,omitempty"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	DeviceId      string                 `protobuf:"bytes,3,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ReserveDeviceResponse) Reset() {
+	*x = ReserveDeviceResponse{}
+	mi := &file_home_service_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReserveDeviceResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReserveDeviceResponse) ProtoMessage() {}
+
+func (x *ReserveDeviceResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_home_service_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReserveDeviceResponse.ProtoReflect.Descriptor instead.
+func (*ReserveDeviceResponse) Descriptor() ([]byte, []int) {
+	return file_home_service_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *ReserveDeviceResponse) GetOk() bool {
+	if x != nil {
+		return x.Ok
+	}
+	return false
+}
+
+func (x *ReserveDeviceResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *ReserveDeviceResponse) GetDeviceId() string {
+	if x != nil {
+		return x.DeviceId
+	}
+	return ""
+}
+
 type DeleteDeviceRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	DeviceId      string                 `protobuf:"bytes,1,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty"`
@@ -877,7 +1054,7 @@ type DeleteDeviceRequest struct {
 
 func (x *DeleteDeviceRequest) Reset() {
 	*x = DeleteDeviceRequest{}
-	mi := &file_home_service_proto_msgTypes[9]
+	mi := &file_home_service_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -889,7 +1066,7 @@ func (x *DeleteDeviceRequest) String() string {
 func (*DeleteDeviceRequest) ProtoMessage() {}
 
 func (x *DeleteDeviceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_home_service_proto_msgTypes[9]
+	mi := &file_home_service_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -902,7 +1079,7 @@ func (x *DeleteDeviceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteDeviceRequest.ProtoReflect.Descriptor instead.
 func (*DeleteDeviceRequest) Descriptor() ([]byte, []int) {
-	return file_home_service_proto_rawDescGZIP(), []int{9}
+	return file_home_service_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *DeleteDeviceRequest) GetDeviceId() string {
@@ -922,7 +1099,7 @@ type DeleteDeviceResponse struct {
 
 func (x *DeleteDeviceResponse) Reset() {
 	*x = DeleteDeviceResponse{}
-	mi := &file_home_service_proto_msgTypes[10]
+	mi := &file_home_service_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -934,7 +1111,7 @@ func (x *DeleteDeviceResponse) String() string {
 func (*DeleteDeviceResponse) ProtoMessage() {}
 
 func (x *DeleteDeviceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_home_service_proto_msgTypes[10]
+	mi := &file_home_service_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -947,7 +1124,7 @@ func (x *DeleteDeviceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteDeviceResponse.ProtoReflect.Descriptor instead.
 func (*DeleteDeviceResponse) Descriptor() ([]byte, []int) {
-	return file_home_service_proto_rawDescGZIP(), []int{10}
+	return file_home_service_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *DeleteDeviceResponse) GetOk() bool {
@@ -976,7 +1153,7 @@ type InvokeActionRequest struct {
 
 func (x *InvokeActionRequest) Reset() {
 	*x = InvokeActionRequest{}
-	mi := &file_home_service_proto_msgTypes[11]
+	mi := &file_home_service_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -988,7 +1165,7 @@ func (x *InvokeActionRequest) String() string {
 func (*InvokeActionRequest) ProtoMessage() {}
 
 func (x *InvokeActionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_home_service_proto_msgTypes[11]
+	mi := &file_home_service_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1001,7 +1178,7 @@ func (x *InvokeActionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InvokeActionRequest.ProtoReflect.Descriptor instead.
 func (*InvokeActionRequest) Descriptor() ([]byte, []int) {
-	return file_home_service_proto_rawDescGZIP(), []int{11}
+	return file_home_service_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *InvokeActionRequest) GetDeviceId() string {
@@ -1044,7 +1221,7 @@ type InvokeActionResponse struct {
 
 func (x *InvokeActionResponse) Reset() {
 	*x = InvokeActionResponse{}
-	mi := &file_home_service_proto_msgTypes[12]
+	mi := &file_home_service_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1056,7 +1233,7 @@ func (x *InvokeActionResponse) String() string {
 func (*InvokeActionResponse) ProtoMessage() {}
 
 func (x *InvokeActionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_home_service_proto_msgTypes[12]
+	mi := &file_home_service_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1069,7 +1246,7 @@ func (x *InvokeActionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InvokeActionResponse.ProtoReflect.Descriptor instead.
 func (*InvokeActionResponse) Descriptor() ([]byte, []int) {
-	return file_home_service_proto_rawDescGZIP(), []int{12}
+	return file_home_service_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *InvokeActionResponse) GetOk() bool {
@@ -1114,7 +1291,7 @@ type LogEntry struct {
 
 func (x *LogEntry) Reset() {
 	*x = LogEntry{}
-	mi := &file_home_service_proto_msgTypes[13]
+	mi := &file_home_service_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1126,7 +1303,7 @@ func (x *LogEntry) String() string {
 func (*LogEntry) ProtoMessage() {}
 
 func (x *LogEntry) ProtoReflect() protoreflect.Message {
-	mi := &file_home_service_proto_msgTypes[13]
+	mi := &file_home_service_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1139,7 +1316,7 @@ func (x *LogEntry) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LogEntry.ProtoReflect.Descriptor instead.
 func (*LogEntry) Descriptor() ([]byte, []int) {
-	return file_home_service_proto_rawDescGZIP(), []int{13}
+	return file_home_service_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *LogEntry) GetId() int64 {
@@ -1196,7 +1373,7 @@ type ListLogsRequest struct {
 
 func (x *ListLogsRequest) Reset() {
 	*x = ListLogsRequest{}
-	mi := &file_home_service_proto_msgTypes[14]
+	mi := &file_home_service_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1208,7 +1385,7 @@ func (x *ListLogsRequest) String() string {
 func (*ListLogsRequest) ProtoMessage() {}
 
 func (x *ListLogsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_home_service_proto_msgTypes[14]
+	mi := &file_home_service_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1221,7 +1398,7 @@ func (x *ListLogsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListLogsRequest.ProtoReflect.Descriptor instead.
 func (*ListLogsRequest) Descriptor() ([]byte, []int) {
-	return file_home_service_proto_rawDescGZIP(), []int{14}
+	return file_home_service_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *ListLogsRequest) GetKind() string {
@@ -1262,7 +1439,7 @@ type ListLogsResponse struct {
 
 func (x *ListLogsResponse) Reset() {
 	*x = ListLogsResponse{}
-	mi := &file_home_service_proto_msgTypes[15]
+	mi := &file_home_service_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1274,7 +1451,7 @@ func (x *ListLogsResponse) String() string {
 func (*ListLogsResponse) ProtoMessage() {}
 
 func (x *ListLogsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_home_service_proto_msgTypes[15]
+	mi := &file_home_service_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1287,7 +1464,7 @@ func (x *ListLogsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListLogsResponse.ProtoReflect.Descriptor instead.
 func (*ListLogsResponse) Descriptor() ([]byte, []int) {
-	return file_home_service_proto_rawDescGZIP(), []int{15}
+	return file_home_service_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *ListLogsResponse) GetEntries() []*LogEntry {
@@ -1314,7 +1491,7 @@ type CleanupLogsRequest struct {
 
 func (x *CleanupLogsRequest) Reset() {
 	*x = CleanupLogsRequest{}
-	mi := &file_home_service_proto_msgTypes[16]
+	mi := &file_home_service_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1326,7 +1503,7 @@ func (x *CleanupLogsRequest) String() string {
 func (*CleanupLogsRequest) ProtoMessage() {}
 
 func (x *CleanupLogsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_home_service_proto_msgTypes[16]
+	mi := &file_home_service_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1339,7 +1516,7 @@ func (x *CleanupLogsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CleanupLogsRequest.ProtoReflect.Descriptor instead.
 func (*CleanupLogsRequest) Descriptor() ([]byte, []int) {
-	return file_home_service_proto_rawDescGZIP(), []int{16}
+	return file_home_service_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *CleanupLogsRequest) GetBeforeTs() int64 {
@@ -1365,7 +1542,7 @@ type CleanupLogsResponse struct {
 
 func (x *CleanupLogsResponse) Reset() {
 	*x = CleanupLogsResponse{}
-	mi := &file_home_service_proto_msgTypes[17]
+	mi := &file_home_service_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1377,7 +1554,7 @@ func (x *CleanupLogsResponse) String() string {
 func (*CleanupLogsResponse) ProtoMessage() {}
 
 func (x *CleanupLogsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_home_service_proto_msgTypes[17]
+	mi := &file_home_service_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1390,7 +1567,7 @@ func (x *CleanupLogsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CleanupLogsResponse.ProtoReflect.Descriptor instead.
 func (*CleanupLogsResponse) Descriptor() ([]byte, []int) {
-	return file_home_service_proto_rawDescGZIP(), []int{17}
+	return file_home_service_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *CleanupLogsResponse) GetDeleted() int32 {
@@ -1413,7 +1590,7 @@ type AutomationCondition struct {
 
 func (x *AutomationCondition) Reset() {
 	*x = AutomationCondition{}
-	mi := &file_home_service_proto_msgTypes[18]
+	mi := &file_home_service_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1425,7 +1602,7 @@ func (x *AutomationCondition) String() string {
 func (*AutomationCondition) ProtoMessage() {}
 
 func (x *AutomationCondition) ProtoReflect() protoreflect.Message {
-	mi := &file_home_service_proto_msgTypes[18]
+	mi := &file_home_service_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1438,7 +1615,7 @@ func (x *AutomationCondition) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AutomationCondition.ProtoReflect.Descriptor instead.
 func (*AutomationCondition) Descriptor() ([]byte, []int) {
-	return file_home_service_proto_rawDescGZIP(), []int{18}
+	return file_home_service_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *AutomationCondition) GetDeviceId() string {
@@ -1486,7 +1663,7 @@ type AutomationWhen struct {
 
 func (x *AutomationWhen) Reset() {
 	*x = AutomationWhen{}
-	mi := &file_home_service_proto_msgTypes[19]
+	mi := &file_home_service_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1498,7 +1675,7 @@ func (x *AutomationWhen) String() string {
 func (*AutomationWhen) ProtoMessage() {}
 
 func (x *AutomationWhen) ProtoReflect() protoreflect.Message {
-	mi := &file_home_service_proto_msgTypes[19]
+	mi := &file_home_service_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1511,7 +1688,7 @@ func (x *AutomationWhen) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AutomationWhen.ProtoReflect.Descriptor instead.
 func (*AutomationWhen) Descriptor() ([]byte, []int) {
-	return file_home_service_proto_rawDescGZIP(), []int{19}
+	return file_home_service_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *AutomationWhen) GetLogic() AutomationLogic {
@@ -1539,7 +1716,7 @@ type AutomationAction struct {
 
 func (x *AutomationAction) Reset() {
 	*x = AutomationAction{}
-	mi := &file_home_service_proto_msgTypes[20]
+	mi := &file_home_service_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1551,7 +1728,7 @@ func (x *AutomationAction) String() string {
 func (*AutomationAction) ProtoMessage() {}
 
 func (x *AutomationAction) ProtoReflect() protoreflect.Message {
-	mi := &file_home_service_proto_msgTypes[20]
+	mi := &file_home_service_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1564,7 +1741,7 @@ func (x *AutomationAction) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AutomationAction.ProtoReflect.Descriptor instead.
 func (*AutomationAction) Descriptor() ([]byte, []int) {
-	return file_home_service_proto_rawDescGZIP(), []int{20}
+	return file_home_service_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *AutomationAction) GetDeviceId() string {
@@ -1603,7 +1780,7 @@ type Automation struct {
 
 func (x *Automation) Reset() {
 	*x = Automation{}
-	mi := &file_home_service_proto_msgTypes[21]
+	mi := &file_home_service_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1615,7 +1792,7 @@ func (x *Automation) String() string {
 func (*Automation) ProtoMessage() {}
 
 func (x *Automation) ProtoReflect() protoreflect.Message {
-	mi := &file_home_service_proto_msgTypes[21]
+	mi := &file_home_service_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1628,7 +1805,7 @@ func (x *Automation) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Automation.ProtoReflect.Descriptor instead.
 func (*Automation) Descriptor() ([]byte, []int) {
-	return file_home_service_proto_rawDescGZIP(), []int{21}
+	return file_home_service_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *Automation) GetId() string {
@@ -1693,7 +1870,7 @@ type ListAutomationsRequest struct {
 
 func (x *ListAutomationsRequest) Reset() {
 	*x = ListAutomationsRequest{}
-	mi := &file_home_service_proto_msgTypes[22]
+	mi := &file_home_service_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1705,7 +1882,7 @@ func (x *ListAutomationsRequest) String() string {
 func (*ListAutomationsRequest) ProtoMessage() {}
 
 func (x *ListAutomationsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_home_service_proto_msgTypes[22]
+	mi := &file_home_service_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1718,7 +1895,7 @@ func (x *ListAutomationsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAutomationsRequest.ProtoReflect.Descriptor instead.
 func (*ListAutomationsRequest) Descriptor() ([]byte, []int) {
-	return file_home_service_proto_rawDescGZIP(), []int{22}
+	return file_home_service_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *ListAutomationsRequest) GetIncludeDisabled() bool {
@@ -1766,7 +1943,7 @@ type ListAutomationsResponse struct {
 
 func (x *ListAutomationsResponse) Reset() {
 	*x = ListAutomationsResponse{}
-	mi := &file_home_service_proto_msgTypes[23]
+	mi := &file_home_service_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1778,7 +1955,7 @@ func (x *ListAutomationsResponse) String() string {
 func (*ListAutomationsResponse) ProtoMessage() {}
 
 func (x *ListAutomationsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_home_service_proto_msgTypes[23]
+	mi := &file_home_service_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1791,7 +1968,7 @@ func (x *ListAutomationsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAutomationsResponse.ProtoReflect.Descriptor instead.
 func (*ListAutomationsResponse) Descriptor() ([]byte, []int) {
-	return file_home_service_proto_rawDescGZIP(), []int{23}
+	return file_home_service_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *ListAutomationsResponse) GetAutomations() []*Automation {
@@ -1817,7 +1994,7 @@ type UpsertAutomationRequest struct {
 
 func (x *UpsertAutomationRequest) Reset() {
 	*x = UpsertAutomationRequest{}
-	mi := &file_home_service_proto_msgTypes[24]
+	mi := &file_home_service_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1829,7 +2006,7 @@ func (x *UpsertAutomationRequest) String() string {
 func (*UpsertAutomationRequest) ProtoMessage() {}
 
 func (x *UpsertAutomationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_home_service_proto_msgTypes[24]
+	mi := &file_home_service_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1842,7 +2019,7 @@ func (x *UpsertAutomationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpsertAutomationRequest.ProtoReflect.Descriptor instead.
 func (*UpsertAutomationRequest) Descriptor() ([]byte, []int) {
-	return file_home_service_proto_rawDescGZIP(), []int{24}
+	return file_home_service_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *UpsertAutomationRequest) GetAutomation() *Automation {
@@ -1863,7 +2040,7 @@ type UpsertAutomationResponse struct {
 
 func (x *UpsertAutomationResponse) Reset() {
 	*x = UpsertAutomationResponse{}
-	mi := &file_home_service_proto_msgTypes[25]
+	mi := &file_home_service_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1875,7 +2052,7 @@ func (x *UpsertAutomationResponse) String() string {
 func (*UpsertAutomationResponse) ProtoMessage() {}
 
 func (x *UpsertAutomationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_home_service_proto_msgTypes[25]
+	mi := &file_home_service_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1888,7 +2065,7 @@ func (x *UpsertAutomationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpsertAutomationResponse.ProtoReflect.Descriptor instead.
 func (*UpsertAutomationResponse) Descriptor() ([]byte, []int) {
-	return file_home_service_proto_rawDescGZIP(), []int{25}
+	return file_home_service_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *UpsertAutomationResponse) GetOk() bool {
@@ -1921,7 +2098,7 @@ type DeleteAutomationRequest struct {
 
 func (x *DeleteAutomationRequest) Reset() {
 	*x = DeleteAutomationRequest{}
-	mi := &file_home_service_proto_msgTypes[26]
+	mi := &file_home_service_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1933,7 +2110,7 @@ func (x *DeleteAutomationRequest) String() string {
 func (*DeleteAutomationRequest) ProtoMessage() {}
 
 func (x *DeleteAutomationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_home_service_proto_msgTypes[26]
+	mi := &file_home_service_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1946,7 +2123,7 @@ func (x *DeleteAutomationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteAutomationRequest.ProtoReflect.Descriptor instead.
 func (*DeleteAutomationRequest) Descriptor() ([]byte, []int) {
-	return file_home_service_proto_rawDescGZIP(), []int{26}
+	return file_home_service_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *DeleteAutomationRequest) GetAutomationId() string {
@@ -1966,7 +2143,7 @@ type DeleteAutomationResponse struct {
 
 func (x *DeleteAutomationResponse) Reset() {
 	*x = DeleteAutomationResponse{}
-	mi := &file_home_service_proto_msgTypes[27]
+	mi := &file_home_service_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1978,7 +2155,7 @@ func (x *DeleteAutomationResponse) String() string {
 func (*DeleteAutomationResponse) ProtoMessage() {}
 
 func (x *DeleteAutomationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_home_service_proto_msgTypes[27]
+	mi := &file_home_service_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1991,7 +2168,7 @@ func (x *DeleteAutomationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteAutomationResponse.ProtoReflect.Descriptor instead.
 func (*DeleteAutomationResponse) Descriptor() ([]byte, []int) {
-	return file_home_service_proto_rawDescGZIP(), []int{27}
+	return file_home_service_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *DeleteAutomationResponse) GetOk() bool {
@@ -2018,7 +2195,7 @@ type SetAutomationEnabledRequest struct {
 
 func (x *SetAutomationEnabledRequest) Reset() {
 	*x = SetAutomationEnabledRequest{}
-	mi := &file_home_service_proto_msgTypes[28]
+	mi := &file_home_service_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2030,7 +2207,7 @@ func (x *SetAutomationEnabledRequest) String() string {
 func (*SetAutomationEnabledRequest) ProtoMessage() {}
 
 func (x *SetAutomationEnabledRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_home_service_proto_msgTypes[28]
+	mi := &file_home_service_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2043,7 +2220,7 @@ func (x *SetAutomationEnabledRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetAutomationEnabledRequest.ProtoReflect.Descriptor instead.
 func (*SetAutomationEnabledRequest) Descriptor() ([]byte, []int) {
-	return file_home_service_proto_rawDescGZIP(), []int{28}
+	return file_home_service_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *SetAutomationEnabledRequest) GetAutomationId() string {
@@ -2070,7 +2247,7 @@ type SetAutomationEnabledResponse struct {
 
 func (x *SetAutomationEnabledResponse) Reset() {
 	*x = SetAutomationEnabledResponse{}
-	mi := &file_home_service_proto_msgTypes[29]
+	mi := &file_home_service_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2082,7 +2259,7 @@ func (x *SetAutomationEnabledResponse) String() string {
 func (*SetAutomationEnabledResponse) ProtoMessage() {}
 
 func (x *SetAutomationEnabledResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_home_service_proto_msgTypes[29]
+	mi := &file_home_service_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2095,7 +2272,7 @@ func (x *SetAutomationEnabledResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetAutomationEnabledResponse.ProtoReflect.Descriptor instead.
 func (*SetAutomationEnabledResponse) Descriptor() ([]byte, []int) {
-	return file_home_service_proto_rawDescGZIP(), []int{29}
+	return file_home_service_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *SetAutomationEnabledResponse) GetOk() bool {
@@ -2122,7 +2299,7 @@ type TriggerAutomationRequest struct {
 
 func (x *TriggerAutomationRequest) Reset() {
 	*x = TriggerAutomationRequest{}
-	mi := &file_home_service_proto_msgTypes[30]
+	mi := &file_home_service_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2134,7 +2311,7 @@ func (x *TriggerAutomationRequest) String() string {
 func (*TriggerAutomationRequest) ProtoMessage() {}
 
 func (x *TriggerAutomationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_home_service_proto_msgTypes[30]
+	mi := &file_home_service_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2147,7 +2324,7 @@ func (x *TriggerAutomationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TriggerAutomationRequest.ProtoReflect.Descriptor instead.
 func (*TriggerAutomationRequest) Descriptor() ([]byte, []int) {
-	return file_home_service_proto_rawDescGZIP(), []int{30}
+	return file_home_service_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *TriggerAutomationRequest) GetAutomationId() string {
@@ -2174,7 +2351,7 @@ type TriggerAutomationResponse struct {
 
 func (x *TriggerAutomationResponse) Reset() {
 	*x = TriggerAutomationResponse{}
-	mi := &file_home_service_proto_msgTypes[31]
+	mi := &file_home_service_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2186,7 +2363,7 @@ func (x *TriggerAutomationResponse) String() string {
 func (*TriggerAutomationResponse) ProtoMessage() {}
 
 func (x *TriggerAutomationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_home_service_proto_msgTypes[31]
+	mi := &file_home_service_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2199,7 +2376,7 @@ func (x *TriggerAutomationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TriggerAutomationResponse.ProtoReflect.Descriptor instead.
 func (*TriggerAutomationResponse) Descriptor() ([]byte, []int) {
-	return file_home_service_proto_rawDescGZIP(), []int{31}
+	return file_home_service_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *TriggerAutomationResponse) GetOk() bool {
@@ -2232,7 +2409,7 @@ type DeviceModel struct {
 
 func (x *DeviceModel) Reset() {
 	*x = DeviceModel{}
-	mi := &file_home_service_proto_msgTypes[32]
+	mi := &file_home_service_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2244,7 +2421,7 @@ func (x *DeviceModel) String() string {
 func (*DeviceModel) ProtoMessage() {}
 
 func (x *DeviceModel) ProtoReflect() protoreflect.Message {
-	mi := &file_home_service_proto_msgTypes[32]
+	mi := &file_home_service_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2257,7 +2434,7 @@ func (x *DeviceModel) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeviceModel.ProtoReflect.Descriptor instead.
 func (*DeviceModel) Descriptor() ([]byte, []int) {
-	return file_home_service_proto_rawDescGZIP(), []int{32}
+	return file_home_service_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *DeviceModel) GetId() string {
@@ -2331,7 +2508,7 @@ type DeviceModelSpec struct {
 
 func (x *DeviceModelSpec) Reset() {
 	*x = DeviceModelSpec{}
-	mi := &file_home_service_proto_msgTypes[33]
+	mi := &file_home_service_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2343,7 +2520,7 @@ func (x *DeviceModelSpec) String() string {
 func (*DeviceModelSpec) ProtoMessage() {}
 
 func (x *DeviceModelSpec) ProtoReflect() protoreflect.Message {
-	mi := &file_home_service_proto_msgTypes[33]
+	mi := &file_home_service_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2356,7 +2533,7 @@ func (x *DeviceModelSpec) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeviceModelSpec.ProtoReflect.Descriptor instead.
 func (*DeviceModelSpec) Descriptor() ([]byte, []int) {
-	return file_home_service_proto_rawDescGZIP(), []int{33}
+	return file_home_service_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *DeviceModelSpec) GetId() string {
@@ -2418,7 +2595,7 @@ type ListDeviceModelsRequest struct {
 
 func (x *ListDeviceModelsRequest) Reset() {
 	*x = ListDeviceModelsRequest{}
-	mi := &file_home_service_proto_msgTypes[34]
+	mi := &file_home_service_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2430,7 +2607,7 @@ func (x *ListDeviceModelsRequest) String() string {
 func (*ListDeviceModelsRequest) ProtoMessage() {}
 
 func (x *ListDeviceModelsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_home_service_proto_msgTypes[34]
+	mi := &file_home_service_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2443,7 +2620,7 @@ func (x *ListDeviceModelsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListDeviceModelsRequest.ProtoReflect.Descriptor instead.
 func (*ListDeviceModelsRequest) Descriptor() ([]byte, []int) {
-	return file_home_service_proto_rawDescGZIP(), []int{34}
+	return file_home_service_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *ListDeviceModelsRequest) GetId() string {
@@ -2469,7 +2646,7 @@ type ListDeviceModelsResponse struct {
 
 func (x *ListDeviceModelsResponse) Reset() {
 	*x = ListDeviceModelsResponse{}
-	mi := &file_home_service_proto_msgTypes[35]
+	mi := &file_home_service_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2481,7 +2658,7 @@ func (x *ListDeviceModelsResponse) String() string {
 func (*ListDeviceModelsResponse) ProtoMessage() {}
 
 func (x *ListDeviceModelsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_home_service_proto_msgTypes[35]
+	mi := &file_home_service_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2494,7 +2671,7 @@ func (x *ListDeviceModelsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListDeviceModelsResponse.ProtoReflect.Descriptor instead.
 func (*ListDeviceModelsResponse) Descriptor() ([]byte, []int) {
-	return file_home_service_proto_rawDescGZIP(), []int{35}
+	return file_home_service_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *ListDeviceModelsResponse) GetModels() []*DeviceModel {
@@ -2514,7 +2691,7 @@ type GetDeviceModelRequest struct {
 
 func (x *GetDeviceModelRequest) Reset() {
 	*x = GetDeviceModelRequest{}
-	mi := &file_home_service_proto_msgTypes[36]
+	mi := &file_home_service_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2526,7 +2703,7 @@ func (x *GetDeviceModelRequest) String() string {
 func (*GetDeviceModelRequest) ProtoMessage() {}
 
 func (x *GetDeviceModelRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_home_service_proto_msgTypes[36]
+	mi := &file_home_service_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2539,7 +2716,7 @@ func (x *GetDeviceModelRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetDeviceModelRequest.ProtoReflect.Descriptor instead.
 func (*GetDeviceModelRequest) Descriptor() ([]byte, []int) {
-	return file_home_service_proto_rawDescGZIP(), []int{36}
+	return file_home_service_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *GetDeviceModelRequest) GetId() string {
@@ -2565,7 +2742,7 @@ type GetDeviceModelResponse struct {
 
 func (x *GetDeviceModelResponse) Reset() {
 	*x = GetDeviceModelResponse{}
-	mi := &file_home_service_proto_msgTypes[37]
+	mi := &file_home_service_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2577,7 +2754,7 @@ func (x *GetDeviceModelResponse) String() string {
 func (*GetDeviceModelResponse) ProtoMessage() {}
 
 func (x *GetDeviceModelResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_home_service_proto_msgTypes[37]
+	mi := &file_home_service_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2590,7 +2767,7 @@ func (x *GetDeviceModelResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetDeviceModelResponse.ProtoReflect.Descriptor instead.
 func (*GetDeviceModelResponse) Descriptor() ([]byte, []int) {
-	return file_home_service_proto_rawDescGZIP(), []int{37}
+	return file_home_service_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *GetDeviceModelResponse) GetModel() *DeviceModel {
@@ -2609,7 +2786,7 @@ type CreateDeviceModelRequest struct {
 
 func (x *CreateDeviceModelRequest) Reset() {
 	*x = CreateDeviceModelRequest{}
-	mi := &file_home_service_proto_msgTypes[38]
+	mi := &file_home_service_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2621,7 +2798,7 @@ func (x *CreateDeviceModelRequest) String() string {
 func (*CreateDeviceModelRequest) ProtoMessage() {}
 
 func (x *CreateDeviceModelRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_home_service_proto_msgTypes[38]
+	mi := &file_home_service_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2634,7 +2811,7 @@ func (x *CreateDeviceModelRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateDeviceModelRequest.ProtoReflect.Descriptor instead.
 func (*CreateDeviceModelRequest) Descriptor() ([]byte, []int) {
-	return file_home_service_proto_rawDescGZIP(), []int{38}
+	return file_home_service_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *CreateDeviceModelRequest) GetModel() *DeviceModelSpec {
@@ -2654,7 +2831,7 @@ type CreateDeviceModelResponse struct {
 
 func (x *CreateDeviceModelResponse) Reset() {
 	*x = CreateDeviceModelResponse{}
-	mi := &file_home_service_proto_msgTypes[39]
+	mi := &file_home_service_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2666,7 +2843,7 @@ func (x *CreateDeviceModelResponse) String() string {
 func (*CreateDeviceModelResponse) ProtoMessage() {}
 
 func (x *CreateDeviceModelResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_home_service_proto_msgTypes[39]
+	mi := &file_home_service_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2679,7 +2856,7 @@ func (x *CreateDeviceModelResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateDeviceModelResponse.ProtoReflect.Descriptor instead.
 func (*CreateDeviceModelResponse) Descriptor() ([]byte, []int) {
-	return file_home_service_proto_rawDescGZIP(), []int{39}
+	return file_home_service_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *CreateDeviceModelResponse) GetOk() bool {
@@ -2705,7 +2882,7 @@ type UpdateDeviceModelRequest struct {
 
 func (x *UpdateDeviceModelRequest) Reset() {
 	*x = UpdateDeviceModelRequest{}
-	mi := &file_home_service_proto_msgTypes[40]
+	mi := &file_home_service_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2717,7 +2894,7 @@ func (x *UpdateDeviceModelRequest) String() string {
 func (*UpdateDeviceModelRequest) ProtoMessage() {}
 
 func (x *UpdateDeviceModelRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_home_service_proto_msgTypes[40]
+	mi := &file_home_service_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2730,7 +2907,7 @@ func (x *UpdateDeviceModelRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateDeviceModelRequest.ProtoReflect.Descriptor instead.
 func (*UpdateDeviceModelRequest) Descriptor() ([]byte, []int) {
-	return file_home_service_proto_rawDescGZIP(), []int{40}
+	return file_home_service_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *UpdateDeviceModelRequest) GetModel() *DeviceModelSpec {
@@ -2750,7 +2927,7 @@ type UpdateDeviceModelResponse struct {
 
 func (x *UpdateDeviceModelResponse) Reset() {
 	*x = UpdateDeviceModelResponse{}
-	mi := &file_home_service_proto_msgTypes[41]
+	mi := &file_home_service_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2762,7 +2939,7 @@ func (x *UpdateDeviceModelResponse) String() string {
 func (*UpdateDeviceModelResponse) ProtoMessage() {}
 
 func (x *UpdateDeviceModelResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_home_service_proto_msgTypes[41]
+	mi := &file_home_service_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2775,7 +2952,7 @@ func (x *UpdateDeviceModelResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateDeviceModelResponse.ProtoReflect.Descriptor instead.
 func (*UpdateDeviceModelResponse) Descriptor() ([]byte, []int) {
-	return file_home_service_proto_rawDescGZIP(), []int{41}
+	return file_home_service_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *UpdateDeviceModelResponse) GetOk() bool {
@@ -2802,7 +2979,7 @@ type DeleteDeviceModelRequest struct {
 
 func (x *DeleteDeviceModelRequest) Reset() {
 	*x = DeleteDeviceModelRequest{}
-	mi := &file_home_service_proto_msgTypes[42]
+	mi := &file_home_service_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2814,7 +2991,7 @@ func (x *DeleteDeviceModelRequest) String() string {
 func (*DeleteDeviceModelRequest) ProtoMessage() {}
 
 func (x *DeleteDeviceModelRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_home_service_proto_msgTypes[42]
+	mi := &file_home_service_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2827,7 +3004,7 @@ func (x *DeleteDeviceModelRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteDeviceModelRequest.ProtoReflect.Descriptor instead.
 func (*DeleteDeviceModelRequest) Descriptor() ([]byte, []int) {
-	return file_home_service_proto_rawDescGZIP(), []int{42}
+	return file_home_service_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *DeleteDeviceModelRequest) GetId() string {
@@ -2854,7 +3031,7 @@ type DeleteDeviceModelResponse struct {
 
 func (x *DeleteDeviceModelResponse) Reset() {
 	*x = DeleteDeviceModelResponse{}
-	mi := &file_home_service_proto_msgTypes[43]
+	mi := &file_home_service_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2866,7 +3043,7 @@ func (x *DeleteDeviceModelResponse) String() string {
 func (*DeleteDeviceModelResponse) ProtoMessage() {}
 
 func (x *DeleteDeviceModelResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_home_service_proto_msgTypes[43]
+	mi := &file_home_service_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2879,7 +3056,7 @@ func (x *DeleteDeviceModelResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteDeviceModelResponse.ProtoReflect.Descriptor instead.
 func (*DeleteDeviceModelResponse) Descriptor() ([]byte, []int) {
-	return file_home_service_proto_rawDescGZIP(), []int{43}
+	return file_home_service_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *DeleteDeviceModelResponse) GetOk() bool {
@@ -2912,7 +3089,7 @@ type CloudConfig struct {
 
 func (x *CloudConfig) Reset() {
 	*x = CloudConfig{}
-	mi := &file_home_service_proto_msgTypes[44]
+	mi := &file_home_service_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2924,7 +3101,7 @@ func (x *CloudConfig) String() string {
 func (*CloudConfig) ProtoMessage() {}
 
 func (x *CloudConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_home_service_proto_msgTypes[44]
+	mi := &file_home_service_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2937,7 +3114,7 @@ func (x *CloudConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CloudConfig.ProtoReflect.Descriptor instead.
 func (*CloudConfig) Descriptor() ([]byte, []int) {
-	return file_home_service_proto_rawDescGZIP(), []int{44}
+	return file_home_service_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *CloudConfig) GetId() string {
@@ -3004,7 +3181,7 @@ type ListCloudConfigsRequest struct {
 
 func (x *ListCloudConfigsRequest) Reset() {
 	*x = ListCloudConfigsRequest{}
-	mi := &file_home_service_proto_msgTypes[45]
+	mi := &file_home_service_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3016,7 +3193,7 @@ func (x *ListCloudConfigsRequest) String() string {
 func (*ListCloudConfigsRequest) ProtoMessage() {}
 
 func (x *ListCloudConfigsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_home_service_proto_msgTypes[45]
+	mi := &file_home_service_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3029,7 +3206,7 @@ func (x *ListCloudConfigsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListCloudConfigsRequest.ProtoReflect.Descriptor instead.
 func (*ListCloudConfigsRequest) Descriptor() ([]byte, []int) {
-	return file_home_service_proto_rawDescGZIP(), []int{45}
+	return file_home_service_proto_rawDescGZIP(), []int{47}
 }
 
 type ListCloudConfigsResponse struct {
@@ -3041,7 +3218,7 @@ type ListCloudConfigsResponse struct {
 
 func (x *ListCloudConfigsResponse) Reset() {
 	*x = ListCloudConfigsResponse{}
-	mi := &file_home_service_proto_msgTypes[46]
+	mi := &file_home_service_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3053,7 +3230,7 @@ func (x *ListCloudConfigsResponse) String() string {
 func (*ListCloudConfigsResponse) ProtoMessage() {}
 
 func (x *ListCloudConfigsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_home_service_proto_msgTypes[46]
+	mi := &file_home_service_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3066,7 +3243,7 @@ func (x *ListCloudConfigsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListCloudConfigsResponse.ProtoReflect.Descriptor instead.
 func (*ListCloudConfigsResponse) Descriptor() ([]byte, []int) {
-	return file_home_service_proto_rawDescGZIP(), []int{46}
+	return file_home_service_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *ListCloudConfigsResponse) GetConfigs() []*CloudConfig {
@@ -3085,7 +3262,7 @@ type UpsertCloudConfigRequest struct {
 
 func (x *UpsertCloudConfigRequest) Reset() {
 	*x = UpsertCloudConfigRequest{}
-	mi := &file_home_service_proto_msgTypes[47]
+	mi := &file_home_service_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3097,7 +3274,7 @@ func (x *UpsertCloudConfigRequest) String() string {
 func (*UpsertCloudConfigRequest) ProtoMessage() {}
 
 func (x *UpsertCloudConfigRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_home_service_proto_msgTypes[47]
+	mi := &file_home_service_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3110,7 +3287,7 @@ func (x *UpsertCloudConfigRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpsertCloudConfigRequest.ProtoReflect.Descriptor instead.
 func (*UpsertCloudConfigRequest) Descriptor() ([]byte, []int) {
-	return file_home_service_proto_rawDescGZIP(), []int{47}
+	return file_home_service_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *UpsertCloudConfigRequest) GetConfig() *CloudConfig {
@@ -3131,7 +3308,7 @@ type UpsertCloudConfigResponse struct {
 
 func (x *UpsertCloudConfigResponse) Reset() {
 	*x = UpsertCloudConfigResponse{}
-	mi := &file_home_service_proto_msgTypes[48]
+	mi := &file_home_service_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3143,7 +3320,7 @@ func (x *UpsertCloudConfigResponse) String() string {
 func (*UpsertCloudConfigResponse) ProtoMessage() {}
 
 func (x *UpsertCloudConfigResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_home_service_proto_msgTypes[48]
+	mi := &file_home_service_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3156,7 +3333,7 @@ func (x *UpsertCloudConfigResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpsertCloudConfigResponse.ProtoReflect.Descriptor instead.
 func (*UpsertCloudConfigResponse) Descriptor() ([]byte, []int) {
-	return file_home_service_proto_rawDescGZIP(), []int{48}
+	return file_home_service_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *UpsertCloudConfigResponse) GetOk() bool {
@@ -3189,7 +3366,7 @@ type DeleteCloudConfigRequest struct {
 
 func (x *DeleteCloudConfigRequest) Reset() {
 	*x = DeleteCloudConfigRequest{}
-	mi := &file_home_service_proto_msgTypes[49]
+	mi := &file_home_service_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3201,7 +3378,7 @@ func (x *DeleteCloudConfigRequest) String() string {
 func (*DeleteCloudConfigRequest) ProtoMessage() {}
 
 func (x *DeleteCloudConfigRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_home_service_proto_msgTypes[49]
+	mi := &file_home_service_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3214,7 +3391,7 @@ func (x *DeleteCloudConfigRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteCloudConfigRequest.ProtoReflect.Descriptor instead.
 func (*DeleteCloudConfigRequest) Descriptor() ([]byte, []int) {
-	return file_home_service_proto_rawDescGZIP(), []int{49}
+	return file_home_service_proto_rawDescGZIP(), []int{51}
 }
 
 func (x *DeleteCloudConfigRequest) GetConfigId() string {
@@ -3234,7 +3411,7 @@ type DeleteCloudConfigResponse struct {
 
 func (x *DeleteCloudConfigResponse) Reset() {
 	*x = DeleteCloudConfigResponse{}
-	mi := &file_home_service_proto_msgTypes[50]
+	mi := &file_home_service_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3246,7 +3423,7 @@ func (x *DeleteCloudConfigResponse) String() string {
 func (*DeleteCloudConfigResponse) ProtoMessage() {}
 
 func (x *DeleteCloudConfigResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_home_service_proto_msgTypes[50]
+	mi := &file_home_service_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3259,7 +3436,7 @@ func (x *DeleteCloudConfigResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteCloudConfigResponse.ProtoReflect.Descriptor instead.
 func (*DeleteCloudConfigResponse) Descriptor() ([]byte, []int) {
-	return file_home_service_proto_rawDescGZIP(), []int{50}
+	return file_home_service_proto_rawDescGZIP(), []int{52}
 }
 
 func (x *DeleteCloudConfigResponse) GetOk() bool {
@@ -3285,7 +3462,7 @@ type ApplyCloudConfigRequest struct {
 
 func (x *ApplyCloudConfigRequest) Reset() {
 	*x = ApplyCloudConfigRequest{}
-	mi := &file_home_service_proto_msgTypes[51]
+	mi := &file_home_service_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3297,7 +3474,7 @@ func (x *ApplyCloudConfigRequest) String() string {
 func (*ApplyCloudConfigRequest) ProtoMessage() {}
 
 func (x *ApplyCloudConfigRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_home_service_proto_msgTypes[51]
+	mi := &file_home_service_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3310,7 +3487,7 @@ func (x *ApplyCloudConfigRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ApplyCloudConfigRequest.ProtoReflect.Descriptor instead.
 func (*ApplyCloudConfigRequest) Descriptor() ([]byte, []int) {
-	return file_home_service_proto_rawDescGZIP(), []int{51}
+	return file_home_service_proto_rawDescGZIP(), []int{53}
 }
 
 func (x *ApplyCloudConfigRequest) GetConfigId() string {
@@ -3330,7 +3507,7 @@ type ApplyCloudConfigResponse struct {
 
 func (x *ApplyCloudConfigResponse) Reset() {
 	*x = ApplyCloudConfigResponse{}
-	mi := &file_home_service_proto_msgTypes[52]
+	mi := &file_home_service_proto_msgTypes[54]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3342,7 +3519,7 @@ func (x *ApplyCloudConfigResponse) String() string {
 func (*ApplyCloudConfigResponse) ProtoMessage() {}
 
 func (x *ApplyCloudConfigResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_home_service_proto_msgTypes[52]
+	mi := &file_home_service_proto_msgTypes[54]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3355,7 +3532,7 @@ func (x *ApplyCloudConfigResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ApplyCloudConfigResponse.ProtoReflect.Descriptor instead.
 func (*ApplyCloudConfigResponse) Descriptor() ([]byte, []int) {
-	return file_home_service_proto_rawDescGZIP(), []int{52}
+	return file_home_service_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *ApplyCloudConfigResponse) GetOk() bool {
@@ -3392,7 +3569,7 @@ const file_home_service_proto_rawDesc = "" +
 	"timeout_ms\x18\x03 \x01(\x05R\ttimeoutMs\x1a=\n" +
 	"\x0fArgsSchemaEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xfb\x03\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xb6\x04\n" +
 	"\x06Device\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x12\n" +
@@ -3407,16 +3584,18 @@ const file_home_service_proto_rawDesc = "" +
 	" \x03(\v2\x1f.remote_control.home.ActionSpecR\aactions\x12-\n" +
 	"\x05state\x18\v \x01(\v2\x17.google.protobuf.StructR\x05state\x12\x19\n" +
 	"\bmodel_id\x18\f \x01(\tR\amodelId\x12#\n" +
-	"\rmodel_version\x18\r \x01(\tR\fmodelVersion\x1a9\n" +
+	"\rmodel_version\x18\r \x01(\tR\fmodelVersion\x129\n" +
+	"\x06status\x18\x0e \x01(\x0e2!.remote_control.home.DeviceStatusR\x06status\x1a9\n" +
 	"\vTopicsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x87\x01\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xb0\x01\n" +
 	"\x12ListDevicesRequest\x12\x10\n" +
 	"\x03ids\x18\x01 \x03(\tR\x03ids\x12\x12\n" +
 	"\x04type\x18\x02 \x01(\tR\x04type\x12\x12\n" +
 	"\x04room\x18\x03 \x01(\tR\x04room\x12\x12\n" +
 	"\x04tags\x18\x04 \x03(\tR\x04tags\x12#\n" +
-	"\rinclude_state\x18\x05 \x01(\bR\fincludeState\"L\n" +
+	"\rinclude_state\x18\x05 \x01(\bR\fincludeState\x12'\n" +
+	"\x0finclude_pending\x18\x06 \x01(\bR\x0eincludePending\"L\n" +
 	"\x13ListDevicesResponse\x125\n" +
 	"\adevices\x18\x01 \x03(\v2\x1b.remote_control.home.DeviceR\adevices\"'\n" +
 	"\x13WatchDevicesRequest\x12\x10\n" +
@@ -3430,7 +3609,14 @@ const file_home_service_proto_rawDesc = "" +
 	"\x06device\x18\x01 \x01(\v2\x1b.remote_control.home.DeviceR\x06device\"@\n" +
 	"\x14UpsertDeviceResponse\x12\x0e\n" +
 	"\x02ok\x18\x01 \x01(\bR\x02ok\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage\"2\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"V\n" +
+	"\x14ReserveDeviceRequest\x12\x19\n" +
+	"\bmodel_id\x18\x01 \x01(\tR\amodelId\x12#\n" +
+	"\rmodel_version\x18\x02 \x01(\tR\fmodelVersion\"^\n" +
+	"\x15ReserveDeviceResponse\x12\x0e\n" +
+	"\x02ok\x18\x01 \x01(\bR\x02ok\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\x12\x1b\n" +
+	"\tdevice_id\x18\x03 \x01(\tR\bdeviceId\"2\n" +
 	"\x13DeleteDeviceRequest\x12\x1b\n" +
 	"\tdevice_id\x18\x01 \x01(\tR\bdeviceId\"@\n" +
 	"\x14DeleteDeviceResponse\x12\x0e\n" +
@@ -3620,7 +3806,11 @@ const file_home_service_proto_rawDesc = "" +
 	"\n" +
 	"\x06ONLINE\x10\x02\x12\x11\n" +
 	"\rACTION_RESULT\x10\x03\x12\t\n" +
-	"\x05EVENT\x10\x04*F\n" +
+	"\x05EVENT\x10\x04*b\n" +
+	"\fDeviceStatus\x12\x1d\n" +
+	"\x19DEVICE_STATUS_UNSPECIFIED\x10\x00\x12\x18\n" +
+	"\x14DEVICE_STATUS_ACTIVE\x10\x01\x12\x19\n" +
+	"\x15DEVICE_STATUS_PENDING\x10\x02*F\n" +
 	"\x0fAutomationLogic\x12\x15\n" +
 	"\x11LOGIC_UNSPECIFIED\x10\x00\x12\r\n" +
 	"\tLOGIC_ALL\x10\x01\x12\r\n" +
@@ -3638,11 +3828,12 @@ const file_home_service_proto_rawDesc = "" +
 	"\x06OP_GTE\x10\x04\x12\t\n" +
 	"\x05OP_LT\x10\x05\x12\n" +
 	"\n" +
-	"\x06OP_LTE\x10\x062\xfc\x03\n" +
+	"\x06OP_LTE\x10\x062\xe4\x04\n" +
 	"\vHomeService\x12`\n" +
 	"\vListDevices\x12'.remote_control.home.ListDevicesRequest\x1a(.remote_control.home.ListDevicesResponse\x12\\\n" +
 	"\fWatchDevices\x12(.remote_control.home.WatchDevicesRequest\x1a .remote_control.home.DeviceEvent0\x01\x12c\n" +
-	"\fUpsertDevice\x12(.remote_control.home.UpsertDeviceRequest\x1a).remote_control.home.UpsertDeviceResponse\x12c\n" +
+	"\fUpsertDevice\x12(.remote_control.home.UpsertDeviceRequest\x1a).remote_control.home.UpsertDeviceResponse\x12f\n" +
+	"\rReserveDevice\x12).remote_control.home.ReserveDeviceRequest\x1a*.remote_control.home.ReserveDeviceResponse\x12c\n" +
 	"\fDeleteDevice\x12(.remote_control.home.DeleteDeviceRequest\x1a).remote_control.home.DeleteDeviceResponse\x12c\n" +
 	"\fInvokeAction\x12(.remote_control.home.InvokeActionRequest\x1a).remote_control.home.InvokeActionResponse2\xc9\x01\n" +
 	"\fAuditService\x12W\n" +
@@ -3678,159 +3869,165 @@ func file_home_service_proto_rawDescGZIP() []byte {
 	return file_home_service_proto_rawDescData
 }
 
-var file_home_service_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
-var file_home_service_proto_msgTypes = make([]protoimpl.MessageInfo, 58)
+var file_home_service_proto_enumTypes = make([]protoimpl.EnumInfo, 6)
+var file_home_service_proto_msgTypes = make([]protoimpl.MessageInfo, 60)
 var file_home_service_proto_goTypes = []any{
 	(AdapterKind)(0),                     // 0: remote_control.home.AdapterKind
 	(TelemetryEventKind)(0),              // 1: remote_control.home.TelemetryEventKind
-	(AutomationLogic)(0),                 // 2: remote_control.home.AutomationLogic
-	(AutomationConditionKind)(0),         // 3: remote_control.home.AutomationConditionKind
-	(AutomationOperator)(0),              // 4: remote_control.home.AutomationOperator
-	(*Adapter)(nil),                      // 5: remote_control.home.Adapter
-	(*ActionSpec)(nil),                   // 6: remote_control.home.ActionSpec
-	(*Device)(nil),                       // 7: remote_control.home.Device
-	(*ListDevicesRequest)(nil),           // 8: remote_control.home.ListDevicesRequest
-	(*ListDevicesResponse)(nil),          // 9: remote_control.home.ListDevicesResponse
-	(*WatchDevicesRequest)(nil),          // 10: remote_control.home.WatchDevicesRequest
-	(*DeviceEvent)(nil),                  // 11: remote_control.home.DeviceEvent
-	(*UpsertDeviceRequest)(nil),          // 12: remote_control.home.UpsertDeviceRequest
-	(*UpsertDeviceResponse)(nil),         // 13: remote_control.home.UpsertDeviceResponse
-	(*DeleteDeviceRequest)(nil),          // 14: remote_control.home.DeleteDeviceRequest
-	(*DeleteDeviceResponse)(nil),         // 15: remote_control.home.DeleteDeviceResponse
-	(*InvokeActionRequest)(nil),          // 16: remote_control.home.InvokeActionRequest
-	(*InvokeActionResponse)(nil),         // 17: remote_control.home.InvokeActionResponse
-	(*LogEntry)(nil),                     // 18: remote_control.home.LogEntry
-	(*ListLogsRequest)(nil),              // 19: remote_control.home.ListLogsRequest
-	(*ListLogsResponse)(nil),             // 20: remote_control.home.ListLogsResponse
-	(*CleanupLogsRequest)(nil),           // 21: remote_control.home.CleanupLogsRequest
-	(*CleanupLogsResponse)(nil),          // 22: remote_control.home.CleanupLogsResponse
-	(*AutomationCondition)(nil),          // 23: remote_control.home.AutomationCondition
-	(*AutomationWhen)(nil),               // 24: remote_control.home.AutomationWhen
-	(*AutomationAction)(nil),             // 25: remote_control.home.AutomationAction
-	(*Automation)(nil),                   // 26: remote_control.home.Automation
-	(*ListAutomationsRequest)(nil),       // 27: remote_control.home.ListAutomationsRequest
-	(*ListAutomationsResponse)(nil),      // 28: remote_control.home.ListAutomationsResponse
-	(*UpsertAutomationRequest)(nil),      // 29: remote_control.home.UpsertAutomationRequest
-	(*UpsertAutomationResponse)(nil),     // 30: remote_control.home.UpsertAutomationResponse
-	(*DeleteAutomationRequest)(nil),      // 31: remote_control.home.DeleteAutomationRequest
-	(*DeleteAutomationResponse)(nil),     // 32: remote_control.home.DeleteAutomationResponse
-	(*SetAutomationEnabledRequest)(nil),  // 33: remote_control.home.SetAutomationEnabledRequest
-	(*SetAutomationEnabledResponse)(nil), // 34: remote_control.home.SetAutomationEnabledResponse
-	(*TriggerAutomationRequest)(nil),     // 35: remote_control.home.TriggerAutomationRequest
-	(*TriggerAutomationResponse)(nil),    // 36: remote_control.home.TriggerAutomationResponse
-	(*DeviceModel)(nil),                  // 37: remote_control.home.DeviceModel
-	(*DeviceModelSpec)(nil),              // 38: remote_control.home.DeviceModelSpec
-	(*ListDeviceModelsRequest)(nil),      // 39: remote_control.home.ListDeviceModelsRequest
-	(*ListDeviceModelsResponse)(nil),     // 40: remote_control.home.ListDeviceModelsResponse
-	(*GetDeviceModelRequest)(nil),        // 41: remote_control.home.GetDeviceModelRequest
-	(*GetDeviceModelResponse)(nil),       // 42: remote_control.home.GetDeviceModelResponse
-	(*CreateDeviceModelRequest)(nil),     // 43: remote_control.home.CreateDeviceModelRequest
-	(*CreateDeviceModelResponse)(nil),    // 44: remote_control.home.CreateDeviceModelResponse
-	(*UpdateDeviceModelRequest)(nil),     // 45: remote_control.home.UpdateDeviceModelRequest
-	(*UpdateDeviceModelResponse)(nil),    // 46: remote_control.home.UpdateDeviceModelResponse
-	(*DeleteDeviceModelRequest)(nil),     // 47: remote_control.home.DeleteDeviceModelRequest
-	(*DeleteDeviceModelResponse)(nil),    // 48: remote_control.home.DeleteDeviceModelResponse
-	(*CloudConfig)(nil),                  // 49: remote_control.home.CloudConfig
-	(*ListCloudConfigsRequest)(nil),      // 50: remote_control.home.ListCloudConfigsRequest
-	(*ListCloudConfigsResponse)(nil),     // 51: remote_control.home.ListCloudConfigsResponse
-	(*UpsertCloudConfigRequest)(nil),     // 52: remote_control.home.UpsertCloudConfigRequest
-	(*UpsertCloudConfigResponse)(nil),    // 53: remote_control.home.UpsertCloudConfigResponse
-	(*DeleteCloudConfigRequest)(nil),     // 54: remote_control.home.DeleteCloudConfigRequest
-	(*DeleteCloudConfigResponse)(nil),    // 55: remote_control.home.DeleteCloudConfigResponse
-	(*ApplyCloudConfigRequest)(nil),      // 56: remote_control.home.ApplyCloudConfigRequest
-	(*ApplyCloudConfigResponse)(nil),     // 57: remote_control.home.ApplyCloudConfigResponse
-	nil,                                  // 58: remote_control.home.Adapter.ConfigEntry
-	nil,                                  // 59: remote_control.home.ActionSpec.ArgsSchemaEntry
-	nil,                                  // 60: remote_control.home.Device.TopicsEntry
-	nil,                                  // 61: remote_control.home.DeviceModel.StateSchemaEntry
-	nil,                                  // 62: remote_control.home.DeviceModelSpec.StateSchemaEntry
-	(*structpb.Struct)(nil),              // 63: google.protobuf.Struct
-	(*structpb.Value)(nil),               // 64: google.protobuf.Value
+	(DeviceStatus)(0),                    // 2: remote_control.home.DeviceStatus
+	(AutomationLogic)(0),                 // 3: remote_control.home.AutomationLogic
+	(AutomationConditionKind)(0),         // 4: remote_control.home.AutomationConditionKind
+	(AutomationOperator)(0),              // 5: remote_control.home.AutomationOperator
+	(*Adapter)(nil),                      // 6: remote_control.home.Adapter
+	(*ActionSpec)(nil),                   // 7: remote_control.home.ActionSpec
+	(*Device)(nil),                       // 8: remote_control.home.Device
+	(*ListDevicesRequest)(nil),           // 9: remote_control.home.ListDevicesRequest
+	(*ListDevicesResponse)(nil),          // 10: remote_control.home.ListDevicesResponse
+	(*WatchDevicesRequest)(nil),          // 11: remote_control.home.WatchDevicesRequest
+	(*DeviceEvent)(nil),                  // 12: remote_control.home.DeviceEvent
+	(*UpsertDeviceRequest)(nil),          // 13: remote_control.home.UpsertDeviceRequest
+	(*UpsertDeviceResponse)(nil),         // 14: remote_control.home.UpsertDeviceResponse
+	(*ReserveDeviceRequest)(nil),         // 15: remote_control.home.ReserveDeviceRequest
+	(*ReserveDeviceResponse)(nil),        // 16: remote_control.home.ReserveDeviceResponse
+	(*DeleteDeviceRequest)(nil),          // 17: remote_control.home.DeleteDeviceRequest
+	(*DeleteDeviceResponse)(nil),         // 18: remote_control.home.DeleteDeviceResponse
+	(*InvokeActionRequest)(nil),          // 19: remote_control.home.InvokeActionRequest
+	(*InvokeActionResponse)(nil),         // 20: remote_control.home.InvokeActionResponse
+	(*LogEntry)(nil),                     // 21: remote_control.home.LogEntry
+	(*ListLogsRequest)(nil),              // 22: remote_control.home.ListLogsRequest
+	(*ListLogsResponse)(nil),             // 23: remote_control.home.ListLogsResponse
+	(*CleanupLogsRequest)(nil),           // 24: remote_control.home.CleanupLogsRequest
+	(*CleanupLogsResponse)(nil),          // 25: remote_control.home.CleanupLogsResponse
+	(*AutomationCondition)(nil),          // 26: remote_control.home.AutomationCondition
+	(*AutomationWhen)(nil),               // 27: remote_control.home.AutomationWhen
+	(*AutomationAction)(nil),             // 28: remote_control.home.AutomationAction
+	(*Automation)(nil),                   // 29: remote_control.home.Automation
+	(*ListAutomationsRequest)(nil),       // 30: remote_control.home.ListAutomationsRequest
+	(*ListAutomationsResponse)(nil),      // 31: remote_control.home.ListAutomationsResponse
+	(*UpsertAutomationRequest)(nil),      // 32: remote_control.home.UpsertAutomationRequest
+	(*UpsertAutomationResponse)(nil),     // 33: remote_control.home.UpsertAutomationResponse
+	(*DeleteAutomationRequest)(nil),      // 34: remote_control.home.DeleteAutomationRequest
+	(*DeleteAutomationResponse)(nil),     // 35: remote_control.home.DeleteAutomationResponse
+	(*SetAutomationEnabledRequest)(nil),  // 36: remote_control.home.SetAutomationEnabledRequest
+	(*SetAutomationEnabledResponse)(nil), // 37: remote_control.home.SetAutomationEnabledResponse
+	(*TriggerAutomationRequest)(nil),     // 38: remote_control.home.TriggerAutomationRequest
+	(*TriggerAutomationResponse)(nil),    // 39: remote_control.home.TriggerAutomationResponse
+	(*DeviceModel)(nil),                  // 40: remote_control.home.DeviceModel
+	(*DeviceModelSpec)(nil),              // 41: remote_control.home.DeviceModelSpec
+	(*ListDeviceModelsRequest)(nil),      // 42: remote_control.home.ListDeviceModelsRequest
+	(*ListDeviceModelsResponse)(nil),     // 43: remote_control.home.ListDeviceModelsResponse
+	(*GetDeviceModelRequest)(nil),        // 44: remote_control.home.GetDeviceModelRequest
+	(*GetDeviceModelResponse)(nil),       // 45: remote_control.home.GetDeviceModelResponse
+	(*CreateDeviceModelRequest)(nil),     // 46: remote_control.home.CreateDeviceModelRequest
+	(*CreateDeviceModelResponse)(nil),    // 47: remote_control.home.CreateDeviceModelResponse
+	(*UpdateDeviceModelRequest)(nil),     // 48: remote_control.home.UpdateDeviceModelRequest
+	(*UpdateDeviceModelResponse)(nil),    // 49: remote_control.home.UpdateDeviceModelResponse
+	(*DeleteDeviceModelRequest)(nil),     // 50: remote_control.home.DeleteDeviceModelRequest
+	(*DeleteDeviceModelResponse)(nil),    // 51: remote_control.home.DeleteDeviceModelResponse
+	(*CloudConfig)(nil),                  // 52: remote_control.home.CloudConfig
+	(*ListCloudConfigsRequest)(nil),      // 53: remote_control.home.ListCloudConfigsRequest
+	(*ListCloudConfigsResponse)(nil),     // 54: remote_control.home.ListCloudConfigsResponse
+	(*UpsertCloudConfigRequest)(nil),     // 55: remote_control.home.UpsertCloudConfigRequest
+	(*UpsertCloudConfigResponse)(nil),    // 56: remote_control.home.UpsertCloudConfigResponse
+	(*DeleteCloudConfigRequest)(nil),     // 57: remote_control.home.DeleteCloudConfigRequest
+	(*DeleteCloudConfigResponse)(nil),    // 58: remote_control.home.DeleteCloudConfigResponse
+	(*ApplyCloudConfigRequest)(nil),      // 59: remote_control.home.ApplyCloudConfigRequest
+	(*ApplyCloudConfigResponse)(nil),     // 60: remote_control.home.ApplyCloudConfigResponse
+	nil,                                  // 61: remote_control.home.Adapter.ConfigEntry
+	nil,                                  // 62: remote_control.home.ActionSpec.ArgsSchemaEntry
+	nil,                                  // 63: remote_control.home.Device.TopicsEntry
+	nil,                                  // 64: remote_control.home.DeviceModel.StateSchemaEntry
+	nil,                                  // 65: remote_control.home.DeviceModelSpec.StateSchemaEntry
+	(*structpb.Struct)(nil),              // 66: google.protobuf.Struct
+	(*structpb.Value)(nil),               // 67: google.protobuf.Value
 }
 var file_home_service_proto_depIdxs = []int32{
 	0,  // 0: remote_control.home.Adapter.kind:type_name -> remote_control.home.AdapterKind
-	58, // 1: remote_control.home.Adapter.config:type_name -> remote_control.home.Adapter.ConfigEntry
-	59, // 2: remote_control.home.ActionSpec.args_schema:type_name -> remote_control.home.ActionSpec.ArgsSchemaEntry
-	60, // 3: remote_control.home.Device.topics:type_name -> remote_control.home.Device.TopicsEntry
-	5,  // 4: remote_control.home.Device.adapter:type_name -> remote_control.home.Adapter
-	6,  // 5: remote_control.home.Device.actions:type_name -> remote_control.home.ActionSpec
-	63, // 6: remote_control.home.Device.state:type_name -> google.protobuf.Struct
-	7,  // 7: remote_control.home.ListDevicesResponse.devices:type_name -> remote_control.home.Device
-	1,  // 8: remote_control.home.DeviceEvent.kind:type_name -> remote_control.home.TelemetryEventKind
-	63, // 9: remote_control.home.DeviceEvent.payload:type_name -> google.protobuf.Struct
-	7,  // 10: remote_control.home.UpsertDeviceRequest.device:type_name -> remote_control.home.Device
-	63, // 11: remote_control.home.InvokeActionRequest.args:type_name -> google.protobuf.Struct
-	63, // 12: remote_control.home.InvokeActionResponse.data:type_name -> google.protobuf.Struct
-	63, // 13: remote_control.home.LogEntry.data:type_name -> google.protobuf.Struct
-	18, // 14: remote_control.home.ListLogsResponse.entries:type_name -> remote_control.home.LogEntry
-	3,  // 15: remote_control.home.AutomationCondition.kind:type_name -> remote_control.home.AutomationConditionKind
-	4,  // 16: remote_control.home.AutomationCondition.op:type_name -> remote_control.home.AutomationOperator
-	64, // 17: remote_control.home.AutomationCondition.value:type_name -> google.protobuf.Value
-	2,  // 18: remote_control.home.AutomationWhen.logic:type_name -> remote_control.home.AutomationLogic
-	23, // 19: remote_control.home.AutomationWhen.conditions:type_name -> remote_control.home.AutomationCondition
-	63, // 20: remote_control.home.AutomationAction.args:type_name -> google.protobuf.Struct
-	24, // 21: remote_control.home.Automation.when:type_name -> remote_control.home.AutomationWhen
-	25, // 22: remote_control.home.Automation.then:type_name -> remote_control.home.AutomationAction
-	26, // 23: remote_control.home.ListAutomationsResponse.automations:type_name -> remote_control.home.Automation
-	26, // 24: remote_control.home.UpsertAutomationRequest.automation:type_name -> remote_control.home.Automation
-	63, // 25: remote_control.home.TriggerAutomationRequest.payload:type_name -> google.protobuf.Struct
-	6,  // 26: remote_control.home.DeviceModel.actions:type_name -> remote_control.home.ActionSpec
-	61, // 27: remote_control.home.DeviceModel.state_schema:type_name -> remote_control.home.DeviceModel.StateSchemaEntry
-	6,  // 28: remote_control.home.DeviceModelSpec.actions:type_name -> remote_control.home.ActionSpec
-	62, // 29: remote_control.home.DeviceModelSpec.state_schema:type_name -> remote_control.home.DeviceModelSpec.StateSchemaEntry
-	37, // 30: remote_control.home.ListDeviceModelsResponse.models:type_name -> remote_control.home.DeviceModel
-	37, // 31: remote_control.home.GetDeviceModelResponse.model:type_name -> remote_control.home.DeviceModel
-	38, // 32: remote_control.home.CreateDeviceModelRequest.model:type_name -> remote_control.home.DeviceModelSpec
-	38, // 33: remote_control.home.UpdateDeviceModelRequest.model:type_name -> remote_control.home.DeviceModelSpec
-	49, // 34: remote_control.home.ListCloudConfigsResponse.configs:type_name -> remote_control.home.CloudConfig
-	49, // 35: remote_control.home.UpsertCloudConfigRequest.config:type_name -> remote_control.home.CloudConfig
-	8,  // 36: remote_control.home.HomeService.ListDevices:input_type -> remote_control.home.ListDevicesRequest
-	10, // 37: remote_control.home.HomeService.WatchDevices:input_type -> remote_control.home.WatchDevicesRequest
-	12, // 38: remote_control.home.HomeService.UpsertDevice:input_type -> remote_control.home.UpsertDeviceRequest
-	14, // 39: remote_control.home.HomeService.DeleteDevice:input_type -> remote_control.home.DeleteDeviceRequest
-	16, // 40: remote_control.home.HomeService.InvokeAction:input_type -> remote_control.home.InvokeActionRequest
-	19, // 41: remote_control.home.AuditService.ListLogs:input_type -> remote_control.home.ListLogsRequest
-	21, // 42: remote_control.home.AuditService.CleanupLogs:input_type -> remote_control.home.CleanupLogsRequest
-	27, // 43: remote_control.home.AutomationService.ListAutomations:input_type -> remote_control.home.ListAutomationsRequest
-	29, // 44: remote_control.home.AutomationService.UpsertAutomation:input_type -> remote_control.home.UpsertAutomationRequest
-	31, // 45: remote_control.home.AutomationService.DeleteAutomation:input_type -> remote_control.home.DeleteAutomationRequest
-	33, // 46: remote_control.home.AutomationService.SetAutomationEnabled:input_type -> remote_control.home.SetAutomationEnabledRequest
-	35, // 47: remote_control.home.AutomationService.TriggerAutomation:input_type -> remote_control.home.TriggerAutomationRequest
-	39, // 48: remote_control.home.DeviceModelService.ListDeviceModels:input_type -> remote_control.home.ListDeviceModelsRequest
-	41, // 49: remote_control.home.DeviceModelService.GetDeviceModel:input_type -> remote_control.home.GetDeviceModelRequest
-	43, // 50: remote_control.home.DeviceModelService.CreateDeviceModel:input_type -> remote_control.home.CreateDeviceModelRequest
-	45, // 51: remote_control.home.DeviceModelService.UpdateDeviceModel:input_type -> remote_control.home.UpdateDeviceModelRequest
-	47, // 52: remote_control.home.DeviceModelService.DeleteDeviceModel:input_type -> remote_control.home.DeleteDeviceModelRequest
-	50, // 53: remote_control.home.CloudConfigService.ListCloudConfigs:input_type -> remote_control.home.ListCloudConfigsRequest
-	52, // 54: remote_control.home.CloudConfigService.UpsertCloudConfig:input_type -> remote_control.home.UpsertCloudConfigRequest
-	54, // 55: remote_control.home.CloudConfigService.DeleteCloudConfig:input_type -> remote_control.home.DeleteCloudConfigRequest
-	56, // 56: remote_control.home.CloudConfigService.ApplyCloudConfig:input_type -> remote_control.home.ApplyCloudConfigRequest
-	9,  // 57: remote_control.home.HomeService.ListDevices:output_type -> remote_control.home.ListDevicesResponse
-	11, // 58: remote_control.home.HomeService.WatchDevices:output_type -> remote_control.home.DeviceEvent
-	13, // 59: remote_control.home.HomeService.UpsertDevice:output_type -> remote_control.home.UpsertDeviceResponse
-	15, // 60: remote_control.home.HomeService.DeleteDevice:output_type -> remote_control.home.DeleteDeviceResponse
-	17, // 61: remote_control.home.HomeService.InvokeAction:output_type -> remote_control.home.InvokeActionResponse
-	20, // 62: remote_control.home.AuditService.ListLogs:output_type -> remote_control.home.ListLogsResponse
-	22, // 63: remote_control.home.AuditService.CleanupLogs:output_type -> remote_control.home.CleanupLogsResponse
-	28, // 64: remote_control.home.AutomationService.ListAutomations:output_type -> remote_control.home.ListAutomationsResponse
-	30, // 65: remote_control.home.AutomationService.UpsertAutomation:output_type -> remote_control.home.UpsertAutomationResponse
-	32, // 66: remote_control.home.AutomationService.DeleteAutomation:output_type -> remote_control.home.DeleteAutomationResponse
-	34, // 67: remote_control.home.AutomationService.SetAutomationEnabled:output_type -> remote_control.home.SetAutomationEnabledResponse
-	36, // 68: remote_control.home.AutomationService.TriggerAutomation:output_type -> remote_control.home.TriggerAutomationResponse
-	40, // 69: remote_control.home.DeviceModelService.ListDeviceModels:output_type -> remote_control.home.ListDeviceModelsResponse
-	42, // 70: remote_control.home.DeviceModelService.GetDeviceModel:output_type -> remote_control.home.GetDeviceModelResponse
-	44, // 71: remote_control.home.DeviceModelService.CreateDeviceModel:output_type -> remote_control.home.CreateDeviceModelResponse
-	46, // 72: remote_control.home.DeviceModelService.UpdateDeviceModel:output_type -> remote_control.home.UpdateDeviceModelResponse
-	48, // 73: remote_control.home.DeviceModelService.DeleteDeviceModel:output_type -> remote_control.home.DeleteDeviceModelResponse
-	51, // 74: remote_control.home.CloudConfigService.ListCloudConfigs:output_type -> remote_control.home.ListCloudConfigsResponse
-	53, // 75: remote_control.home.CloudConfigService.UpsertCloudConfig:output_type -> remote_control.home.UpsertCloudConfigResponse
-	55, // 76: remote_control.home.CloudConfigService.DeleteCloudConfig:output_type -> remote_control.home.DeleteCloudConfigResponse
-	57, // 77: remote_control.home.CloudConfigService.ApplyCloudConfig:output_type -> remote_control.home.ApplyCloudConfigResponse
-	57, // [57:78] is the sub-list for method output_type
-	36, // [36:57] is the sub-list for method input_type
-	36, // [36:36] is the sub-list for extension type_name
-	36, // [36:36] is the sub-list for extension extendee
-	0,  // [0:36] is the sub-list for field type_name
+	61, // 1: remote_control.home.Adapter.config:type_name -> remote_control.home.Adapter.ConfigEntry
+	62, // 2: remote_control.home.ActionSpec.args_schema:type_name -> remote_control.home.ActionSpec.ArgsSchemaEntry
+	63, // 3: remote_control.home.Device.topics:type_name -> remote_control.home.Device.TopicsEntry
+	6,  // 4: remote_control.home.Device.adapter:type_name -> remote_control.home.Adapter
+	7,  // 5: remote_control.home.Device.actions:type_name -> remote_control.home.ActionSpec
+	66, // 6: remote_control.home.Device.state:type_name -> google.protobuf.Struct
+	2,  // 7: remote_control.home.Device.status:type_name -> remote_control.home.DeviceStatus
+	8,  // 8: remote_control.home.ListDevicesResponse.devices:type_name -> remote_control.home.Device
+	1,  // 9: remote_control.home.DeviceEvent.kind:type_name -> remote_control.home.TelemetryEventKind
+	66, // 10: remote_control.home.DeviceEvent.payload:type_name -> google.protobuf.Struct
+	8,  // 11: remote_control.home.UpsertDeviceRequest.device:type_name -> remote_control.home.Device
+	66, // 12: remote_control.home.InvokeActionRequest.args:type_name -> google.protobuf.Struct
+	66, // 13: remote_control.home.InvokeActionResponse.data:type_name -> google.protobuf.Struct
+	66, // 14: remote_control.home.LogEntry.data:type_name -> google.protobuf.Struct
+	21, // 15: remote_control.home.ListLogsResponse.entries:type_name -> remote_control.home.LogEntry
+	4,  // 16: remote_control.home.AutomationCondition.kind:type_name -> remote_control.home.AutomationConditionKind
+	5,  // 17: remote_control.home.AutomationCondition.op:type_name -> remote_control.home.AutomationOperator
+	67, // 18: remote_control.home.AutomationCondition.value:type_name -> google.protobuf.Value
+	3,  // 19: remote_control.home.AutomationWhen.logic:type_name -> remote_control.home.AutomationLogic
+	26, // 20: remote_control.home.AutomationWhen.conditions:type_name -> remote_control.home.AutomationCondition
+	66, // 21: remote_control.home.AutomationAction.args:type_name -> google.protobuf.Struct
+	27, // 22: remote_control.home.Automation.when:type_name -> remote_control.home.AutomationWhen
+	28, // 23: remote_control.home.Automation.then:type_name -> remote_control.home.AutomationAction
+	29, // 24: remote_control.home.ListAutomationsResponse.automations:type_name -> remote_control.home.Automation
+	29, // 25: remote_control.home.UpsertAutomationRequest.automation:type_name -> remote_control.home.Automation
+	66, // 26: remote_control.home.TriggerAutomationRequest.payload:type_name -> google.protobuf.Struct
+	7,  // 27: remote_control.home.DeviceModel.actions:type_name -> remote_control.home.ActionSpec
+	64, // 28: remote_control.home.DeviceModel.state_schema:type_name -> remote_control.home.DeviceModel.StateSchemaEntry
+	7,  // 29: remote_control.home.DeviceModelSpec.actions:type_name -> remote_control.home.ActionSpec
+	65, // 30: remote_control.home.DeviceModelSpec.state_schema:type_name -> remote_control.home.DeviceModelSpec.StateSchemaEntry
+	40, // 31: remote_control.home.ListDeviceModelsResponse.models:type_name -> remote_control.home.DeviceModel
+	40, // 32: remote_control.home.GetDeviceModelResponse.model:type_name -> remote_control.home.DeviceModel
+	41, // 33: remote_control.home.CreateDeviceModelRequest.model:type_name -> remote_control.home.DeviceModelSpec
+	41, // 34: remote_control.home.UpdateDeviceModelRequest.model:type_name -> remote_control.home.DeviceModelSpec
+	52, // 35: remote_control.home.ListCloudConfigsResponse.configs:type_name -> remote_control.home.CloudConfig
+	52, // 36: remote_control.home.UpsertCloudConfigRequest.config:type_name -> remote_control.home.CloudConfig
+	9,  // 37: remote_control.home.HomeService.ListDevices:input_type -> remote_control.home.ListDevicesRequest
+	11, // 38: remote_control.home.HomeService.WatchDevices:input_type -> remote_control.home.WatchDevicesRequest
+	13, // 39: remote_control.home.HomeService.UpsertDevice:input_type -> remote_control.home.UpsertDeviceRequest
+	15, // 40: remote_control.home.HomeService.ReserveDevice:input_type -> remote_control.home.ReserveDeviceRequest
+	17, // 41: remote_control.home.HomeService.DeleteDevice:input_type -> remote_control.home.DeleteDeviceRequest
+	19, // 42: remote_control.home.HomeService.InvokeAction:input_type -> remote_control.home.InvokeActionRequest
+	22, // 43: remote_control.home.AuditService.ListLogs:input_type -> remote_control.home.ListLogsRequest
+	24, // 44: remote_control.home.AuditService.CleanupLogs:input_type -> remote_control.home.CleanupLogsRequest
+	30, // 45: remote_control.home.AutomationService.ListAutomations:input_type -> remote_control.home.ListAutomationsRequest
+	32, // 46: remote_control.home.AutomationService.UpsertAutomation:input_type -> remote_control.home.UpsertAutomationRequest
+	34, // 47: remote_control.home.AutomationService.DeleteAutomation:input_type -> remote_control.home.DeleteAutomationRequest
+	36, // 48: remote_control.home.AutomationService.SetAutomationEnabled:input_type -> remote_control.home.SetAutomationEnabledRequest
+	38, // 49: remote_control.home.AutomationService.TriggerAutomation:input_type -> remote_control.home.TriggerAutomationRequest
+	42, // 50: remote_control.home.DeviceModelService.ListDeviceModels:input_type -> remote_control.home.ListDeviceModelsRequest
+	44, // 51: remote_control.home.DeviceModelService.GetDeviceModel:input_type -> remote_control.home.GetDeviceModelRequest
+	46, // 52: remote_control.home.DeviceModelService.CreateDeviceModel:input_type -> remote_control.home.CreateDeviceModelRequest
+	48, // 53: remote_control.home.DeviceModelService.UpdateDeviceModel:input_type -> remote_control.home.UpdateDeviceModelRequest
+	50, // 54: remote_control.home.DeviceModelService.DeleteDeviceModel:input_type -> remote_control.home.DeleteDeviceModelRequest
+	53, // 55: remote_control.home.CloudConfigService.ListCloudConfigs:input_type -> remote_control.home.ListCloudConfigsRequest
+	55, // 56: remote_control.home.CloudConfigService.UpsertCloudConfig:input_type -> remote_control.home.UpsertCloudConfigRequest
+	57, // 57: remote_control.home.CloudConfigService.DeleteCloudConfig:input_type -> remote_control.home.DeleteCloudConfigRequest
+	59, // 58: remote_control.home.CloudConfigService.ApplyCloudConfig:input_type -> remote_control.home.ApplyCloudConfigRequest
+	10, // 59: remote_control.home.HomeService.ListDevices:output_type -> remote_control.home.ListDevicesResponse
+	12, // 60: remote_control.home.HomeService.WatchDevices:output_type -> remote_control.home.DeviceEvent
+	14, // 61: remote_control.home.HomeService.UpsertDevice:output_type -> remote_control.home.UpsertDeviceResponse
+	16, // 62: remote_control.home.HomeService.ReserveDevice:output_type -> remote_control.home.ReserveDeviceResponse
+	18, // 63: remote_control.home.HomeService.DeleteDevice:output_type -> remote_control.home.DeleteDeviceResponse
+	20, // 64: remote_control.home.HomeService.InvokeAction:output_type -> remote_control.home.InvokeActionResponse
+	23, // 65: remote_control.home.AuditService.ListLogs:output_type -> remote_control.home.ListLogsResponse
+	25, // 66: remote_control.home.AuditService.CleanupLogs:output_type -> remote_control.home.CleanupLogsResponse
+	31, // 67: remote_control.home.AutomationService.ListAutomations:output_type -> remote_control.home.ListAutomationsResponse
+	33, // 68: remote_control.home.AutomationService.UpsertAutomation:output_type -> remote_control.home.UpsertAutomationResponse
+	35, // 69: remote_control.home.AutomationService.DeleteAutomation:output_type -> remote_control.home.DeleteAutomationResponse
+	37, // 70: remote_control.home.AutomationService.SetAutomationEnabled:output_type -> remote_control.home.SetAutomationEnabledResponse
+	39, // 71: remote_control.home.AutomationService.TriggerAutomation:output_type -> remote_control.home.TriggerAutomationResponse
+	43, // 72: remote_control.home.DeviceModelService.ListDeviceModels:output_type -> remote_control.home.ListDeviceModelsResponse
+	45, // 73: remote_control.home.DeviceModelService.GetDeviceModel:output_type -> remote_control.home.GetDeviceModelResponse
+	47, // 74: remote_control.home.DeviceModelService.CreateDeviceModel:output_type -> remote_control.home.CreateDeviceModelResponse
+	49, // 75: remote_control.home.DeviceModelService.UpdateDeviceModel:output_type -> remote_control.home.UpdateDeviceModelResponse
+	51, // 76: remote_control.home.DeviceModelService.DeleteDeviceModel:output_type -> remote_control.home.DeleteDeviceModelResponse
+	54, // 77: remote_control.home.CloudConfigService.ListCloudConfigs:output_type -> remote_control.home.ListCloudConfigsResponse
+	56, // 78: remote_control.home.CloudConfigService.UpsertCloudConfig:output_type -> remote_control.home.UpsertCloudConfigResponse
+	58, // 79: remote_control.home.CloudConfigService.DeleteCloudConfig:output_type -> remote_control.home.DeleteCloudConfigResponse
+	60, // 80: remote_control.home.CloudConfigService.ApplyCloudConfig:output_type -> remote_control.home.ApplyCloudConfigResponse
+	59, // [59:81] is the sub-list for method output_type
+	37, // [37:59] is the sub-list for method input_type
+	37, // [37:37] is the sub-list for extension type_name
+	37, // [37:37] is the sub-list for extension extendee
+	0,  // [0:37] is the sub-list for field type_name
 }
 
 func init() { file_home_service_proto_init() }
@@ -3843,8 +4040,8 @@ func file_home_service_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_home_service_proto_rawDesc), len(file_home_service_proto_rawDesc)),
-			NumEnums:      5,
-			NumMessages:   58,
+			NumEnums:      6,
+			NumMessages:   60,
 			NumExtensions: 0,
 			NumServices:   5,
 		},

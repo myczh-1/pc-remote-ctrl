@@ -13,6 +13,7 @@ import {
   ListAutomationsRequest,
   ListDevicesRequest,
   ListLogsRequest,
+  ReserveDeviceRequest,
   WatchDevicesRequest,
   SetAutomationEnabledRequest,
   TriggerAutomationRequest,
@@ -31,6 +32,7 @@ import {
   ListAutomationsResponse,
   ListDevicesResponse,
   ListLogsResponse,
+  ReserveDeviceResponse,
   SetAutomationEnabledResponse,
   TriggerAutomationResponse,
   UpdateDeviceModelResponse,
@@ -83,6 +85,7 @@ export function useCloudApi(config?: Partial<CloudConfig>) {
       room: params.room ?? '',
       tags: params.tags ?? [],
       includeState: params.includeState ?? true,
+      includePending: params.includePending ?? false,
     })
     const bytes = ListDevicesRequest.toBinary(req)
     const resBytes = await unary(homeSvc + 'ListDevices', bytes)
@@ -123,6 +126,13 @@ export function useCloudApi(config?: Partial<CloudConfig>) {
     const bytes = UpsertDeviceRequest.toBinary(req)
     const resBytes = await unary(homeSvc + 'UpsertDevice', bytes)
     return UpsertDeviceResponse.fromBinary(resBytes)
+  }, [unary])
+
+  const reserveDevice = useCallback(async (params: { modelId: string; modelVersion: string }) => {
+    const req = ReserveDeviceRequest.create({ modelId: params.modelId, modelVersion: params.modelVersion })
+    const bytes = ReserveDeviceRequest.toBinary(req)
+    const resBytes = await unary(homeSvc + 'ReserveDevice', bytes)
+    return ReserveDeviceResponse.fromBinary(resBytes)
   }, [unary])
 
   const deleteDevice = useCallback(async (params: { deviceId: string }) => {
@@ -233,6 +243,7 @@ export function useCloudApi(config?: Partial<CloudConfig>) {
     watchDevices,
     invokeAction,
     upsertDevice,
+    reserveDevice,
     deleteDevice,
     listAutomations,
     setAutomationEnabled,
@@ -244,6 +255,7 @@ export function useCloudApi(config?: Partial<CloudConfig>) {
     watchDevices,
     invokeAction,
     upsertDevice,
+    reserveDevice,
     deleteDevice,
     listAutomations,
     setAutomationEnabled,

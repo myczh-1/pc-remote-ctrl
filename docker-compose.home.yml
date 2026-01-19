@@ -47,7 +47,6 @@ services:
 
       # 如果 cloud-middleware 需要共享密钥，这里要匹配；cloud 现在 AUTH_MODE=none，就可以留空
       AGENT_SECRET: "${AGENT_SECRET}"
-      HOME_GRPC_ADDR: "${HOME_GRPC_ADDR}"
     volumes:
       - ./backend/data:/data
     ports:

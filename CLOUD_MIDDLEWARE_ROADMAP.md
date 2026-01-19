@@ -12,7 +12,7 @@
   - 注册表与拨号：
     - cloud-middleware/internal/registry/memory.go（device_id→{addr,conn,ttl}，支持默认上游）
     - cloud-middleware/internal/executor/dialer.go（backoff+keepalive）
-- 后端自动注册：backend/cmd/home-gateway/main.go（CLOUD_ADDR / AGENT_DEVICE_ID / HOME_GRPC_ADDR）。
+- 后端自动注册：backend/cmd/home-gateway/main.go（CLOUD_ADDR / AGENT_DEVICE_ID）。
 - 前端：
   - 切换本地/云端，云端设置（Endpoint、Agent ID）：frontend/src/App.tsx, frontend/src/components/Topbar.tsx, frontend/src/components/CloudSettings.tsx
   - 云端 API Hook：frontend/src/hooks/useCloudApi.ts（与 useHomeApi 形态一致）。
@@ -26,7 +26,6 @@
 - 后端（自动注册）：
   - CLOUD_ADDR=127.0.0.1:7073
   - AGENT_DEVICE_ID=dev1
-  - HOME_GRPC_ADDR=127.0.0.1:7071
 - 前端：
   - 本地使用 Vite 代理，无需额外配置。生产由 Nginx/网关转发 /cloud → 云端 7073。
 
@@ -140,8 +139,8 @@ P2 可观测性与运维
 附：常用命令
 - 生成 proto：`make proto-gen`
 - 启动云端：`make dev-cloud`
-- 启动后端（自动注册）：`CLOUD_ADDR=127.0.0.1:7073 AGENT_DEVICE_ID=dev1 HOME_GRPC_ADDR=127.0.0.1:7071 make dev-backend`
+- 启动后端（自动注册）：`CLOUD_ADDR=127.0.0.1:7073 AGENT_DEVICE_ID=dev1 make dev-backend`
 - 前端：`make dev-frontend`
 - 手动注册（备用）：
-  - `grpcurl -plaintext -d '{"device_id":"dev1","home_grpc_addr":"127.0.0.1:7071","ttl_sec":120}' localhost:7073 remote_control.cloud.v1.AgentService/Register`
+  - `grpcurl -plaintext -d '{"device_id":"dev1","ttl_sec":120}' localhost:7073 remote_control.cloud.v1.AgentService/Register`
   - `grpcurl -plaintext -d '{"device_id":"dev1"}' localhost:7073 remote_control.cloud.v1.AgentService/Heartbeat`

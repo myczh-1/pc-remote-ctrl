@@ -76,6 +76,15 @@ func (f *TagFilter) Match(d *storage.Device) bool {
 	return false
 }
 
+func NewStatusFilter(includePending bool) DeviceFilter {
+	if includePending {
+		return nil
+	}
+	return FilterFunc(func(d *storage.Device) bool {
+		return d.Status != storage.DeviceStatusPending
+	})
+}
+
 // CompositeFilter combines multiple filters with AND logic
 // Linus: "Good code has no special cases" - all filters treated equally
 type CompositeFilter struct {

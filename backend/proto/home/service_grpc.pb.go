@@ -19,11 +19,12 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	HomeService_ListDevices_FullMethodName  = "/remote_control.home.HomeService/ListDevices"
-	HomeService_WatchDevices_FullMethodName = "/remote_control.home.HomeService/WatchDevices"
-	HomeService_UpsertDevice_FullMethodName = "/remote_control.home.HomeService/UpsertDevice"
-	HomeService_DeleteDevice_FullMethodName = "/remote_control.home.HomeService/DeleteDevice"
-	HomeService_InvokeAction_FullMethodName = "/remote_control.home.HomeService/InvokeAction"
+	HomeService_ListDevices_FullMethodName   = "/remote_control.home.HomeService/ListDevices"
+	HomeService_WatchDevices_FullMethodName  = "/remote_control.home.HomeService/WatchDevices"
+	HomeService_UpsertDevice_FullMethodName  = "/remote_control.home.HomeService/UpsertDevice"
+	HomeService_ReserveDevice_FullMethodName = "/remote_control.home.HomeService/ReserveDevice"
+	HomeService_DeleteDevice_FullMethodName  = "/remote_control.home.HomeService/DeleteDevice"
+	HomeService_InvokeAction_FullMethodName  = "/remote_control.home.HomeService/InvokeAction"
 )
 
 // HomeServiceClient is the client API for HomeService service.
@@ -33,6 +34,7 @@ type HomeServiceClient interface {
 	ListDevices(ctx context.Context, in *ListDevicesRequest, opts ...grpc.CallOption) (*ListDevicesResponse, error)
 	WatchDevices(ctx context.Context, in *WatchDevicesRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[DeviceEvent], error)
 	UpsertDevice(ctx context.Context, in *UpsertDeviceRequest, opts ...grpc.CallOption) (*UpsertDeviceResponse, error)
+	ReserveDevice(ctx context.Context, in *ReserveDeviceRequest, opts ...grpc.CallOption) (*ReserveDeviceResponse, error)
 	DeleteDevice(ctx context.Context, in *DeleteDeviceRequest, opts ...grpc.CallOption) (*DeleteDeviceResponse, error)
 	InvokeAction(ctx context.Context, in *InvokeActionRequest, opts ...grpc.CallOption) (*InvokeActionResponse, error)
 }
@@ -84,6 +86,16 @@ func (c *homeServiceClient) UpsertDevice(ctx context.Context, in *UpsertDeviceRe
 	return out, nil
 }
 
+func (c *homeServiceClient) ReserveDevice(ctx context.Context, in *ReserveDeviceRequest, opts ...grpc.CallOption) (*ReserveDeviceResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ReserveDeviceResponse)
+	err := c.cc.Invoke(ctx, HomeService_ReserveDevice_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *homeServiceClient) DeleteDevice(ctx context.Context, in *DeleteDeviceRequest, opts ...grpc.CallOption) (*DeleteDeviceResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(DeleteDeviceResponse)
@@ -111,6 +123,7 @@ type HomeServiceServer interface {
 	ListDevices(context.Context, *ListDevicesRequest) (*ListDevicesResponse, error)
 	WatchDevices(*WatchDevicesRequest, grpc.ServerStreamingServer[DeviceEvent]) error
 	UpsertDevice(context.Context, *UpsertDeviceRequest) (*UpsertDeviceResponse, error)
+	ReserveDevice(context.Context, *ReserveDeviceRequest) (*ReserveDeviceResponse, error)
 	DeleteDevice(context.Context, *DeleteDeviceRequest) (*DeleteDeviceResponse, error)
 	InvokeAction(context.Context, *InvokeActionRequest) (*InvokeActionResponse, error)
 	mustEmbedUnimplementedHomeServiceServer()
@@ -131,6 +144,9 @@ func (UnimplementedHomeServiceServer) WatchDevices(*WatchDevicesRequest, grpc.Se
 }
 func (UnimplementedHomeServiceServer) UpsertDevice(context.Context, *UpsertDeviceRequest) (*UpsertDeviceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpsertDevice not implemented")
+}
+func (UnimplementedHomeServiceServer) ReserveDevice(context.Context, *ReserveDeviceRequest) (*ReserveDeviceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReserveDevice not implemented")
 }
 func (UnimplementedHomeServiceServer) DeleteDevice(context.Context, *DeleteDeviceRequest) (*DeleteDeviceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteDevice not implemented")
@@ -206,6 +222,24 @@ func _HomeService_UpsertDevice_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _HomeService_ReserveDevice_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReserveDeviceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(HomeServiceServer).ReserveDevice(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: HomeService_ReserveDevice_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(HomeServiceServer).ReserveDevice(ctx, req.(*ReserveDeviceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _HomeService_DeleteDevice_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DeleteDeviceRequest)
 	if err := dec(in); err != nil {
@@ -256,6 +290,10 @@ var HomeService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpsertDevice",
 			Handler:    _HomeService_UpsertDevice_Handler,
+		},
+		{
+			MethodName: "ReserveDevice",
+			Handler:    _HomeService_ReserveDevice_Handler,
 		},
 		{
 			MethodName: "DeleteDevice",

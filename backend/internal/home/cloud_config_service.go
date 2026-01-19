@@ -116,7 +116,6 @@ func (s *CloudConfigService) ApplyCloudConfig(ctx context.Context, req *homepb.A
 		CloudAddr:               cfg.CloudAddr,
 		AgentDeviceID:           cfg.AgentDeviceID,
 		AgentSecret:             cfg.AgentSecret,
-		HomeGRPCAddr:            cfg.HomeGRPCAddr,
 		AgentTunnelUnaryTimeout: time.Duration(normalizeTimeout(cfg.AgentTunnelUnaryTimeoutMS)) * time.Millisecond,
 	}
 	s.manager.Apply(rt)

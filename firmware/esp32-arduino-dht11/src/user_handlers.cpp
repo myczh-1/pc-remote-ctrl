@@ -15,9 +15,29 @@ void user_on_action(const String& action,
                     JsonDocument& resultData,
                     bool& ok,
                     String& message) {
-  (void)args; (void)resultData;
-  ok = false;
-  message = String("unknown action: ") + action;
+  if (args.is<JsonObjectConst>() && resultData.as<JsonObject>().size() == 0) {
+    JsonObject state = resultData["state"].to<JsonObject>();
+    for (JsonPairConst kv : args.as<JsonObjectConst>()) {
+      state[kv.key()] = kv.value();
+    }
+  }
+  ok = true;
+  message = String("applied");
+}
+
+void user_on_desired(JsonVariantConst desired,
+                     JsonDocument& reportedOut,
+                     bool& ok,
+                     String& message) {
+  if (desired.is<JsonObjectConst>()) {
+    for (JsonPairConst kv : desired.as<JsonObjectConst>()) {
+      reportedOut[kv.key()] = kv.value();
+    }
+  } else if (!desired.isNull()) {
+    reportedOut["value"] = desired;
+  }
+  ok = true;
+  message = String("applied");
 }
 
 void user_periodic_state(JsonDocument& stateOut, bool& hasUpdate) {
@@ -30,7 +50,7 @@ void user_periodic_state(JsonDocument& stateOut, bool& hasUpdate) {
   float tempC = dht.readTemperature();
   if (isnan(humidity) || isnan(tempC)) return;
 
-  JsonObject dhtObj = stateOut.createNestedObject("dht11");
+  JsonObject dhtObj = stateOut["dht11"].to<JsonObject>();
   dhtObj["temp_c"] = tempC;
   dhtObj["humidity"] = humidity;
   dhtObj["pin"] = kDhtPin;

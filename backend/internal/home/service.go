@@ -52,6 +52,7 @@ func (s *Service) ListDevices(ctx context.Context, req *homepb.ListDevicesReques
 		buildTypeFilter(req.GetType()),
 		buildRoomFilter(req.GetRoom()),
 		NewTagFilter(req.GetTags()),
+		NewStatusFilter(req.GetIncludePending()),
 	)
 
 	// Get all devices and apply filter
@@ -154,6 +155,39 @@ func (s *Service) UpsertDevice(ctx context.Context, req *homepb.UpsertDeviceRequ
 	return &homepb.UpsertDeviceResponse{Ok: true, Message: msg}, nil
 }
 
+func (s *Service) ReserveDevice(ctx context.Context, req *homepb.ReserveDeviceRequest) (*homepb.ReserveDeviceResponse, error) {
+	modelID := strings.TrimSpace(req.GetModelId())
+	modelVer := strings.TrimSpace(req.GetModelVersion())
+	if modelID == "" || modelVer == "" {
+		return &homepb.ReserveDeviceResponse{Ok: false, Message: "model_id and model_version required"}, nil
+	}
+	nid, err := generateID()
+	if err != nil {
+		return &homepb.ReserveDeviceResponse{Ok: false, Message: "id generate failed"}, nil
+	}
+	dev := &storage.Device{
+		ID:       nid,
+		ModelID:  modelID,
+		ModelVer: modelVer,
+		Adapter:  storage.DeviceAdapter{Kind: storage.AdapterMQTT, Config: map[string]any{}},
+		Status:   storage.DeviceStatusPending,
+	}
+	if err := s.applyModel(dev); err != nil {
+		return &homepb.ReserveDeviceResponse{Ok: false, Message: err.Error()}, nil
+	}
+	if err := s.devices.Upsert(*dev); err != nil {
+		return &homepb.ReserveDeviceResponse{Ok: false, Message: err.Error()}, nil
+	}
+	s.logAudit("device_reserve", dev.ID, map[string]any{
+		"model_id":      dev.ModelID,
+		"model_version": dev.ModelVer,
+	})
+	if s.submgr != nil {
+		s.submgr.subscribeDevice(ctx, dev)
+	}
+	return &homepb.ReserveDeviceResponse{Ok: true, Message: "ok", DeviceId: dev.ID}, nil
+}
+
 func (s *Service) DeleteDevice(ctx context.Context, req *homepb.DeleteDeviceRequest) (*homepb.DeleteDeviceResponse, error) {
 	if strings.TrimSpace(req.GetDeviceId()) == "" {
 		return &homepb.DeleteDeviceResponse{Ok: false, Message: "device_id required"}, nil
@@ -221,10 +255,12 @@ func toPBDevice(d *storage.Device, includeState bool) *homepb.Device {
 		Id: d.ID, Name: d.Name, Type: d.Type, Room: d.Room, Tags: d.Tags,
 		Online: d.Online, LastSeen: d.LastSeen, Topics: topics, Adapter: ad, Actions: acts, State: st,
 		ModelId: d.ModelID, ModelVersion: d.ModelVer,
+		Status: toPBDeviceStatus(d.Status),
 	}
 }
 
 func fromPBDevice(p *homepb.Device) (*storage.Device, error) {
+	status := fromPBDeviceStatus(p.GetStatus())
 	d := &storage.Device{
 		ID:   strings.TrimSpace(p.GetId()),
 		Name: p.GetName(), Type: p.GetType(), Room: p.GetRoom(), Tags: p.GetTags(),
@@ -232,6 +268,10 @@ func fromPBDevice(p *homepb.Device) (*storage.Device, error) {
 		Topics:   map[string]string{},
 		ModelID:  strings.TrimSpace(p.GetModelId()),
 		ModelVer: strings.TrimSpace(p.GetModelVersion()),
+		Status:   status,
+	}
+	if d.Status == "" {
+		d.Status = storage.DeviceStatusActive
 	}
 	for k, v := range p.GetTopics() {
 		d.Topics[k] = v
@@ -383,6 +423,28 @@ func fromPBAdapterKind(k homepb.AdapterKind) storage.AdapterKind {
 		return storage.AdapterHTTP
 	default:
 		return storage.AdapterKind("")
+	}
+}
+
+func toPBDeviceStatus(s storage.DeviceStatus) homepb.DeviceStatus {
+	switch s {
+	case storage.DeviceStatusPending:
+		return homepb.DeviceStatus_DEVICE_STATUS_PENDING
+	case storage.DeviceStatusActive:
+		return homepb.DeviceStatus_DEVICE_STATUS_ACTIVE
+	default:
+		return homepb.DeviceStatus_DEVICE_STATUS_UNSPECIFIED
+	}
+}
+
+func fromPBDeviceStatus(s homepb.DeviceStatus) storage.DeviceStatus {
+	switch s {
+	case homepb.DeviceStatus_DEVICE_STATUS_PENDING:
+		return storage.DeviceStatusPending
+	case homepb.DeviceStatus_DEVICE_STATUS_ACTIVE:
+		return storage.DeviceStatusActive
+	default:
+		return storage.DeviceStatus("")
 	}
 }
 

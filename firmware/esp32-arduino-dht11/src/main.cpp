@@ -82,15 +82,57 @@ static String extractActionFromTopic(const char* topic) {
   return pre.substring(lastSlash + 1);
 }
 
+static bool isDesiredTopic(const char* topic) {
+  // devices/{id}/shadow/desired
+  String t(topic);
+  return t.endsWith("/shadow/desired");
+}
+
+static void publishReportedState(JsonDocument& stateDoc) {
+  if (g_deviceId.isEmpty()) return;
+  String topic = "devices/" + g_deviceId + "/state";
+  char buf[512]; size_t n = serializeJson(stateDoc, buf, sizeof(buf));
+  mqtt.publish(topic.c_str(), buf, true);
+}
+
+static void handleDesired(JsonDocument& doc) {
+  JsonVariantConst desired = doc.as<JsonVariantConst>();
+  if (doc.containsKey("desired") && doc["desired"].is<JsonVariantConst>()) {
+    desired = doc["desired"].as<JsonVariantConst>();
+  }
+  StaticJsonDocument<512> reported;
+  bool ok = false;
+  String message;
+  user_on_desired(desired, reported, ok, message);
+  if (!ok) return;
+  if (reported.as<JsonObject>().size() == 0) {
+    if (desired.is<JsonObjectConst>()) {
+      for (JsonPairConst kv : desired.as<JsonObjectConst>()) {
+        reported[kv.key()] = kv.value();
+      }
+    } else if (!desired.isNull()) {
+      reported["value"] = desired;
+    }
+  }
+  if (reported.as<JsonObject>().size() > 0) {
+    publishReportedState(reported);
+  }
+}
+
 static void onMqttMessage(char* topic, uint8_t* payload, unsigned int length) {
   Serial.printf("MQTT msg topic=%s len=%u\n", topic, length);
-  String action = extractActionFromTopic(topic);
-  String corrId;
   StaticJsonDocument<384> doc;
   DeserializationError err = deserializeJson(doc, payload, length);
-  if (!err) {
-    if (doc["corr_id"].is<String>()) corrId = (const char*)doc["corr_id"];
+  if (err) {
+    return;
   }
+  if (isDesiredTopic(topic)) {
+    handleDesired(doc);
+    return;
+  }
+  String action = extractActionFromTopic(topic);
+  String corrId;
+  if (doc["corr_id"].is<String>()) corrId = (const char*)doc["corr_id"];
   // 传递
   bool ok = false; String message;
   StaticJsonDocument<512> resultData;
@@ -128,6 +170,8 @@ static bool ensureMqttConnected() {
   // subscribe to action calls
   String sub = String("devices/") + g_deviceId + "/actions/+/call";
   mqtt.subscribe(sub.c_str());
+  String desiredSub = String("devices/") + g_deviceId + "/shadow/desired";
+  mqtt.subscribe(desiredSub.c_str());
   publishOnline(true);
   publishInitialState();
   return true;

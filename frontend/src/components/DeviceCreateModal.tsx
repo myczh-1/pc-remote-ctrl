@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import type { Device, DeviceModel } from '../proto/home/service'
-import { AdapterKind } from '../proto/home/service'
+import { AdapterKind, DeviceStatus } from '../proto/home/service'
 import { useBleProvisioning } from '../hooks/useBleProvisioning'
 import type { DeviceListParams } from '../hooks/useHomeApi'
 import { Dialog, DialogContent } from './ui/dialog'
@@ -11,6 +11,7 @@ import { Select } from './ui/select'
 interface DeviceApi {
   listDevices: (opts?: DeviceListParams) => Promise<{ ok: boolean; devices?: Device[]; count?: number; error?: string }>
   upsertDevice: (device: Device) => Promise<{ ok: boolean; message?: string; error?: string; deviceId?: string }>
+  reserveDevice: (params: { modelId: string; modelVersion: string }) => Promise<{ ok: boolean; message?: string; error?: string; deviceId?: string }>
   deleteDevice: (deviceId: string) => Promise<{ ok: boolean; message?: string; error?: string }>
 }
 
@@ -101,7 +102,7 @@ export function DeviceCreateModal({ open, onCancel, onCreate, initialDevice, api
     }
     const trimmedName = name.trim()
     const baseTopics = initialDevice?.topics ?? {}
-      const device: Device = {
+    const device: Device = {
       id: id,
       name: trimmedName,
       type,
@@ -115,6 +116,7 @@ export function DeviceCreateModal({ open, onCancel, onCreate, initialDevice, api
       state: initialDevice?.state ?? ({ fields: {} } as any),
       modelId,
       modelVersion,
+      status: initialDevice?.status ?? DeviceStatus.DEVICE_STATUS_ACTIVE,
     }
     try {
       const res = await onCreate?.(device)
@@ -215,6 +217,7 @@ export function DeviceCreateModal({ open, onCancel, onCreate, initialDevice, api
             <div>
               <div className="font-medium">蓝牙配网（Web Bluetooth）</div>
               <div className="text-xs text-slate-500 dark:text-slate-400">在本机通过蓝牙为设备写入 Wi‑Fi 与 MQTT 参数</div>
+              <div className="text-xs text-slate-400 dark:text-slate-500">配网期间设备会以 pending 暂存，提交后才会显示在列表中</div>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-2">
@@ -248,28 +251,24 @@ export function DeviceCreateModal({ open, onCancel, onCreate, initialDevice, api
                 if (!modelId || !modelVersion) { alert('请选择设备模型'); return }
                 setBleRunning(true)
                 setBleLogs([])
+                let currentId = id
                 try {
                   // 1) 分配设备ID（仅当尚未分配）
                   if (!allocated) {
-                    const r = await api.upsertDevice({
-                      id: '' as any,
-                      name: name.trim(), type: type, room: '', tags: [],
-                      online: false, lastSeen: 0 as any, topics: {},
-                      adapter: { kind: AdapterKind.MQTT, config: {} } as any,
-                      actions: [], state: { fields: {} } as any,
-                      modelId,
-                      modelVersion,
-                    } as any)
+                    const r = await api.reserveDevice({ modelId, modelVersion })
                     if (!r.ok) throw new Error(`分配设备ID失败: ${r.error}`)
                     const newId = r.deviceId || parseDeviceIdFromMessage(r.message)
                     if (!newId) throw new Error(`分配设备ID失败: ${String(r.message || 'unknown')}`)
+                    currentId = newId
                     setId(newId)
                     setAllocated(true)
                     setStep('ble')
                     setBleLogs(prev => [...prev, { t: Date.now(), msg: `已分配设备ID: ${newId}`, ok: true }])
+                  } else if (!currentId) {
+                    throw new Error('设备ID缺失，请重新开始配网')
                   }
 
-                  const res = await provision({ ssid, password: wifiPass, mqttUrl, deviceId: id, mqttUser, mqttPass }, (e) => {
+                  const res = await provision({ ssid, password: wifiPass, mqttUrl, deviceId: currentId, mqttUser, mqttPass }, (e) => {
                     setBleLogs(prev => [...prev, { t: Date.now(), msg: `${e.stage}${e.message ? ': ' + e.message : ''}`, ok: e.ok }].slice(-50))
                   })
                   if (res.ok) {
@@ -278,9 +277,9 @@ export function DeviceCreateModal({ open, onCancel, onCreate, initialDevice, api
                     // 轮询等待设备上线（最多 30 秒）
                     let onlineOk = false
                     for (let i = 0; i < 30; i++) {
-                      const r = await api.listDevices()
+                      const r = await api.listDevices({ ids: [currentId], includePending: true })
                       if (r.ok && Array.isArray((r as any).devices)) {
-                        const found = (r as any).devices.find((d: any) => d.id === id)
+                        const found = (r as any).devices.find((d: any) => d.id === currentId)
                         if (found && (found.online as any)) { onlineOk = true; break }
                       }
                       await new Promise(res => setTimeout(res, 1000))
@@ -291,21 +290,21 @@ export function DeviceCreateModal({ open, onCancel, onCreate, initialDevice, api
                       setStep('done')
                     } else {
                       setBleLogs(prev => [...prev, { t: Date.now(), msg: '等待上线超时', ok: false }])
-                      try { if (allocated && id) { await api.deleteDevice(id) } } catch {}
+                      try { if (allocated && currentId) { await api.deleteDevice(currentId) } } catch {}
                       setAllocated(false)
                       setId('')
                       setStep('ble')
                     }
                   } else {
                     setBleLogs(prev => [...prev, { t: Date.now(), msg: res.message || '配网失败', ok: false }])
-                    try { if (allocated && id) { await api.deleteDevice(id) } } catch {}
+                    try { if (allocated && currentId) { await api.deleteDevice(currentId) } } catch {}
                     setAllocated(false)
                     setId('')
                     setStep('ble')
                   }
                 } catch (err: any) {
                   setBleLogs(prev => [...prev, { t: Date.now(), msg: String(err?.message ?? err), ok: false }])
-                  try { if (allocated && id) { await api.deleteDevice(id) } } catch {}
+                  try { if (allocated && currentId) { await api.deleteDevice(currentId) } } catch {}
                   setAllocated(false)
                   setId('')
                   setStep('ble')

@@ -12,6 +12,7 @@ import type {
   ListDevicesResponse,
   ListLogsResponse,
   LogEntry,
+  ReserveDeviceResponse,
   UpsertDeviceResponse,
 } from '../proto/home/service'
 import { TelemetryEventKind } from '../proto/home/service'
@@ -24,6 +25,7 @@ export interface ApiAdapter {
   watchDevices: (params: { ids: string[] }, options: { abort: AbortSignal }) => ServerStreamingCall<any, DeviceEvent>
   invokeAction: (params: { deviceId: string; action: string; args?: Struct; timeoutMs?: number }) => Promise<InvokeActionResponse>
   upsertDevice: (params: { device: Device }) => Promise<UpsertDeviceResponse>
+  reserveDevice: (params: { modelId: string; modelVersion: string }) => Promise<ReserveDeviceResponse>
   deleteDevice: (params: { deviceId: string }) => Promise<{ ok: boolean; message?: string }>
   listAutomations?: (params: { includeDisabled: boolean; tag: string; nameContains: string; pageSize: number; pageToken: string }) => Promise<ListAutomationsResponse>
   setAutomationEnabled?: (params: { automationId: string; enabled: boolean }) => Promise<{ ok: boolean; message?: string }>
@@ -107,7 +109,14 @@ export function useApiCore(adapter: ApiAdapter, config?: Partial<ApiCoreConfig>)
   const watchActiveRef = useRef(false)
   const abortRef = useRef<AbortController | null>(null)
 
-  const listParamsRef = useRef<Required<DeviceListParams>>({ ids: [], type: '', room: '', tags: [], includeState: true })
+  const listParamsRef = useRef<Required<DeviceListParams>>({
+    ids: [],
+    type: '',
+    room: '',
+    tags: [],
+    includeState: true,
+    includePending: false,
+  })
 
   const listDevices = useCallback(async (opts?: DeviceListParams) => {
     const current = listParamsRef.current
@@ -117,6 +126,7 @@ export function useApiCore(adapter: ApiAdapter, config?: Partial<ApiCoreConfig>)
       room: opts?.room ?? current.room,
       tags: opts?.tags ? [...opts.tags] : current.tags,
       includeState: opts?.includeState ?? current.includeState,
+      includePending: opts?.includePending ?? current.includePending,
     }
     if (opts) {
       listParamsRef.current = { ...next, ids: [...next.ids], tags: [...next.tags] }
@@ -131,6 +141,7 @@ export function useApiCore(adapter: ApiAdapter, config?: Partial<ApiCoreConfig>)
         room: next.room,
         tags: next.tags,
         includeState: next.includeState,
+        includePending: next.includePending,
       })
       const devs = ((res as ListDevicesResponse)?.devices ?? []) as Device[]
       setDevices(devs)
@@ -283,6 +294,15 @@ export function useApiCore(adapter: ApiAdapter, config?: Partial<ApiCoreConfig>)
         }
       }
       return { ok: res.ok, message: res.message, deviceId: (device.id && device.id.trim()) || extractDeviceId(res.message) }
+    } catch (e: any) {
+      return { ok: false, error: String(e?.message ?? e) }
+    }
+  }, [adapter])
+
+  const reserveDevice = useCallback(async (params: { modelId: string; modelVersion: string }) => {
+    try {
+      const res = await adapter.reserveDevice({ modelId: params.modelId, modelVersion: params.modelVersion }) as ReserveDeviceResponse
+      return { ok: res.ok, message: res.message, deviceId: res.deviceId }
     } catch (e: any) {
       return { ok: false, error: String(e?.message ?? e) }
     }
@@ -443,6 +463,7 @@ export function useApiCore(adapter: ApiAdapter, config?: Partial<ApiCoreConfig>)
     startWatch,
     stopWatch,
     upsertDevice,
+    reserveDevice,
     deleteDevice,
     listAutomations,
     setAutomationEnabled,
@@ -464,6 +485,7 @@ export function useApiCore(adapter: ApiAdapter, config?: Partial<ApiCoreConfig>)
     startWatch,
     stopWatch,
     upsertDevice,
+    reserveDevice,
     deleteDevice,
     listAutomations,
     setAutomationEnabled,

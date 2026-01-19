@@ -44,6 +44,8 @@ import type { InvokeActionResponse } from "./service";
 import type { InvokeActionRequest } from "./service";
 import type { DeleteDeviceResponse } from "./service";
 import type { DeleteDeviceRequest } from "./service";
+import type { ReserveDeviceResponse } from "./service";
+import type { ReserveDeviceRequest } from "./service";
 import type { UpsertDeviceResponse } from "./service";
 import type { UpsertDeviceRequest } from "./service";
 import type { DeviceEvent } from "./service";
@@ -70,6 +72,10 @@ export interface IHomeServiceClient {
      * @generated from protobuf rpc: UpsertDevice
      */
     upsertDevice(input: UpsertDeviceRequest, options?: RpcOptions): UnaryCall<UpsertDeviceRequest, UpsertDeviceResponse>;
+    /**
+     * @generated from protobuf rpc: ReserveDevice
+     */
+    reserveDevice(input: ReserveDeviceRequest, options?: RpcOptions): UnaryCall<ReserveDeviceRequest, ReserveDeviceResponse>;
     /**
      * @generated from protobuf rpc: DeleteDevice
      */
@@ -110,17 +116,24 @@ export class HomeServiceClient implements IHomeServiceClient, ServiceInfo {
         return stackIntercept<UpsertDeviceRequest, UpsertDeviceResponse>("unary", this._transport, method, opt, input);
     }
     /**
+     * @generated from protobuf rpc: ReserveDevice
+     */
+    reserveDevice(input: ReserveDeviceRequest, options?: RpcOptions): UnaryCall<ReserveDeviceRequest, ReserveDeviceResponse> {
+        const method = this.methods[3], opt = this._transport.mergeOptions(options);
+        return stackIntercept<ReserveDeviceRequest, ReserveDeviceResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
      * @generated from protobuf rpc: DeleteDevice
      */
     deleteDevice(input: DeleteDeviceRequest, options?: RpcOptions): UnaryCall<DeleteDeviceRequest, DeleteDeviceResponse> {
-        const method = this.methods[3], opt = this._transport.mergeOptions(options);
+        const method = this.methods[4], opt = this._transport.mergeOptions(options);
         return stackIntercept<DeleteDeviceRequest, DeleteDeviceResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: InvokeAction
      */
     invokeAction(input: InvokeActionRequest, options?: RpcOptions): UnaryCall<InvokeActionRequest, InvokeActionResponse> {
-        const method = this.methods[4], opt = this._transport.mergeOptions(options);
+        const method = this.methods[5], opt = this._transport.mergeOptions(options);
         return stackIntercept<InvokeActionRequest, InvokeActionResponse>("unary", this._transport, method, opt, input);
     }
 }
