@@ -211,119 +211,90 @@ func (a *Automations) List(opts ListAutomationsOptions) ([]Automation, string, e
 	if db == nil {
 		return nil, "", errors.New("automation storage not initialized")
 	}
+
 	pageSize := opts.PageSize
 	if pageSize <= 0 || pageSize > 200 {
 		pageSize = 50
 	}
 
-	requestedTag := strings.TrimSpace(opts.Tag)
-	nameSubstr := strings.ToLower(strings.TrimSpace(opts.NameContains))
-	parseToken := func(tok string) (int64, string, error) {
-		if strings.TrimSpace(tok) == "" {
-			return 0, "", nil
-		}
+	lastTS := int64(0)
+	lastID := ""
+	if tok := strings.TrimSpace(opts.PageToken); tok != "" {
 		parts := strings.Split(tok, ":")
 		if len(parts) != 2 {
-			return 0, "", fmt.Errorf("invalid page_token")
+			return nil, "", fmt.Errorf("invalid page_token")
 		}
 		ts, err := strconv.ParseInt(parts[0], 10, 64)
 		if err != nil {
-			return 0, "", fmt.Errorf("invalid page_token ts")
+			return nil, "", fmt.Errorf("invalid page_token ts")
 		}
-		return ts, parts[1], nil
+		lastTS = ts
+		lastID = parts[1]
 	}
 
-	fetchPage := func(tok string, limit int) ([]Automation, error) {
-		lastTS, lastID, err := parseToken(tok)
-		if err != nil {
-			return nil, err
-		}
-		q := `SELECT id, name, tags, when_json, then_json, enabled, updated_at FROM automations WHERE 1=1`
-		args := []any{}
-		if !opts.IncludeDisabled {
-			q += " AND enabled = 1"
-		}
-		if lastTS > 0 || lastID != "" {
-			q += " AND (updated_at < ? OR (updated_at = ? AND id < ?))"
-			args = append(args, lastTS, lastTS, lastID)
-		}
-		q += " ORDER BY updated_at DESC, id DESC LIMIT ?"
-		args = append(args, limit)
+	q := `SELECT id, name, tags, when_json, then_json, enabled, updated_at FROM automations WHERE 1=1`
+	args := []any{}
 
-		rows, err := db.Query(q, args...)
-		if err != nil {
-			return nil, err
-		}
-		defer rows.Close()
-
-		batch := []Automation{}
-		for rows.Next() {
-			var (
-				id, name                     string
-				tagsJSON, whenJSON, thenJSON sql.NullString
-				enabledInt                   int
-				updatedAt                    int64
-			)
-			if err := rows.Scan(&id, &name, &tagsJSON, &whenJSON, &thenJSON, &enabledInt, &updatedAt); err != nil {
-				return nil, err
-			}
-			auto := Automation{ID: id, Name: name, Enabled: enabledInt != 0, UpdatedAt: updatedAt}
-			if tagsJSON.Valid && tagsJSON.String != "" {
-				_ = json.Unmarshal([]byte(tagsJSON.String), &auto.Tags)
-			}
-			if whenJSON.Valid && whenJSON.String != "" {
-				_ = json.Unmarshal([]byte(whenJSON.String), &auto.When)
-			}
-			if thenJSON.Valid && thenJSON.String != "" {
-				_ = json.Unmarshal([]byte(thenJSON.String), &auto.Then)
-			}
-			batch = append(batch, auto)
-		}
-		if err := rows.Err(); err != nil {
-			return nil, err
-		}
-		return batch, nil
+	if !opts.IncludeDisabled {
+		q += " AND enabled = 1"
 	}
+
+	if nameSubstr := strings.ToLower(strings.TrimSpace(opts.NameContains)); nameSubstr != "" {
+		q += " AND instr(lower(name), ?) > 0"
+		args = append(args, nameSubstr)
+	}
+
+	if requestedTag := strings.ToLower(strings.TrimSpace(opts.Tag)); requestedTag != "" {
+		q += " AND tags IS NOT NULL AND instr(lower(tags), ?) > 0"
+		args = append(args, "\""+requestedTag+"\"")
+	}
+
+	if lastTS > 0 || lastID != "" {
+		q += " AND (updated_at < ? OR (updated_at = ? AND id < ?))"
+		args = append(args, lastTS, lastTS, lastID)
+	}
+
+	q += " ORDER BY updated_at DESC, id DESC LIMIT ?"
+	args = append(args, pageSize+1)
+
+	rows, err := db.Query(q, args...)
+	if err != nil {
+		return nil, "", err
+	}
+	defer rows.Close()
 
 	out := []Automation{}
-	pageToken := strings.TrimSpace(opts.PageToken)
-	limit := pageSize + 1
-
-	for {
-		batch, err := fetchPage(pageToken, limit)
-		if err != nil {
+	for rows.Next() {
+		var (
+			id, name                     string
+			tagsJSON, whenJSON, thenJSON sql.NullString
+			enabledInt                   int
+			updatedAt                    int64
+		)
+		if err := rows.Scan(&id, &name, &tagsJSON, &whenJSON, &thenJSON, &enabledInt, &updatedAt); err != nil {
 			return nil, "", err
 		}
-		if len(batch) == 0 {
-			return out, "", nil
+		auto := Automation{ID: id, Name: name, Enabled: enabledInt != 0, UpdatedAt: updatedAt}
+		if tagsJSON.Valid && tagsJSON.String != "" {
+			_ = json.Unmarshal([]byte(tagsJSON.String), &auto.Tags)
 		}
-		for _, auto := range batch {
-			if requestedTag != "" && !hasTag(auto.Tags, requestedTag) {
-				continue
-			}
-			if nameSubstr != "" && !strings.Contains(strings.ToLower(auto.Name), nameSubstr) {
-				continue
-			}
-			out = append(out, auto)
-			if len(out) > pageSize {
-				last := out[pageSize-1]
-				next := fmt.Sprintf("%d:%s", last.UpdatedAt, last.ID)
-				return out[:pageSize], next, nil
-			}
+		if whenJSON.Valid && whenJSON.String != "" {
+			_ = json.Unmarshal([]byte(whenJSON.String), &auto.When)
 		}
-		if len(batch) < limit {
-			return out, "", nil
+		if thenJSON.Valid && thenJSON.String != "" {
+			_ = json.Unmarshal([]byte(thenJSON.String), &auto.Then)
 		}
-		last := batch[len(batch)-1]
-		pageToken = fmt.Sprintf("%d:%s", last.UpdatedAt, last.ID)
+		out = append(out, auto)
 	}
-}
+	if err := rows.Err(); err != nil {
+		return nil, "", err
+	}
 
-func hasTag(tags []string, t string) bool {
-	for _, tag := range tags {
-		if strings.EqualFold(strings.TrimSpace(tag), strings.TrimSpace(t)) {
-			return true
-		}
+	next := ""
+	if len(out) > pageSize {
+		last := out[pageSize-1]
+		next = fmt.Sprintf("%d:%s", last.UpdatedAt, last.ID)
+		out = out[:pageSize]
 	}
-	return false
+	return out, next, nil
 }
