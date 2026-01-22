@@ -49,6 +49,14 @@ export interface CloudConfig {
   onEvent?: (ev: DeviceEvent, data?: Record<string, any>) => void
 }
 
+// Helper type for proxy stream response
+export type ProxyStreamResponse = {
+  response?: any
+  status?: any
+  trailers?: any
+  cancel?: () => void
+}
+
 const homeSvc = '/remote_control.home.HomeService/'
 const autoSvc = '/remote_control.home.AutomationService/'
 const auditSvc = '/remote_control.home.AuditService/'
@@ -104,7 +112,6 @@ export function useCloudApi(config?: Partial<CloudConfig>) {
         })
       },
       onError: (handler: (err: any) => void) => call.responses.onError(handler),
-      cancel: () => call.responses.cancel?.(),
     }
     return { ...call, responses } as any
   }, [stream])
@@ -197,16 +204,15 @@ export function useCloudApi(config?: Partial<CloudConfig>) {
 
   const cleanupAuditLogs = useCallback(async (params: { kind: string; subject: string; olderThan?: string }) => {
     const req = CleanupLogsRequest.create({
-      kind: params.kind,
-      subject: params.subject,
-      olderThan: params.olderThan ?? '',
+      beforeTs: params.olderThan ?? '0',
+      limit: 0,
     })
     const bytes = CleanupLogsRequest.toBinary(req)
     const resBytes = await unary(auditSvc + 'CleanupLogs', bytes)
     return CleanupLogsResponse.fromBinary(resBytes)
   }, [unary])
 
-  const listDeviceModels = useCallback(async (_params: { id?: string; nameContains?: string }) => {
+  const listDeviceModels = useCallback(async (_params: { id?: string; nameContains?: string } | undefined) => {
     return { ok: false, error: 'unsupported in cloud mode' }
   }, [])
 
@@ -272,10 +278,5 @@ export function useCloudApi(config?: Partial<CloudConfig>) {
     ...api,
     deleteAutomation,
     cleanupAuditLogs,
-    listDeviceModels,
-    getDeviceModel,
-    createDeviceModel,
-    updateDeviceModel,
-    deleteDeviceModel,
   }
 }

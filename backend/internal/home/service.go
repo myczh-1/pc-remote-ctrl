@@ -112,7 +112,10 @@ func (s *Service) UpsertDevice(ctx context.Context, req *homepb.UpsertDeviceRequ
 	}
 	incoming := req.GetDevice()
 	id := strings.TrimSpace(incoming.GetId())
-	// Create: empty id → generate a new one; Update: non-empty id must exist
+	var existing *storage.Device
+
+	// Create: empty id → generate a new one
+	// Update: non-empty id must exist
 	if id == "" {
 		// generate unique id
 		nid, err := generateID()
@@ -120,8 +123,12 @@ func (s *Service) UpsertDevice(ctx context.Context, req *homepb.UpsertDeviceRequ
 			return &homepb.UpsertDeviceResponse{Ok: false, Message: "id generate failed"}, nil
 		}
 		incoming.Id = nid
+		if incoming.Status == homepb.DeviceStatus_DEVICE_STATUS_UNSPECIFIED {
+			incoming.Status = homepb.DeviceStatus_DEVICE_STATUS_ACTIVE
+		}
 	} else {
-		if s.devices.Get(id) == nil {
+		existing = s.devices.Get(id)
+		if existing == nil {
 			return &homepb.UpsertDeviceResponse{Ok: false, Message: "device not found (update requires existing id)"}, nil
 		}
 	}
@@ -130,6 +137,16 @@ func (s *Service) UpsertDevice(ctx context.Context, req *homepb.UpsertDeviceRequ
 	if err != nil {
 		return &homepb.UpsertDeviceResponse{Ok: false, Message: err.Error()}, nil
 	}
+
+	if existing != nil {
+		dev.Status = existing.Status
+		dev.Online = existing.Online
+		dev.LastSeen = existing.LastSeen
+		if incoming.State == nil {
+			dev.Shadow = existing.Shadow
+		}
+	}
+
 	if err := s.applyModel(dev); err != nil {
 		return &homepb.UpsertDeviceResponse{Ok: false, Message: err.Error()}, nil
 	}

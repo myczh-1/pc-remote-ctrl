@@ -11,12 +11,10 @@ export function useMediaQuery(query: string) {
     onChange()
     if (mql.addEventListener) mql.addEventListener('change', onChange)
     else // Safari <14 fallback
-      // @ts-expect-error legacy API
       mql.addListener(onChange)
     return () => {
       if (mql.removeEventListener) mql.removeEventListener('change', onChange)
       else
-        // @ts-expect-error legacy API
         mql.removeListener(onChange)
     }
   }, [query])

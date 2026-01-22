@@ -31,7 +31,7 @@ export function useLocalConnection() {
 
     try {
       // 使用ListDevices测试连接
-      const req = { ids: [], type: '', room: '', tags: [], includeState: false }
+      const req = { ids: [], type: '', room: '', tags: [], includeState: false, includePending: false }
       await clientRef.current!.listDevices(req).response
 
       setConnectionStatus('connected')

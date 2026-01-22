@@ -54,7 +54,6 @@ export function useBleProvisioning() {
   async function requestDevice(): Promise<void> {
     // Relax filtering to accept all devices; confirm service after connect.
     // This helps when firmware doesn't advertise the 128-bit service UUID.
-    // @ts-expect-error navigator.bluetooth may be unavailable in some env
     const dev: any = await (navigator as any).bluetooth.requestDevice({
       acceptAllDevices: true,
       optionalServices: [SERVICE_UUID as any],

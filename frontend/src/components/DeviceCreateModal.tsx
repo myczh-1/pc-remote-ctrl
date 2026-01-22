@@ -116,7 +116,7 @@ export function DeviceCreateModal({ open, onCancel, onCreate, initialDevice, api
       state: initialDevice?.state ?? ({ fields: {} } as any),
       modelId,
       modelVersion,
-      status: initialDevice?.status ?? DeviceStatus.DEVICE_STATUS_ACTIVE,
+      status: initialDevice?.status ?? DeviceStatus.ACTIVE,
     }
     try {
       const res = await onCreate?.(device)

@@ -340,7 +340,7 @@ export default function App() {
                           ] as const).map(t => (
                             <button
                               key={t.key}
-                              onClick={() => setActiveView(t.key)}
+                              onClick={() => setActiveView(t.key as any)}
                               className={`px-3 py-1 text-sm rounded-full transition-colors ${
                                 activeView === t.key
                                   ? 'bg-prime-500 text-white shadow-sm'

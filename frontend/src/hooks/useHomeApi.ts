@@ -37,7 +37,14 @@ export function useHomeApi(config?: Partial<HomeConfig>) {
   }, [baseUrl])
 
   const listDevices = useCallback((params: DeviceListParams) => {
-    return clientRef.current.listDevices(params).response
+    return clientRef.current.listDevices({
+      ids: params?.ids ?? [],
+      type: params?.type ?? '',
+      room: params?.room ?? '',
+      tags: params?.tags ?? [],
+      includeState: params?.includeState ?? false,
+      includePending: params?.includePending ?? false,
+    }).response
   }, [])
 
   const watchDevices = useCallback((params: { ids: string[] }, options: { abort: AbortSignal }) => {
@@ -45,7 +52,12 @@ export function useHomeApi(config?: Partial<HomeConfig>) {
   }, [])
 
   const invokeAction = useCallback((params: { deviceId: string; action: string; args?: any; timeoutMs?: number }) => {
-    return clientRef.current.invokeAction(params).response
+    return clientRef.current.invokeAction({
+      deviceId: params.deviceId,
+      action: params.action,
+      timeoutMs: params.timeoutMs ?? 0,
+      args: params.args ? { fields: {} } : undefined, 
+    }).response
   }, [])
 
   const upsertDevice = useCallback((params: { device: Device }) => {
@@ -80,10 +92,10 @@ export function useHomeApi(config?: Partial<HomeConfig>) {
     return auditClientRef.current.listLogs(params).response
   }, [])
 
-  const listDeviceModels = useCallback((params: { id?: string; nameContains?: string }) => {
+  const listDeviceModels = useCallback((params: { id?: string; nameContains?: string } | undefined) => {
     return modelClientRef.current.listDeviceModels({
-      id: params.id ?? '',
-      nameContains: params.nameContains ?? '',
+      id: params?.id ?? '',
+      nameContains: params?.nameContains ?? '',
     }).response
   }, [])
 

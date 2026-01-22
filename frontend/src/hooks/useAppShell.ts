@@ -67,7 +67,6 @@ export function useAppShell() {
     const next = root.classList.contains('dark') ? 'light' : 'dark'
 
     if (supportsVT) {
-      // @ts-expect-error: startViewTransition is experimental
       const vt = (document as any).startViewTransition(() => {
         root.classList.toggle('dark')
         try { localStorage.setItem('theme', next) } catch { }

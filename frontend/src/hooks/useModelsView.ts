@@ -2,7 +2,7 @@ import { useCallback, useRef, useState } from 'react'
 import type { DeviceModel, DeviceModelSpec } from '../proto/home/service'
 
 interface ModelsApi {
-  listDeviceModels?: (opts?: { id?: string; name?: string }) => Promise<{ ok: boolean; models?: DeviceModel[]; error?: string }>
+  listDeviceModels?: (opts?: { id?: string; nameContains?: string }) => Promise<{ ok: boolean; models?: DeviceModel[]; error?: string }>
   createDeviceModel?: (model: DeviceModelSpec) => Promise<{ ok: boolean; error?: string; message?: string }>
   updateDeviceModel?: (model: DeviceModelSpec) => Promise<{ ok: boolean; error?: string; message?: string }>
   deleteDeviceModel?: (id: string, version: string) => Promise<{ ok: boolean; error?: string; message?: string }>
