@@ -86,7 +86,7 @@ export function DeviceStatus({
   return (
     <div className={`flex items-center gap-3 ${className}`}>
       <StatusIndicator online={online} showText />
-      {showLastSeen && <LastSeen lastSeen={lastSeen} />}
+      {showLastSeen && !online && <LastSeen lastSeen={lastSeen} />}
     </div>
   )
 }
